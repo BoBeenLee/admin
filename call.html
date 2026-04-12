@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>하남 지점 어드민 - 통합 회신 관리</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    theme: { extend: {
+        colors: { brand:{50:'#f0f9ff',100:'#e0f2fe',500:'#0ea5e9',600:'#0284c7',900:'#0c4a6e'} },
+        fontFamily: { sans:['Pretendard','-apple-system','system-ui','sans-serif'] }
+    }}
+}
+</script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css"/>
+<style>
+body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
+.glass-panel{background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(226,232,240,0.8);}
+.hide-scrollbar::-webkit-scrollbar{display:none;}
+.hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
+
+/* ── COLLAPSIBLE PANEL ── */
+.board-panel{overflow:hidden;max-height:0;transition:max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);position:relative;}
+.board-panel.open{max-height:3000px;overflow-y:auto;}
+
+/* ── CALENDAR ── */
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cal-day { min-height: 120px; transition: background-color 0.2s; position: relative; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; background: white; }
+.cal-day:hover { background-color: #f8fafc; }
+.cal-event-item { font-size: 9px; font-weight: 600; padding: 2px 4px; border-radius: 4px; margin-bottom: 2px; }
+
+/* ── DATA BOARD ── */
+#line-chart-svg{width:100%;height:100px;overflow:visible;}
+.stats-key-card{width:72px;display:flex;flex-direction:column;align-items:center;padding:8px 4px;border-radius:10px;border:1px solid #e2e8f0;background:white;}
+.stats-key-badge{width:14px;height:14px;border-radius:3px;font-size:8px;font-weight:900;background:#1e293b;color:white;display:flex;align-items:center;justify-content:center;}
+.emp-name-edit{font-size:9px;font-weight:800;color:#64748b;cursor:default;}
+.emp-name-edit[contenteditable=true]:focus{outline:none;background:#f0f9ff;border-radius:2px;color:#0284c7;}
+
+/* ── APPLICANT TABLE ── */
+.app-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
+.app-table th { background: #f8fafc; padding: 12px 10px; font-size: 11px; font-weight: 800; text-align: left; color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; white-space: nowrap; }
+.app-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.app-table tr:hover td { background-color: #fbfcfe; }
+
+.id-text { font-family: monospace; font-weight: 800; color: #94a3b8; font-size: 10px; }
+.name-text { font-size: 14px; font-weight: 900; color: #1e293b; }
+.team-pill { display: inline-flex; items-center; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 800; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+.memo-input { width: 100%; height: 28px; font-size: 11px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0 8px; outline: none; transition: border-color 0.2s; }
+.memo-input:focus { border-color: #0ea5e9; }
+
+.alpha-grid-compact { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; width: 154px; }
+.alpha-btn-compact { width: 17px; height: 17px; display: flex; items-center; justify-content: center; font-size: 10px; font-weight: 900; background: #f1f5f9; border-radius: 3px; color: #94a3b8; cursor: pointer; border: 1px solid transparent; transition: all 0.1s; }
+.alpha-btn-compact.used { background: #1e293b; color: white; }
+.alpha-btn-compact:hover:not(.used) { background: #e2e8f0; }
+
+.btn-quick { font-size: 10px; font-weight: 800; padding: 4px 6px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #64748b; transition: all 0.15s; white-space: nowrap; text-align: center; }
+.btn-quick:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+.btn-primary { background: #0f172a; color: white; border-color: #0f172a; }
+
+.status-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 800; border: 1px solid transparent; }
+.tag-amber { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+.tag-emerald { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+
+.time-box { font-size: 10px; color: #94a3b8; font-family: monospace; display: block; line-height: 1.3; }
+.pill-src { padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; border: 1px solid transparent; }
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0f172a;color:white;padding:10px 22px;border-radius:12px;font-size:13px;font-weight:600;z-index:300;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* ── PERIOD BTNS ── */
+.period-btn{padding:6px 16px;border-radius:8px;font-size:12px;font-weight:700;transition:all .15s;cursor:pointer;border:none;}
+.period-btn.active{background:#0f172a;color:white;}
+.period-btn:not(.active){background:white;color:#64748b;border:1px solid #e2e8f0;}
+</style>
+</head>
+<body class="antialiased min-h-screen pb-20">
+
+<!-- Header -->
+<header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-4">
+    <button id="hamburger-btn" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"><i class="ph ph-list text-2xl"></i></button>
+    <div class="bg-brand-500 text-white p-1.5 rounded-lg"><i class="ph-bold ph-buildings text-xl"></i></div>
+    <h1 class="text-lg font-bold text-slate-800 tracking-tight">하남 지점 어드민</h1>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="text-sm font-bold text-slate-500 mr-2">신규 회신 관리</span>
+    <img src="https://ui-avatars.com/api/?name=매니저&background=0284c7&color=fff" alt="User" class="w-8 h-8 rounded-full border border-slate-200">
+  </div>
+</header>
+
+<!-- Drawer -->
+<div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity"></div>
+<div id="nav-drawer" class="fixed top-0 left-0 h-full w-full sm:w-72 bg-white shadow-2xl z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col">
+  <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+    <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800"><i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴</h2>
+    <button id="close-drawer-btn" class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer"><i class="ph ph-x"></i></button>
+  </div>
+  <nav class="p-4 space-y-1">
+    <a href="home.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-calendar-blank text-lg"></i> 대시보드 캘린더 (홈)</a>
+    <a href="member.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-users-three text-lg"></i> 멤버 팀</a>
+    <a href="leader.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-crown text-lg"></i> 리더 팀</a>
+    <a href="stats.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트</a>
+    <a href="call.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 bg-brand-50 text-brand-700 rounded-lg font-medium transition-colors"><i class="ph ph-phone-call text-lg"></i> 신규 회신</a>
+  </nav>
+</div>
+
+<main class="max-w-[1550px] mx-auto p-4 lg:p-6 space-y-6">
+
+  <!-- PAGE HEADER -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+      REPLY MANAGEMENT
+      <span class="text-sm font-semibold text-brand-600 bg-brand-50 px-2 py-1 rounded-md border border-brand-100">신규 지원자 통합 관리</span>
+    </h2>
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1 p-1 bg-slate-200/50 rounded-xl border border-slate-200">
+        <button class="period-btn active" data-period="day">오늘</button>
+        <button class="period-btn" data-period="week">이번 주</button>
+      </div>
+      <button id="add-sample-btn" class="px-3 py-2 bg-white text-slate-600 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center gap-1 font-mono">
+        <i class="ph ph-plus"></i> ADD SAMPLE
+      </button>
+    </div>
+  </div>
+
+  <!-- ① DASHBOARD CALENDAR (Keep & Toggle) -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <button onclick="togglePanel('cal-panel', 'cal-icon')" class="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition border-b border-slate-100">
+      <span class="font-bold text-slate-800 flex items-center gap-2 text-sm">
+        <i class="ph-fill ph-calendar text-brand-500 text-base"></i> 통합 캘린더 (지점 일정 현황)
+      </span>
+      <i class="ph ph-caret-down text-slate-400 text-sm transition-transform" id="cal-icon"></i>
+    </button>
+    <div class="board-panel" id="cal-panel">
+      <!-- Full Calendar UI from home.html -->
+      <div class="bg-white flex flex-col">
+        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+          <div class="flex items-center gap-4">
+            <h2 class="text-lg font-bold text-slate-800">2026년 4월</h2>
+            <div class="flex gap-1 text-slate-400">
+              <i class="ph ph-caret-left cursor-pointer hover:text-slate-600"></i>
+              <i class="ph ph-caret-right cursor-pointer hover:text-slate-600"></i>
+            </div>
+            <button class="px-3 py-1 bg-slate-100 text-slate-600 text-[11px] font-bold rounded-md hover:bg-slate-200">오늘</button>
+          </div>
+          <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button class="px-3 py-1 bg-white shadow-sm rounded text-[11px] font-bold text-slate-800">월간</button>
+            <button class="px-3 py-1 text-slate-500 hover:text-slate-700 text-[11px] font-bold rounded">주간</button>
+          </div>
+        </div>
+        <div class="cal-grid bg-slate-100 border-b border-slate-200 font-black text-[10px] text-slate-400 uppercase tracking-widest">
+          <div class="py-2.5 text-center text-red-300">Sun</div><div class="py-2.5 text-center">Mon</div><div class="py-2.5 text-center">Tue</div>
+          <div class="py-2.5 text-center">Wed</div><div class="py-2.5 text-center">Thu</div><div class="py-2.5 text-center">Fri</div><div class="py-2.5 text-center text-brand-300">Sat</div>
+        </div>
+        <div class="cal-grid bg-slate-200 gap-[1px]" id="calendar-grid">
+          <div class="cal-day p-2"><span class="absolute top-2 right-1.5 text-[10px] text-slate-300">29</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-1.5 text-[10px] text-slate-300">30</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-1.5 text-[10px] text-slate-300">31</span></div>
+          <div class="cal-day p-2 border-t-2 border-brand-400 bg-brand-50/20">
+            <span class="absolute top-2 right-2 text-xs font-bold text-brand-600 bg-brand-100 rounded-full w-5 h-5 flex items-center justify-center">1</span>
+            <div class="mt-7 flex flex-col space-y-1">
+              <div class="cal-event-item bg-blue-100 text-blue-700 border border-blue-200 shadow-sm truncate">7pm 김서현 010-1111-2222</div>
+              <div class="cal-event-item bg-blue-100 text-blue-700 border border-blue-200 shadow-sm truncate">7pm 정짜요 010-2222-3333</div>
+            </div>
+          </div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">2</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">3</span><div class="mt-7"><div class="cal-event-item bg-orange-100 text-orange-700 border border-orange-200 truncate">리더 간담회 회식</div></div></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-blue-500">4</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-red-500">5</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">6</span><div class="mt-7"><div class="cal-event-item bg-emerald-100 text-emerald-700 border border-emerald-200 truncate">3pm 상담 2건</div></div></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">7</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">8</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">9</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">10</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-blue-500">11</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">12</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">13</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">14</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">15</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">16</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">17</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">18</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② DATA BOARD (Keep & Toggle) -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <button onclick="togglePanel('board-panel', 'board-icon')" class="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition border-b border-slate-100">
+      <span class="font-bold text-slate-800 flex items-center gap-2 text-sm">
+        <i class="ph-fill ph-chart-line text-purple-500 text-base"></i> 데이터 보드 (회신 및 유입 분석)
+      </span>
+      <i class="ph ph-caret-down text-slate-400 text-sm transition-transform" id="board-icon"></i>
+    </button>
+    <div class="board-panel" id="board-panel">
+      <div class="p-5 space-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100"><div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">총 지원자</div><div class="text-2xl font-black text-slate-800" id="b-total">0</div></div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100"><div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">총 회신율</div><div class="text-2xl font-black text-emerald-600" id="b-rate">0%</div></div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100"><div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">예약 성공률</div><div class="text-2xl font-black text-brand-600" id="b-success">0%</div></div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100"><div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">성공 평균 회신 수</div><div class="flex items-baseline gap-1"><span class="text-2xl font-black text-blue-600" id="b-avg">-</span><span class="text-[10px] text-slate-400">회</span></div></div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-6">
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <div class="flex items-center justify-between mb-4"><span class="text-xs font-bold text-slate-600">시간대별 실시간 현황</span><div class="flex gap-3 text-[9px] font-bold"><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-brand-500"></span>지원</span><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-emerald-500"></span>회신</span><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-500"></span>성공</span></div></div>
+            <svg id="line-chart-svg"></svg><div id="line-chart-labels" class="flex justify-between mt-3"></div>
+          </div>
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100"><span class="text-xs font-bold text-slate-600 mb-4 block">유입 경로 현황</span><div id="b-source-wrap" class="space-y-2"></div></div>
+        </div>
+        <div class="pt-4 border-t border-slate-100">
+          <span class="text-xs font-bold text-slate-500 mb-3 block flex items-center gap-2"><i class="ph-fill ph-user-circle"></i> 직원별 개인 회신율 / 성함 수정</span>
+          <div id="b-emp-grid" class="flex flex-wrap gap-1.5"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ NEW APPLICANT TABLE (Integrated Below) -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="app-table">
+        <thead>
+          <tr>
+            <th class="w-[140px] pl-6">ID / Name / Team</th>
+            <th class="w-[200px]">Memo & Comment</th>
+            <th class="w-[170px]">Responders (A-P)</th>
+            <th class="w-[140px]">Contact</th>
+            <th class="w-[120px]">Result Selection</th>
+            <th class="w-[130px]">Quick Action</th>
+            <th class="w-[160px]">Schedule / SMS</th>
+            <th class="w-[140px]">Timestamps</th>
+            <th class="pr-6">Ad Details</th>
+          </tr>
+        </thead>
+        <tbody id="app-list"></tbody>
+      </table>
+    </div>
+    <div id="empty-state" class="p-24 text-center hidden">
+      <p class="text-slate-400 font-bold tracking-normal">조회 기간 내 지원자가 없습니다.</p>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const EMP_KEY = 'hanam_emp_names_v3';
+const SOURCES = [
+  {id:'kakao', label:'카카오', cls:'border-amber-100 bg-amber-50 text-amber-700', color:'#FBBF24'},
+  {id:'naver', label:'네이버', cls:'border-emerald-100 bg-emerald-50 text-emerald-700', color:'#22C55E'},
+  {id:'insta', label:'인스타', cls:'border-purple-100 bg-purple-50 text-purple-700', color:'#D946EF'},
+  {id:'sns', label:'SNS광고', cls:'border-blue-100 bg-blue-50 text-blue-700', color:'#3B82F6'},
+  {id:'referral', label:'지인소개', cls:'border-slate-200 bg-slate-50 text-slate-700', color:'#94A3B8'}
+];
+
+let employees = JSON.parse(localStorage.getItem(EMP_KEY)) || Array.from({length:16}, (_,i)=>({key:String.fromCharCode(65+i), name:`직원${i+1}`}));
+let applicants = [];
+let callLogs = {};
+let visitData = {};
+let currentPeriod = 'day';
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+function fmtDT(d){ if(!d) return '-'; const date=new Date(d); return `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`; }
+function maskPhone(p){ return p.replace(/(\d{3})-(\d{4})-(\d{4})/, "$1-****-$3"); }
+function togglePanel(id, iconId){
+  const p = document.getElementById(id);
+  const ic = document.getElementById(iconId);
+  const isOpen = p.classList.toggle('open');
+  ic.style.transform = isOpen ? 'rotate(180deg)' : '';
+  if(isOpen && id==='board-panel') renderBoard();
+}
+
+function renderList() {
+  const container = document.getElementById('app-list');
+  const empty = document.getElementById('empty-state');
+  const fa = filtered();
+  if (fa.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  container.innerHTML = '';
+  fa.forEach((a) => {
+    const logs = callLogs[a.id] || [];
+    const vd = visitData[a.id];
+    const hasVisit = vd?.scheduled;
+    const sTag = hasVisit ? 'tag-emerald' : (logs.length > 0 ? 'tag-amber' : 'tag-neutral');
+    const sText = hasVisit ? '예약완료' : (logs.length > 0 ? '회신중' : '미회신');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="pl-6"><div class="id-text">#${a.id.slice(-7)}</div><div class="name-text">${a.name}</div><div class="team-pill mt-1 uppercase">${a.team}</div></td>
+      <td><div class="text-[10px] text-slate-400 font-bold mb-1">${a.slot}</div><div class="flex gap-1 mb-1.5"><input type="text" class="memo-input" placeholder="메모 입력" id="memo-${a.id}" value="${a.comment||''}"><button onclick="saveMemo('${a.id}')" class="btn-quick bg-slate-800 text-white border-slate-800 px-2 py-1">저장</button></div><button class="btn-quick w-full text-slate-400">성함 수정</button></td>
+      <td><div class="alpha-grid-compact">${employees.map(emp => { const used = logs.some(l => l.key === emp.key); return `<div class="alpha-btn-compact ${used?'used':''}" onclick="toggleCall('${a.id}','${emp.key}')">${emp.key}</div>`; }).join('')}</div></td>
+      <td><div class="font-bold text-[13px] text-slate-700 font-mono mb-1">${maskPhone(a.phone)}</div><button class="btn-quick w-full text-brand-600 border-brand-100 bg-brand-50" onclick="toast('번호 확인 권한이 없습니다')">번호 확인</button></td>
+      <td><div class="mb-1.5"><span class="status-tag ${sTag}">${sText}</span></div><select class="memo-input" style="height:28px" onchange="toast('상태 업데이트')"><option>결과 선택</option><option>상담 성공</option><option>부재중</option><option>거절</option></select></td>
+      <td><div class="flex flex-col gap-1"><button class="btn-quick text-red-500 border-red-100 bg-red-50/20">안할래요!</button><button class="btn-quick text-orange-600">최후통첩</button><button class="btn-quick text-purple-600">스텝권유</button></div></td>
+      <td><input type="datetime-local" class="memo-input mb-1.5" id="dt-${a.id}" value="${hasVisit ? vd.datetime : ''}"><div class="flex gap-1"><button onclick="scheduleVisit('${a.id}')" class="btn-quick btn-primary flex-1 py-1.5">달력</button><button class="btn-quick flex-1">문자발송</button></div></td>
+      <td><span class="time-box font-bold text-slate-600">${fmtDT(a.time)}</span><span class="time-box mt-1">${fmtDT(a.updatedAt)}</span><div class="pill-src mt-2 border ${a.sourceCls}">${a.sourceLabel}</div></td>
+      <td class="pr-6"><div class="text-[11px] text-slate-500 leading-snug line-clamp-2">${a.details}</div></td>`;
+    container.appendChild(tr);
+  });
+}
+
+function renderBoard(){
+  const fa = filtered();
+  const total = fa.length;
+  const replied = fa.filter(a=>(callLogs[a.id]||[]).length>0).length;
+  const visited = fa.filter(a=>visitData[a.id]?.scheduled).length;
+  document.getElementById('b-total').textContent = total;
+  document.getElementById('b-rate').textContent = (total>0?Math.round(replied/total*100):0) + '%';
+  document.getElementById('b-success').textContent = (replied>0?Math.round(visited/replied*100):0) + '%';
+  const hours = Array.from({length:14}, (_,i)=>i+9);
+  const hourApp={}; hours.forEach(h=>hourApp[h]=0);
+  fa.forEach(a=>{ const h=new Date(a.time).getHours(); if(hourApp[h]!==undefined) hourApp[h]++; });
+  const svg = document.getElementById('line-chart-svg');
+  const W=480, H=100, pad=10;
+  const max = Math.max(1, ...Object.values(hourApp));
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = `<polyline points="${hours.map((h,i)=>`${pad+i*((W-2*pad)/(hours.length-1))},${H-pad-(hourApp[h]/max)*(H-2*pad)}`).join(' ')}" fill="none" stroke="#0ea5e9" stroke-width="2" />`;
+  const srcWrap = document.getElementById('b-source-wrap'); srcWrap.innerHTML = '';
+  SOURCES.forEach(s => {
+    const count = fa.filter(a=>a.source===s.id).length; if(count === 0) return;
+    srcWrap.innerHTML += `<div class="flex items-center gap-2"><span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span><div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${total>0?Math.round(count/total*100):0}%"></div></div><span class="text-[10px] font-black text-slate-500">${count}</span></div>`;
+  });
+  const empGrid = document.getElementById('b-emp-grid'); empGrid.innerHTML = '';
+  employees.forEach(emp => {
+    const count = fa.filter(a=>(callLogs[a.id]||[]).some(l=>l.key===emp.key)).length;
+    const card = document.createElement('div'); card.className = 'stats-key-card';
+    card.innerHTML = `<div class="flex items-center gap-1 border-b border-slate-100 w-full px-1 pb-1 mb-1"><span class="stats-key-badge">${emp.key}</span><span class="emp-name-edit">${emp.name}</span></div><div class="text-[10px] font-black text-brand-600">${total>0?Math.round(count/total*100):0}%</div>`;
+    empGrid.appendChild(card);
+  });
+}
+
+function filtered(){
+  const now = new Date();
+  return applicants.filter(a=>{
+    const d = new Date(a.time);
+    if(currentPeriod==='day') return d.toDateString() === now.toDateString();
+    if(currentPeriod==='week'){ const d2=new Date(now); d2.setDate(now.getDate()-7); return d >= d2; }
+    return true;
+  });
+}
+
+function toggleCall(id, key){
+  if(!callLogs[id]) callLogs[id]=[];
+  const exist = callLogs[id].findIndex(l=>l.key===key);
+  if(exist!==-1) callLogs[id].splice(exist,1);
+  else callLogs[id].push({key, time:new Date()});
+  const a = applicants.find(x=>x.id===id); a.updatedAt = new Date();
+  renderList(); if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+}
+
+function saveMemo(id){
+  const v = document.getElementById(`memo-${id}`).value;
+  const a = applicants.find(x=>x.id===id);
+  if(a){ a.comment = v; a.updatedAt = new Date(); toast('✅ 메모 저장 완료'); renderList(); }
+}
+
+function scheduleVisit(id){
+  const v = document.getElementById(`dt-${id}`).value;
+  if(!v){ toast('❗ 일시를 입력하세요'); return; }
+  visitData[id] = {datetime: v, scheduled:true};
+  const a = applicants.find(x=>x.id===id); a.updatedAt = new Date();
+  toast('📅 예약 완료'); renderList(); if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const drawer = document.getElementById('nav-drawer'), overlay = document.getElementById('drawer-overlay');
+  document.getElementById('hamburger-btn').onclick = () => { overlay.classList.remove('hidden'); setTimeout(()=> {overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full');}, 10); };
+  const close = () => { overlay.classList.add('opacity-0'); drawer.classList.add('-translate-x-full'); setTimeout(()=>overlay.classList.add('hidden'), 300); };
+  overlay.onclick = close; document.getElementById('close-drawer-btn').onclick = close;
+  document.querySelectorAll('.period-btn').forEach(btn=>{ btn.onclick = () => { document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); currentPeriod = btn.dataset.period; renderList(); if(document.getElementById('board-panel').classList.contains('open')) renderBoard(); }; });
+  
+  // Initial Data: Pre-populate with 15 varied samples
+  const populateInitial = () => {
+    const NAMES = ['김서연','이민준','박채원','최하은','정유진','강민준','조서준','윤수빈','장하윤','임채원','정우진','한소희','서지민','송유찬','권하랑'];
+    const STAFF = ['A','B','C','D','E','F'];
+    
+    for(let i=0; i<15; i++){
+      const src = SOURCES[Math.floor(Math.random()*SOURCES.length)];
+      const id = 'APP_'+Math.random().toString(36).slice(2,8).toUpperCase();
+      const isToday = i < 8; // 8 for today, 7 for recent past
+      
+      const app = {
+        id: id,
+        name: NAMES[i % NAMES.length],
+        team: Math.random() > 0.5 ? 'ig' : 'fb',
+        slot: ['11시','2시','3시','7시','8시'][Math.floor(Math.random()*5)],
+        phone: `010-${Math.floor(Math.random()*9000+1000)}-${Math.floor(Math.random()*9000+1000)}`,
+        source: src.id,
+        sourceLabel: src.label,
+        sourceCls: src.cls,
+        time: isToday ? new Date() : new Date(Date.now() - (i*3600000*8)), // spread over hours/days
+        updatedAt: new Date(),
+        details: i%3===0 ? '[하남점] 영어 무료 레벨테스트 신청' : '[하남점] 인스타 프로모션 유입건',
+        comment: i%4===0 ? '상담 대기 중' : ''
+      };
+      
+      // Add fake logs for some
+      if (i % 2 === 0) {
+        callLogs[id] = [{key: STAFF[i % STAFF.length], time: new Date()}];
+      }
+      // Add fake visits for some
+      if (i % 5 === 0) {
+        visitData[id] = {datetime: '2026-04-12T19:00', scheduled: true};
+      }
+      
+      applicants.push(app);
+    }
+    applicants.sort((a,b) => b.time - a.time);
+  };
+
+  populateInitial();
+  renderList();
+  if (document.getElementById('board-panel').classList.contains('open')) renderBoard();
+  
+  // Also hook up the manual sample button for more
+  document.getElementById('add-sample-btn').onclick = () => {
+    const NAMES = ['김서연','이민준','박채원','최하은','정유진','강민준','조서준','윤수빈','장하윤','임채원'];
+    const n = Math.floor(Math.random()*3)+1;
+    for(let i=0; i<n; i++){
+      const src = SOURCES[Math.floor(Math.random()*SOURCES.length)];
+      applicants.unshift({ id: 'APP_'+Math.random().toString(36).slice(2,8).toUpperCase(), name: NAMES[Math.floor(Math.random()*NAMES.length)], team: Math.random()>0.5?'ig':'fb', slot: ['11시','2시','3시','7시','8시'][Math.floor(Math.random()*5)], phone: `010-${Math.floor(Math.random()*9000+1000)}-${Math.floor(Math.random()*9000+1000)}`, source: src.id, sourceLabel: src.label, sourceCls: src.cls, time: new Date(), updatedAt: new Date(), details: '[하남점] 유입 샘플 데이터', comment: '' });
+    }
+    toast(`➕ ${n}명 추가됨`); renderList(); if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+  };
+});
+</script>
+</body>
+</html>

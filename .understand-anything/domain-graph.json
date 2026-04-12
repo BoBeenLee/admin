@@ -1,0 +1,620 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "하남 지점 어드민 (Hanam Branch Admin)",
+    "languages": ["HTML", "JavaScript", "CSS"],
+    "frameworks": ["Tailwind CSS", "Phosphor Icons"],
+    "description": "A branch administration system for a language study center managing members, leaders (tutors), attendance tracking, team scheduling, membership tiers, and communications for English and Japanese study programs.",
+    "analyzedAt": "2026-04-06T00:00:00.000Z",
+    "gitCommitHash": "a6f5e49bc8e19e61a502e39351d323228675db3f"
+  },
+  "nodes": [
+    {
+      "id": "domain:member-management",
+      "type": "domain",
+      "name": "Member Management",
+      "summary": "Manages student members enrolled in English and Japanese study programs. Handles membership tiers (VVIP/VIP/A+/H+/B), reading levels (LV1-LV5), session tracking, expiry alerts, and member profiles.",
+      "tags": ["members", "membership", "students", "reading-levels"],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": ["Member", "Membership Tier", "Reading Level", "Session Count"],
+        "businessRules": [
+          "Membership tiers determine total session counts: VVIP=1040, VIP=520, A+=260, H+=120, B=60",
+          "Members are grouped by reading level LV1 through LV5 per language",
+          "Expiry alerts trigger at D-7 before membership expiration",
+          "First-visit check must be confirmed for new members"
+        ],
+        "crossDomainInteractions": [
+          "Members are assigned to teams organized by language and time slot",
+          "Member attendance is tracked per team session",
+          "Dashboard surfaces first-visit and new member reminders"
+        ]
+      }
+    },
+    {
+      "id": "domain:leader-management",
+      "type": "domain",
+      "name": "Leader Management",
+      "summary": "Manages leaders (tutors/facilitators) who lead study sessions. Tracks leader attendance status, substitute assignments, absence schedules, and team assignments across language and time slots.",
+      "tags": ["leaders", "tutors", "facilitators", "substitutes"],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": ["Leader", "Team Assignment", "Attendance Status", "Substitute"],
+        "businessRules": [
+          "Leaders have five attendance statuses: expected, completed, substitute expected, substitute completed, absent",
+          "Leader status board shows a 7-day rolling view with language and time filters",
+          "Absent leaders require substitute assignment tracking"
+        ],
+        "crossDomainInteractions": [
+          "Leaders are assigned to teams shared with members",
+          "Leader status is surfaced on the main dashboard",
+          "Leader attendance affects member session availability"
+        ]
+      }
+    },
+    {
+      "id": "domain:attendance-tracking",
+      "type": "domain",
+      "name": "Attendance Tracking",
+      "summary": "Tracks attendance for both members and leaders across study sessions. Provides attendance rate visualization, daily check-in status, and historical attendance block views.",
+      "tags": ["attendance", "check-in", "tracking", "rates"],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": ["Attendance Record", "Attendance Block", "Attendance Rate"],
+        "businessRules": [
+          "Attendance statuses: 출석예정 (expected), 출석완료 (completed), 대타예정 (substitute expected), 대타출석완료 (substitute completed), 불참 (absent)",
+          "Recent attendance rate is visualized with an 8-block display",
+          "Cumulative attendance rate is tracked per member profile"
+        ],
+        "crossDomainInteractions": [
+          "Attendance data is displayed in both member and leader management views",
+          "Dashboard calendar integrates attendance-related events"
+        ]
+      }
+    },
+    {
+      "id": "domain:team-scheduling",
+      "type": "domain",
+      "name": "Team Scheduling",
+      "summary": "Organizes study teams by language (English/Japanese) and recurring time slots (day + hour). Supports team tab navigation, bulk member/leader operations, and team-based filtering.",
+      "tags": ["teams", "scheduling", "time-slots", "language-groups"],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": ["Team", "Time Slot", "Language Group"],
+        "businessRules": [
+          "Teams are organized by language (영어/일어) combined with day and time (e.g., 월수11시, 화목8시)",
+          "Members and leaders are assigned to specific team slots",
+          "Bulk actions (move, SMS, delete) can be applied to selected team members"
+        ],
+        "crossDomainInteractions": [
+          "Teams link members and leaders together for study sessions",
+          "Team filters are used across member and leader management pages"
+        ]
+      }
+    },
+    {
+      "id": "domain:dashboard-communications",
+      "type": "domain",
+      "name": "Dashboard & Communications",
+      "summary": "Provides the main dashboard with calendar, notices, leader status overview, new member reminders, and communication features including SMS sending and phone number copying.",
+      "tags": ["dashboard", "calendar", "notices", "sms", "communications"],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": ["Notice", "Calendar Event", "SMS Message", "Reminder"],
+        "businessRules": [
+          "Calendar events are color-coded: blue for new registration, green for consultation, orange for events",
+          "Tomorrow's new member reminders support quick-send functionality",
+          "SMS can be sent to bulk-selected members or leaders"
+        ],
+        "crossDomainInteractions": [
+          "Dashboard aggregates leader status from leader management",
+          "Dashboard shows first-visit members from member management",
+          "Calendar displays events related to member registration and consultations"
+        ]
+      }
+    },
+    {
+      "id": "flow:member-team-attendance-view",
+      "type": "flow",
+      "name": "Member Team Attendance View",
+      "summary": "Displays member attendance organized by team tabs and reading levels, with search, filters, sorting, and level-based section navigation.",
+      "tags": ["member", "attendance", "team-view"],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "member.html",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:member-alert-checks",
+      "type": "flow",
+      "name": "Member Alert Checks",
+      "summary": "Surfaces actionable alerts for members requiring attention: first-visit unchecked members and memberships expiring within 7 days.",
+      "tags": ["alerts", "first-visit", "expiry", "checks"],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "member.html CHECK section",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:member-profile-view",
+      "type": "flow",
+      "name": "Member Profile View",
+      "summary": "Displays detailed member profile modal with registration info, membership details, session counts, attendance rate, consultation comments, and history timeline.",
+      "tags": ["profile", "member", "modal"],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "Click member row in attendance table",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:leader-team-attendance-view",
+      "type": "flow",
+      "name": "Leader Team Attendance View",
+      "summary": "Displays leader attendance organized by language and time slot tabs, with search, filters, sorting, and 7-day swipeable status board.",
+      "tags": ["leader", "attendance", "team-view"],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "leader.html",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:leader-absence-tracking",
+      "type": "flow",
+      "name": "Leader Absence Tracking",
+      "summary": "Tracks and displays leaders who are absent, supporting substitute assignment visibility and absence schedule management.",
+      "tags": ["leader", "absence", "substitute"],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "leader.html absence schedule section",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:dashboard-overview",
+      "type": "flow",
+      "name": "Dashboard Overview",
+      "summary": "Renders the main dashboard with notices, leader status summary, first-visit study alerts, and new member reminders.",
+      "tags": ["dashboard", "overview", "widgets"],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "home.html",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:calendar-management",
+      "type": "flow",
+      "name": "Calendar Management",
+      "summary": "Displays a monthly calendar with color-coded events for registrations, consultations, and branch events, with modal detail views.",
+      "tags": ["calendar", "events", "schedule"],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "home.html calendar section",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:leader-status-board",
+      "type": "flow",
+      "name": "Leader Status Board",
+      "summary": "Shows an expanded 7-day leader status board modal with day navigation, language and time filters, and attendance status summaries.",
+      "tags": ["leader", "status", "board", "modal"],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "home.html leader status widget click",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:bulk-member-actions",
+      "type": "flow",
+      "name": "Bulk Member Actions",
+      "summary": "Enables selecting multiple members and performing bulk operations: move to another team, send SMS, or delete.",
+      "tags": ["bulk", "actions", "member", "sms"],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "member.html bulk action toolbar",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "flow:bulk-leader-actions",
+      "type": "flow",
+      "name": "Bulk Leader Actions",
+      "summary": "Enables selecting multiple leaders and performing bulk operations: move to another team, send SMS, or delete.",
+      "tags": ["bulk", "actions", "leader", "sms"],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "leader.html bulk action toolbar",
+        "entryType": "manual"
+      }
+    },
+    {
+      "id": "step:member-team-attendance-view:select-team-tab",
+      "type": "step",
+      "name": "Select Team Tab",
+      "summary": "User selects a language (English/Japanese) and time slot tab to filter the member list by team.",
+      "tags": ["filter", "team", "tab"],
+      "complexity": "simple",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-team-attendance-view:search-and-filter",
+      "type": "step",
+      "name": "Search and Filter Members",
+      "summary": "Search members by name or phone number, apply sorting (attendance rate, name, age, remaining sessions, expiry date), and filter by membership tier.",
+      "tags": ["search", "filter", "sort"],
+      "complexity": "moderate",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-team-attendance-view:render-level-sections",
+      "type": "step",
+      "name": "Render Level Sections",
+      "summary": "Groups and renders members into reading level sections (LV1-LV5), each with its own attendance table.",
+      "tags": ["reading-level", "grouping", "render"],
+      "complexity": "moderate",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-team-attendance-view:display-attendance-table",
+      "type": "step",
+      "name": "Display Attendance Table",
+      "summary": "Renders the member attendance table with columns for member info, reading level, team, attendance status, memo, recent attendance rate visualization, today's check, and actions.",
+      "tags": ["table", "attendance", "display"],
+      "complexity": "moderate",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-team-attendance-view:mark-today-attendance",
+      "type": "step",
+      "name": "Mark Today's Attendance",
+      "summary": "Allows marking a member's attendance status for today's session directly from the table.",
+      "tags": ["attendance", "check-in", "today"],
+      "complexity": "simple",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-alert-checks:show-first-visit-unchecked",
+      "type": "step",
+      "name": "Show First Visit Unchecked",
+      "summary": "Displays members whose first visit has not been confirmed, with a resolve button to mark as checked.",
+      "tags": ["first-visit", "alert", "unchecked"],
+      "complexity": "simple",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-alert-checks:show-expiry-d-7",
+      "type": "step",
+      "name": "Show Expiry D-7 Alerts",
+      "summary": "Displays members whose membership expires within 7 days, with a resolve button to acknowledge.",
+      "tags": ["expiry", "alert", "d-7"],
+      "complexity": "simple",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-alert-checks:resolve-alert",
+      "type": "step",
+      "name": "Resolve Alert",
+      "summary": "Marks an alert item as resolved, removing it from the active alerts list.",
+      "tags": ["resolve", "alert", "action"],
+      "complexity": "simple",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-profile-view:open-profile-modal",
+      "type": "step",
+      "name": "Open Profile Modal",
+      "summary": "Opens the member profile modal when a member row is clicked in the attendance table.",
+      "tags": ["modal", "profile", "open"],
+      "complexity": "simple",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-profile-view:display-member-stats",
+      "type": "step",
+      "name": "Display Member Stats",
+      "summary": "Shows registration date, membership tier, remaining sessions, start and expiry dates, and cumulative attendance rate.",
+      "tags": ["stats", "membership", "profile"],
+      "complexity": "moderate",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:member-profile-view:show-consultation-history",
+      "type": "step",
+      "name": "Show Consultation History",
+      "summary": "Displays consultation comments and history timeline for the member.",
+      "tags": ["consultation", "history", "timeline"],
+      "complexity": "simple",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-team-attendance-view:select-language-time-tab",
+      "type": "step",
+      "name": "Select Language and Time Tab",
+      "summary": "User selects language (English/Japanese) and time slot tabs to filter the leader list.",
+      "tags": ["filter", "language", "time-slot"],
+      "complexity": "simple",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-team-attendance-view:search-and-filter-leaders",
+      "type": "step",
+      "name": "Search and Filter Leaders",
+      "summary": "Search leaders by name or phone, filter by reading level, and sort by name, attendance rate, reading level, or today's attendance.",
+      "tags": ["search", "filter", "sort"],
+      "complexity": "moderate",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-team-attendance-view:display-leader-status-board",
+      "type": "step",
+      "name": "Display Leader Status Board",
+      "summary": "Renders the 7-day swipeable leader status board with attendance status summaries and language/time filters.",
+      "tags": ["status-board", "7-day", "swipeable"],
+      "complexity": "moderate",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-team-attendance-view:display-leader-attendance-table",
+      "type": "step",
+      "name": "Display Leader Attendance Table",
+      "summary": "Renders the leader attendance table with member info, reading level, team, attendance/absence/substitute status, editable memo, 8-block attendance rate, today's check, and actions.",
+      "tags": ["table", "attendance", "leader"],
+      "complexity": "moderate",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-team-attendance-view:mark-leader-attendance",
+      "type": "step",
+      "name": "Mark Leader Attendance",
+      "summary": "Allows marking a leader's attendance status for today including substitute options.",
+      "tags": ["attendance", "check-in", "substitute"],
+      "complexity": "simple",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-absence-tracking:list-absent-leaders",
+      "type": "step",
+      "name": "List Absent Leaders",
+      "summary": "Displays the list of leaders who are absent for the current period.",
+      "tags": ["absence", "list", "leaders"],
+      "complexity": "simple",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-absence-tracking:view-substitute-status",
+      "type": "step",
+      "name": "View Substitute Status",
+      "summary": "Shows substitute assignment status for absent leaders, including whether a substitute has been confirmed.",
+      "tags": ["substitute", "status", "assignment"],
+      "complexity": "simple",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:dashboard-overview:render-notices",
+      "type": "step",
+      "name": "Render Notices",
+      "summary": "Displays scrolling important announcements in the notices widget.",
+      "tags": ["notices", "announcements", "widget"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:dashboard-overview:render-leader-status-summary",
+      "type": "step",
+      "name": "Render Leader Status Summary",
+      "summary": "Shows today's leader attendance status overview with counts for expected, completed, substitute, and absent.",
+      "tags": ["leader", "status", "summary"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:dashboard-overview:show-first-visit-study",
+      "type": "step",
+      "name": "Show First Visit Study",
+      "summary": "Displays members who are having their first study session today.",
+      "tags": ["first-visit", "today", "members"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:dashboard-overview:send-new-member-reminders",
+      "type": "step",
+      "name": "Send New Member Reminders",
+      "summary": "Provides quick-send reminder functionality for tomorrow's new members.",
+      "tags": ["reminders", "new-member", "send"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:calendar-management:render-monthly-calendar",
+      "type": "step",
+      "name": "Render Monthly Calendar",
+      "summary": "Displays a monthly calendar view with color-coded event markers.",
+      "tags": ["calendar", "monthly", "render"],
+      "complexity": "moderate",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:calendar-management:display-event-details",
+      "type": "step",
+      "name": "Display Event Details",
+      "summary": "Opens a modal showing event details when a calendar date is clicked, via openScheduleModal().",
+      "tags": ["modal", "event", "details"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:calendar-management:build-event-summary",
+      "type": "step",
+      "name": "Build Event Summary",
+      "summary": "Aggregates and summarizes events for the selected date using buildSummary() and renderRow().",
+      "tags": ["summary", "aggregate", "events"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-status-board:open-expanded-board",
+      "type": "step",
+      "name": "Open Expanded Board",
+      "summary": "Opens the full leader status board modal from the dashboard widget.",
+      "tags": ["modal", "expand", "board"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-status-board:navigate-days",
+      "type": "step",
+      "name": "Navigate Days",
+      "summary": "Allows navigating through a 7-day view of leader attendance status.",
+      "tags": ["navigation", "7-day", "swipe"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:leader-status-board:apply-filters",
+      "type": "step",
+      "name": "Apply Filters",
+      "summary": "Filters the leader status board by language and time slot.",
+      "tags": ["filter", "language", "time"],
+      "complexity": "simple",
+      "filePath": "home.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:bulk-member-actions:select-members",
+      "type": "step",
+      "name": "Select Members",
+      "summary": "Checkboxes to select multiple members for bulk operations.",
+      "tags": ["select", "checkbox", "bulk"],
+      "complexity": "simple",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:bulk-member-actions:execute-bulk-action",
+      "type": "step",
+      "name": "Execute Bulk Action",
+      "summary": "Performs the selected bulk action (move team, send SMS, or delete) on checked members.",
+      "tags": ["bulk", "move", "sms", "delete"],
+      "complexity": "moderate",
+      "filePath": "member.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:bulk-leader-actions:select-leaders",
+      "type": "step",
+      "name": "Select Leaders",
+      "summary": "Checkboxes to select multiple leaders for bulk operations.",
+      "tags": ["select", "checkbox", "bulk"],
+      "complexity": "simple",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    },
+    {
+      "id": "step:bulk-leader-actions:execute-bulk-leader-action",
+      "type": "step",
+      "name": "Execute Bulk Leader Action",
+      "summary": "Performs the selected bulk action (move team, send SMS, or delete) on checked leaders.",
+      "tags": ["bulk", "move", "sms", "delete"],
+      "complexity": "moderate",
+      "filePath": "leader.html",
+      "lineRange": [0, 0]
+    }
+  ],
+  "edges": [
+    { "source": "domain:member-management", "target": "flow:member-team-attendance-view", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:member-management", "target": "flow:member-alert-checks", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:member-management", "target": "flow:member-profile-view", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:member-management", "target": "flow:bulk-member-actions", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:leader-management", "target": "flow:leader-team-attendance-view", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:leader-management", "target": "flow:leader-absence-tracking", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:leader-management", "target": "flow:bulk-leader-actions", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:dashboard-communications", "target": "flow:dashboard-overview", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:dashboard-communications", "target": "flow:calendar-management", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+    { "source": "domain:dashboard-communications", "target": "flow:leader-status-board", "type": "contains_flow", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:member-team-attendance-view", "target": "step:member-team-attendance-view:select-team-tab", "type": "flow_step", "direction": "forward", "weight": 0.2 },
+    { "source": "flow:member-team-attendance-view", "target": "step:member-team-attendance-view:search-and-filter", "type": "flow_step", "direction": "forward", "weight": 0.4 },
+    { "source": "flow:member-team-attendance-view", "target": "step:member-team-attendance-view:render-level-sections", "type": "flow_step", "direction": "forward", "weight": 0.6 },
+    { "source": "flow:member-team-attendance-view", "target": "step:member-team-attendance-view:display-attendance-table", "type": "flow_step", "direction": "forward", "weight": 0.8 },
+    { "source": "flow:member-team-attendance-view", "target": "step:member-team-attendance-view:mark-today-attendance", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:member-alert-checks", "target": "step:member-alert-checks:show-first-visit-unchecked", "type": "flow_step", "direction": "forward", "weight": 0.3 },
+    { "source": "flow:member-alert-checks", "target": "step:member-alert-checks:show-expiry-d-7", "type": "flow_step", "direction": "forward", "weight": 0.7 },
+    { "source": "flow:member-alert-checks", "target": "step:member-alert-checks:resolve-alert", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:member-profile-view", "target": "step:member-profile-view:open-profile-modal", "type": "flow_step", "direction": "forward", "weight": 0.3 },
+    { "source": "flow:member-profile-view", "target": "step:member-profile-view:display-member-stats", "type": "flow_step", "direction": "forward", "weight": 0.7 },
+    { "source": "flow:member-profile-view", "target": "step:member-profile-view:show-consultation-history", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:leader-team-attendance-view", "target": "step:leader-team-attendance-view:select-language-time-tab", "type": "flow_step", "direction": "forward", "weight": 0.2 },
+    { "source": "flow:leader-team-attendance-view", "target": "step:leader-team-attendance-view:search-and-filter-leaders", "type": "flow_step", "direction": "forward", "weight": 0.4 },
+    { "source": "flow:leader-team-attendance-view", "target": "step:leader-team-attendance-view:display-leader-status-board", "type": "flow_step", "direction": "forward", "weight": 0.6 },
+    { "source": "flow:leader-team-attendance-view", "target": "step:leader-team-attendance-view:display-leader-attendance-table", "type": "flow_step", "direction": "forward", "weight": 0.8 },
+    { "source": "flow:leader-team-attendance-view", "target": "step:leader-team-attendance-view:mark-leader-attendance", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:leader-absence-tracking", "target": "step:leader-absence-tracking:list-absent-leaders", "type": "flow_step", "direction": "forward", "weight": 0.5 },
+    { "source": "flow:leader-absence-tracking", "target": "step:leader-absence-tracking:view-substitute-status", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:dashboard-overview", "target": "step:dashboard-overview:render-notices", "type": "flow_step", "direction": "forward", "weight": 0.3 },
+    { "source": "flow:dashboard-overview", "target": "step:dashboard-overview:render-leader-status-summary", "type": "flow_step", "direction": "forward", "weight": 0.5 },
+    { "source": "flow:dashboard-overview", "target": "step:dashboard-overview:show-first-visit-study", "type": "flow_step", "direction": "forward", "weight": 0.8 },
+    { "source": "flow:dashboard-overview", "target": "step:dashboard-overview:send-new-member-reminders", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:calendar-management", "target": "step:calendar-management:render-monthly-calendar", "type": "flow_step", "direction": "forward", "weight": 0.3 },
+    { "source": "flow:calendar-management", "target": "step:calendar-management:display-event-details", "type": "flow_step", "direction": "forward", "weight": 0.7 },
+    { "source": "flow:calendar-management", "target": "step:calendar-management:build-event-summary", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:leader-status-board", "target": "step:leader-status-board:open-expanded-board", "type": "flow_step", "direction": "forward", "weight": 0.3 },
+    { "source": "flow:leader-status-board", "target": "step:leader-status-board:navigate-days", "type": "flow_step", "direction": "forward", "weight": 0.7 },
+    { "source": "flow:leader-status-board", "target": "step:leader-status-board:apply-filters", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:bulk-member-actions", "target": "step:bulk-member-actions:select-members", "type": "flow_step", "direction": "forward", "weight": 0.5 },
+    { "source": "flow:bulk-member-actions", "target": "step:bulk-member-actions:execute-bulk-action", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "flow:bulk-leader-actions", "target": "step:bulk-leader-actions:select-leaders", "type": "flow_step", "direction": "forward", "weight": 0.5 },
+    { "source": "flow:bulk-leader-actions", "target": "step:bulk-leader-actions:execute-bulk-leader-action", "type": "flow_step", "direction": "forward", "weight": 1.0 },
+
+    { "source": "domain:member-management", "target": "domain:team-scheduling", "type": "cross_domain", "direction": "forward", "description": "Members are assigned to teams organized by language and time slot", "weight": 0.6 },
+    { "source": "domain:leader-management", "target": "domain:team-scheduling", "type": "cross_domain", "direction": "forward", "description": "Leaders are assigned to teams and lead study sessions for specific time slots", "weight": 0.6 },
+    { "source": "domain:member-management", "target": "domain:attendance-tracking", "type": "cross_domain", "direction": "forward", "description": "Member attendance is tracked per session with rate visualization and daily check-ins", "weight": 0.7 },
+    { "source": "domain:leader-management", "target": "domain:attendance-tracking", "type": "cross_domain", "direction": "forward", "description": "Leader attendance is tracked with substitute handling and 7-day status views", "weight": 0.7 },
+    { "source": "domain:dashboard-communications", "target": "domain:member-management", "type": "cross_domain", "direction": "forward", "description": "Dashboard surfaces first-visit members and new member reminders", "weight": 0.5 },
+    { "source": "domain:dashboard-communications", "target": "domain:leader-management", "type": "cross_domain", "direction": "forward", "description": "Dashboard displays leader status overview and expanded status board", "weight": 0.5 }
+  ],
+  "layers": [],
+  "tour": []
+}
