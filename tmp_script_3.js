@@ -1,516 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>하남 지점 어드민 (통합 캘린더 버전)</title>
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            900: '#0c4a6e',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Pretendard', '-apple-system', 'system-ui', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
 
-    <style>
-        body { background-color: #f8fafc; color: #0f172a; }
-        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .editable-text:hover { background-color: #f1f5f9; cursor: pointer; border-radius: 4px; }
-        .member-row { transition: all 0.2s ease; }
-        .member-row:hover { background-color: #f8fafc; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.02); z-index: 10; position: relative; }
-        .action-dropdown { display: none; }
-        .action-menu:hover .action-dropdown, .action-menu:focus-within .action-dropdown { display: block; }
-        
-        /* Table Layout Alignment Fixes */
-        tr.member-row > td { 
-            vertical-align: top !important; 
-            padding-top: 14px !important; 
-            padding-bottom: 14px !important; 
-        }
-
-        /* Notice Scrolling Animation */
-        @keyframes scroll-up {
-            0%, 25% { transform: translateY(0); }
-            33%, 58% { transform: translateY(-50%); }
-            66%, 91% { transform: translateY(-100%); }
-            100% { transform: translateY(0); }
-        }
-        .notice-scroller { animation: scroll-up 10s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-        
-        /* Tooltip utilities */
-        .tooltip-container { position: relative; }
-        .tooltip-text { 
-            visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%); 
-            background-color: #1e293b; color: white; text-align: left; padding: 8px 12px; border-radius: 6px; z-index: 50; 
-            transition: opacity 0.2s, visibility 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); width: max-content;
-            pointer-events: none;
-        }
-        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent; }
-        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
-
-        /* Calendar Specific utilities */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-        .cal-day { min-height: 120px; transition: background-color 0.2s; }
-        .cal-day:hover { background-color: #f8fafc; }
-        
-        .view-hidden { display: none !important; }
-    </style>
-</head>
-<body class="antialiased min-h-screen pb-24">
-
-    <!-- Top Navigation Header -->
-    <header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <button id="hamburger-btn" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
-                <i class="ph ph-list text-2xl"></i>
-            </button>
-            <div class="bg-brand-500 text-white p-1.5 rounded-lg">
-                <i class="ph-bold ph-buildings text-xl"></i>
-            </div>
-            <h1 class="text-lg font-bold text-slate-800 tracking-tight">하남 지점 어드민</h1>
-        </div>
-        
-        <div class="flex items-center gap-4">
-            <button class="relative p-2 text-slate-600 hover:bg-slate-100 rounded-full flex items-center gap-2">
-                <div class="relative">
-                    <i class="ph ph-bell text-xl"></i>
-                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-white"></span>
-                    </span>
-                </div>
-            </button>
-            <div class="h-6 w-px bg-slate-200"></div>
-            <div class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg border border-transparent transition-colors">
-                <img src="https://ui-avatars.com/api/?name=매니저&background=0284c7&color=fff" alt="User" class="w-8 h-8 rounded-full">
-                <span class="text-sm font-medium hidden sm:block">지점장 옵션 <i class="ph ph-caret-down text-xs ml-1 font-bold"></i></span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Side Navigation Drawer -->
-    <div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity cursor-pointer"></div>
-    <div id="nav-drawer" class="fixed top-0 left-0 h-full w-full sm:w-72 bg-white shadow-2xl z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
-            <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800">
-                <i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴
-            </h2>
-            <button id="close-drawer-btn" class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer transition">
-                <i class="ph ph-x"></i>
-            </button>
-        </div>
-        <nav class="p-4 space-y-1">
-            <a href="home.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-calendar-blank text-lg"></i> 대시보드 캘린더 (홈)
-            </a>
-            <a href="member.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-users-three text-lg"></i> 멤버 팀
-            </a>
-            <a href="leader.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 bg-brand-50 text-brand-700 rounded-lg font-medium transition-colors">
-                <i class="ph ph-crown text-lg"></i> 리더 팀
-            </a>
-            <a href="stats.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트
-            </a>
-            <a href="call.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-phone-call text-lg"></i> 신규 회신
-            </a>
-        </nav>
-    </div>
-
-    <!-- TEAM ATTENDANCE VIEW (Hidden by default, triggered by drawer navigation) -->
-    <div id="team-view" class="max-w-[1600px] mx-auto space-y-4">
-        
-        <!-- Team Tabs inside Team View -->
-        <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[61px] z-40">
-            <div class="flex items-center gap-1.5 px-4 scrollbar-hide overflow-x-auto pb-1">
-                <!-- 전체 -->
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-900 text-white text-[13px] font-bold shadow-sm transition-transform active:scale-95" data-team="all">전체</button>
-                <span class="flex-shrink-0 w-px h-4 bg-slate-200 mx-1"></span>
-                
-                <!-- 영어 팀 -->
-                <span class="flex-shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-tighter mr-1">영어</span>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-[13px] font-medium transition-all" data-team="eng-all">전체</button>
-                <!-- 영어 11시 그룹 -->
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="영 월 11시">월11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="영 수 11시">수11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="영 화 11시">화11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="영 목 11시">목11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="영 토 11시">토11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="영 일 11시">일11</button>
-                <!-- 영어 8시 그룹 -->
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[13px] font-medium transition-all" data-team="영 월 8시">월8</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[13px] font-medium transition-all" data-team="영 수 8시">수8</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[13px] font-medium transition-all" data-team="영 화 8시">화8</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[13px] font-medium transition-all" data-team="영 목 8시">목8</button>
-                
-                <!-- 구분선 -->
-                <span class="flex-shrink-0 w-px h-4 bg-slate-200 mx-1"></span>
-                
-                <!-- 일어 팀 -->
-                <span class="flex-shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-tighter mr-1">일어</span>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-[13px] font-medium transition-all" data-team="jpn-all">전체</button>
-                <!-- 일어 11시 그룹 -->
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="일 월 11시">월11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="일 수 11시">수11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="일 화 11시">화11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="일 목 11시">목11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="일 토 11시">토11</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-[13px] font-medium transition-all" data-team="일 일 11시">일11</button>
-                <!-- 일어 8시 그룹 -->
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[13px] font-medium transition-all" data-team="일 월 8시">월8</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[13px] font-medium transition-all" data-team="일 수 8시">수8</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[13px] font-medium transition-all" data-team="일 화 8시">화8</button>
-                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 text-[13px] font-medium transition-all" data-team="일 목 8시">목8</button>
-            </div>
-        </nav>
-
-        <div class="p-4 sm:p-6 lg:p-8 space-y-6">
-            <!-- Team Content Header & Toolbar -->
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40 p-4 -mx-4 rounded-2xl backdrop-blur-sm border border-slate-100/50 shadow-sm">
-                <div class="flex flex-wrap items-center gap-4">
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-2">
-                            <h2 id="main-dashboard-title" class="flex flex-wrap items-center gap-1.5 text-2xl font-black text-slate-800 tracking-tight transition-all duration-300">
-                                <span class="text-xl font-black text-slate-800 mr-1 italic">Leader</span>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-sm font-black border shadow-sm transition-all hover:scale-105 bg-slate-100 text-slate-700 border-slate-200">TOTAL</span>
-                            </h2>
-                        </div>
-                        <p class="text-[11px] text-slate-400 font-medium mt-0.5 flex items-center gap-1.5 pl-0.5">
-                            <i class="ph-bold ph-info text-slate-300"></i> 하남 지점 리딩 및 조교 지원 관리
-                        </p>
-                    </div>
-
-                    <div class="h-8 w-px bg-slate-200 hidden sm:block mx-1"></div>
-
-                    <!-- TA 전용 히스토리 버튼 -->
-                    <button onclick="openUnifiedTAHistory()" class="group flex items-center gap-2 px-4 py-2 bg-amber-50/80 border border-amber-200/60 rounded-xl text-sm font-bold text-amber-700 hover:bg-amber-50 hover:border-amber-300 hover:shadow-md hover:shadow-amber-200/20 transition-all active:scale-95">
-                        <div class="p-1 bg-amber-200/50 rounded-lg group-hover:bg-amber-200 transition-colors">
-                            <i class="ph-fill ph-calendar-check text-base"></i>
-                        </div>
-                        조교 리딩 히스토리
-                        <i class="ph ph-arrow-right text-[10px] opacity-40 group-hover:translate-x-0.5 transition-transform"></i>
-                    </button>
-                </div>
-                
-                <div class="flex items-center gap-2 self-end md:self-auto">
-                    <button onclick="openSmsModal()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-800 transition-all shadow-sm active:scale-95">
-                        <i class="ph ph-envelope-simple text-lg text-slate-400"></i> 일괄 문자 발송
-                    </button>
-                </div>
-            </div>
-
-            <!-- Leader Status Boards (CHECK) -->
-            <div id="leader-check-section" class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 h-[480px]">
-                <!-- Board 1: 리더 현황 (7일 스와이프) -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
-                    <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                            <i class="ph-fill ph-calendar-check text-lg text-brand-500"></i> 리더 현황
-                        </h3>
-                        <span id="day-leader-count" class="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs font-bold shadow-inner border border-slate-300">0명</span>
-                    </div>
-                    <!-- Day navigation -->
-                    <div class="flex items-center gap-1 px-3 py-2 border-b border-slate-100 bg-slate-50/50">
-                        <button id="day-prev-btn" class="p-1.5 rounded-lg hover:bg-slate-200 text-slate-500 transition-colors flex-shrink-0">
-                            <i class="ph-bold ph-caret-left text-sm"></i>
-                        </button>
-                        <div id="day-tabs" class="flex items-center gap-1 flex-1 justify-center overflow-x-auto hide-scrollbar"></div>
-                        <button id="day-next-btn" class="p-1.5 rounded-lg hover:bg-slate-200 text-slate-500 transition-colors flex-shrink-0">
-                            <i class="ph-bold ph-caret-right text-sm"></i>
-                        </button>
-                    </div>
-                    <!-- Language / Time Filters -->
-                    <div class="flex items-center gap-2 px-4 py-2 border-b border-slate-100 bg-white">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">언어</span>
-                        <button class="board-filter-lang board-filter-active flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all bg-slate-900 text-white shadow-sm" data-lang="all">전체</button>
-                        <button class="board-filter-lang flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50" data-lang="영">영어</button>
-                        <button class="board-filter-lang flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50" data-lang="일">일어</button>
-                        <span class="w-px h-5 bg-slate-200 mx-1 flex-shrink-0"></span>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">시간</span>
-                        <button class="board-filter-time board-filter-active flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all bg-slate-900 text-white shadow-sm" data-time="all">전체</button>
-                        <button class="board-filter-time flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50" data-time="11시">11시 (오전)</button>
-                        <button class="board-filter-time flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50" data-time="8시">8시 (오후)</button>
-                    </div>
-                    <!-- Summary bar -->
-                    <div id="day-summary"></div>
-                    <!-- Leader list -->
-                    <div id="day-leader-list" class="divide-y divide-slate-100 flex-1 overflow-y-auto hide-scrollbar">
-                        <div class="p-4 text-center text-slate-400 text-sm">로딩 중...</div>
-                    </div>
-                </div>
-
-                <!-- Board 2: 리더 불참 일정 -->
-                <div class="bg-red-50 rounded-xl shadow-sm border border-red-200 overflow-hidden flex flex-col h-full">
-                    <div class="px-4 py-3 border-b border-red-200 bg-red-100/50 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-red-800 flex items-center gap-2">
-                            <i class="ph-fill ph-warning-circle text-lg"></i> 리더 불참 일정
-                        </h3>
-                        <span id="absent-leader-count" class="px-2 py-0.5 bg-red-200 text-red-800 rounded-full text-xs font-bold shadow-inner border border-red-300">0명</span>
-                    </div>
-                    <div id="absent-leader-list" class="divide-y divide-red-100 flex-1 overflow-y-auto hide-scrollbar">
-                        <div class="p-4 text-center text-red-400 text-sm">로딩 중...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 검색 바 -->
-            <div class="flex flex-wrap items-center gap-2">
-                <div class="relative flex-1 min-w-[200px] max-w-md">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-                    <input id="search-input" type="text" placeholder="성함 또는 연락처 검색..."
-                           class="w-full pl-9 pr-8 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all shadow-sm">
-                    <button id="search-clear" class="absolute right-2.5 top-1/2 -translate-y-1/2 hidden text-slate-400 hover:text-slate-600 transition-colors">
-                        <i class="ph ph-x-circle text-lg"></i>
-                    </button>
-                </div>
-                <select id="search-target" class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm cursor-pointer">
-                    <option value="all">전체</option>
-                    <option value="name">성함</option>
-                    <option value="phone">연락처</option>
-                </select>
-                <span class="w-px h-6 bg-slate-200 mx-1 flex-shrink-0 hidden sm:block"></span>
-                <select id="filter-reading-lv" class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm cursor-pointer">
-                    <option value="all">리딩LV 전체</option>
-                    <option value="1">리딩 LV1</option>
-                    <option value="2">리딩 LV2</option>
-                    <option value="3">리딩 LV3</option>
-                    <option value="4">리딩 LV4</option>
-                    <option value="5">리딩 LV5</option>
-                </select>
-                <span class="w-px h-6 bg-slate-200 mx-1 flex-shrink-0 hidden sm:block"></span>
-                <select id="sort-select" class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm cursor-pointer">
-                    <option value="default">기본 정렬</option>
-                    <option value="name-asc">성함 ㄱ→ㅎ</option>
-                    <option value="name-desc">성함 ㅎ→ㄱ</option>
-                    <option value="rate-asc">출석률 낮은순</option>
-                    <option value="rate-desc">출석률 높은순</option>
-                    <option value="level-asc">리딩 레벨 낮은순</option>
-                    <option value="level-desc">리딩 레벨 높은순</option>
-                    <option value="today-first">금일 출석 완료순</option>
-                    <option value="today-last">금일 미출석순</option>
-                </select>
-                <span class="w-px h-6 bg-slate-200 mx-1 flex-shrink-0 hidden sm:block"></span>
-                <!-- View toggle -->
-                <div class="flex items-center bg-slate-100 rounded-lg p-0.5 gap-0.5">
-                    <button id="view-btn-table" onclick="setViewMode('table')" title="테이블 뷰" class="w-8 h-8 rounded-md flex items-center justify-center transition-all bg-white shadow-sm text-brand-700">
-                        <i class="ph-bold ph-list-bullets text-base"></i>
-                    </button>
-                    <button id="view-btn-card" onclick="setViewMode('card')" title="카드 그리드 뷰" class="w-8 h-8 rounded-md flex items-center justify-center transition-all text-slate-500 hover:text-slate-700">
-                        <i class="ph-bold ph-squares-four text-base"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 검색 결과 없음 -->
-            <div id="no-result" class="hidden text-center py-8 text-slate-400">
-                <i class="ph ph-magnifying-glass text-3xl mb-2"></i>
-                <p class="text-sm font-medium">검색 결과가 없습니다</p>
-            </div>
-
-            <!-- Bulk Action Bar -->
-            <div id="bulk-action-bar" class="hidden items-center justify-between p-3 bg-brand-50 border border-brand-200 rounded-lg">
-                <div class="flex items-center gap-2 text-brand-800 font-medium text-sm">
-                    <i class="ph-fill ph-check-circle text-lg"></i> <span id="selected-count">0</span>명 선택됨
-                </div>
-                <div class="flex items-center gap-2">
-                    <button class="px-3 py-1.5 bg-white border border-brand-200 text-brand-700 text-sm font-medium rounded hover:bg-brand-100 transition-colors flex items-center gap-1">
-                        <i class="ph ph-arrows-left-right"></i> 이동
-                    </button>
-                    <button class="px-3 py-1.5 bg-white border border-brand-200 text-brand-700 text-sm font-medium rounded hover:bg-brand-100 transition-colors flex items-center gap-1">
-                        <i class="ph ph-envelope-simple"></i> 문자
-                    </button>
-                    <div class="h-4 w-px bg-brand-300 mx-1"></div>
-                    <button class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="제외"><i class="ph ph-trash text-lg"></i></button>
-                </div>
-            </div>
-
-            <!-- Table Section -->
-            <div id="view-list-section" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-300">
-                <div class="overflow-x-auto w-full">
-                    <table class="w-full text-left border-collapse min-w-[860px]">
-                        <thead>
-                            <tr class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                                <th class="px-3 py-3 font-medium w-16 text-center">
-                                    <div class="flex items-center justify-center gap-1">
-                                        <span class="text-[10px] text-slate-400 w-3 text-right">No.</span>
-                                        <input type="checkbox" id="check-all" class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer">
-                                    </div>
-                                </th>
-                                <th class="px-4 py-3 font-medium min-w-[180px]">회원 정보</th>
-                                <th class="px-4 py-3 font-medium min-w-[100px]">리딩 레벨 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
-                                <th class="px-4 py-3 font-medium min-w-[120px]">리딩 팀 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
-                                <th class="px-4 py-3 font-medium text-center min-w-[160px]">출석 / 불참 / 대타 예정</th>
-                                <th class="px-4 py-3 font-medium min-w-[180px]">메모 (Click-to-Edit)</th>
-                                <th class="px-4 py-3 font-medium text-center w-32">최근 출석률</th>
-                                <th class="px-4 py-3 font-medium text-center w-24">금일 출석</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leader-tbody" class="divide-y divide-slate-100 text-sm text-slate-700 align-top">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Card Grid Section -->
-            <div id="view-card-section" class="hidden">
-                <div id="leader-card-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-    <!-- Global Block Tooltip -->
-    <div id="global-block-tooltip" class="fixed hidden w-[160px] bg-slate-900 border border-slate-700 text-white rounded p-2 text-left z-[100] shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-4px]">
-        <div id="gbt-date" class="text-[10px] text-slate-300 font-semibold mb-1 border-b border-slate-600 pb-1">04.05 (월)</div>
-        <div class="flex items-center justify-between mb-0.5 mt-1 text-[10px]"><span>상태:</span> <span id="gbt-status" class="font-bold">출석</span></div>
-        <div class="mt-1.5 pt-1 border-t border-slate-700">
-            <div class="text-[10px] text-slate-400 font-semibold mb-1">참여 멤버:</div>
-            <div id="gbt-members" class="text-[10px] text-white leading-relaxed"></div>
-        </div>
-        <!-- Tooltip arrow -->
-        <div class="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-solid border-slate-900 border-b-transparent border-l-transparent border-r-transparent"></div>
-    </div>
-
-
-    <!-- Member Profile Modal -->
-    <div id="profile-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] hidden opacity-0 transition-opacity duration-300" onclick="closeProfileModal()"></div>
-    <div id="profile-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] sm:w-[500px] h-[85vh] sm:h-[800px] max-h-[90vh] bg-white rounded-2xl shadow-2xl z-[90] hidden opacity-0 scale-95 transition-all duration-300 flex flex-col overflow-hidden">
-        
-        <!-- Header: Profile Summary -->
-        <div class="p-6 bg-slate-900 text-white relative flex-shrink-0">
-            <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
-                <i class="ph ph-x text-xl"></i>
-            </button>
-            <div class="flex gap-4 items-center">
-                <div class="h-16 w-16 bg-gradient-to-tr from-brand-400 to-indigo-500 rounded-full flex items-center justify-center shadow-inner text-2xl font-black border-2 border-white/20">
-                    <span id="pm-initial">박</span>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-bold flex items-center gap-2">
-                        <span id="pm-name">박선민</span>
-                        <span id="pm-level-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">LV 4</span>
-                        <span id="pm-membership-badge" class="px-2 py-0.5 rounded text-[10px] font-bold border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">A+ 멤버십</span>
-                    </h2>
-                    <div id="pm-phone" class="text-slate-300 text-sm mt-1 font-mono cursor-pointer hover:text-white active:scale-95 transition-all" onclick="copyPhone(this.innerText)">010-3517-4446</div>
-                    <div id="pm-teams-container" class="flex gap-1.5 mt-2">
-                        <!-- Dynamic teams -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Body: Scrollable Content -->
-        <div class="flex-1 overflow-y-auto bg-slate-50 p-6 custom-scrollbar hide-scrollbar">
-            
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-                <!-- 최초 등록일 -->
-                <div class="bg-white p-3.5 xl:p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between h-[84px]">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">최초 등록일</div>
-                    <div id="pm-reg-date" class="font-medium text-slate-800 text-[13px] leading-none">25.10.05</div>
-                </div>
-                <!-- 멤버십 잔여 -->
-                <div class="bg-white p-3.5 xl:p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between h-[84px]">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">멤버십 (잔여)</div>
-                    <div class="font-bold text-brand-600 flex items-center gap-1 text-[13px] leading-none"><span id="pm-brand-name">VVIP</span> <span id="pm-remain-session" class="bg-brand-50 text-brand-600 px-1 py-0.5 rounded text-[9.5px] border border-brand-100">82/1040회</span></div>
-                </div>
-                <!-- 시작일 -->
-                <div class="bg-white p-3.5 xl:p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between h-[84px]">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">시작일</div>
-                    <div id="pm-start-date" class="font-medium text-brand-600 text-[13px] leading-none mb-1">25.10.05</div>
-                </div>
-                <!-- 만료일 -->
-                <div class="bg-white p-3.5 xl:p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between h-[84px]">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">만료 (예정)</div>
-                    <div>
-                        <div id="pm-exp-date" class="font-medium text-orange-600 text-[13px] leading-none mb-1">26.04.09</div>
-                        <div id="pm-exp-note" class="text-[9px] text-slate-400 font-bold leading-none">주 4회 참석</div>
-                    </div>
-                </div>
-                <!-- 최근 출석률 -->
-                <div class="bg-white p-3.5 xl:p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between h-[84px]">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">최근 출석률</div>
-                    <div class="font-bold flex items-baseline gap-1 leading-none"><span id="pm-att-rate" class="text-purple-600 text-[13px]">25%</span> <span id="pm-att-count" class="text-[9.5px] text-slate-400 font-medium">(4/16회)</span></div>
-                </div>
-            </div>
-
-            <!-- Focus Info -->
-            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl shadow-sm mb-6">
-                <h3 class="text-xs font-bold text-indigo-800 mb-2 flex items-center gap-1"><i class="ph-fill ph-chat-teardrop text-base"></i> 관리자 상담 코멘트</h3>
-                <p id="pm-message" class="text-sm text-indigo-900 leading-relaxed">
-                    내용...
-                </p>
-            </div>
-
-            <!-- History Timeline -->
-            <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <i class="ph-fill ph-clock-counter-clockwise text-brand-500"></i> 전체 기록 (히스토리)
-            </h3>
-            
-            <div id="pm-timeline" class="relative pl-3 border-l-2 border-slate-200 space-y-5 ml-2 mb-6">
-                <!-- Dynamic timeline items -->
-            </div>
-        </div>
-        
-        <!-- Footer Actions -->
-        <div class="p-4 border-t border-slate-200 bg-white flex gap-2 justify-end flex-shrink-0">
-            <button class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">정보 수정</button>
-            <button class="px-4 py-2 text-sm font-bold text-white bg-brand-600 rounded-lg shadow-sm hover:bg-brand-700 transition-colors flex items-center gap-1.5"><i class="ph-bold ph-paper-plane-right"></i> 개별 문자</button>
-        </div>
-    </div>
-
-    <!-- Attendance History Detail Modal -->
-    <div id="ah-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300" onclick="closeAttendanceHistory()"></div>
-    <div id="ah-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] sm:w-[480px] max-h-[80vh] bg-slate-50 rounded-2xl shadow-2xl z-[110] hidden opacity-0 translate-y-4 transition-all duration-300 flex flex-col overflow-hidden border border-white">
-        <!-- Header -->
-        <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="p-2 bg-brand-50 rounded-lg text-brand-600">
-                    <i class="ph-bold ph-calendar-check text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-sm font-bold text-slate-800"><span id="ah-modal-name"></span> 리더</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">전체 출석 히스토리</p>
-                </div>
-            </div>
-            <button onclick="closeAttendanceHistory()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                <i class="ph ph-x text-lg"></i>
-            </button>
-        </div>
-        
-        <!-- List Body -->
-        <div id="ah-modal-list" class="p-4 space-y-3 overflow-y-auto bg-slate-50 custom-scrollbar">
-            <!-- JS fills -->
-        </div>
-
-        <!-- Footer -->
-        <div class="p-3 bg-white border-t border-slate-200 text-center">
-            <button onclick="closeAttendanceHistory()" class="w-full py-2 bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-900 transition-colors">확인</button>
-        </div>
-    </div>
-
-    <script>
         document.addEventListener('DOMContentLoaded', () => {
             // DRAWER Toggles
             const hBtn = document.getElementById('hamburger-btn');
@@ -570,27 +58,19 @@
 
             const leaders = [];
             const usedNames = new Set();
-            
-            function createLeaderObj(forcedLv, forcedNumTeams, forcedTeam) {
+            for(let i=0;i<60;i++){
                 let name;
                 do {
                     const isFemale = Math.random()>0.5;
                     name = rPick(surnames)+(isFemale?rPick(givenF):rPick(givenM));
                 } while(usedNames.has(name));
                 usedNames.add(name);
-                
                 const phone = genPhone();
                 const age = rng(20,42);
-                const lv = forcedLv !== undefined ? forcedLv : rng(0,5);
-                const numTeams = forcedNumTeams !== undefined ? forcedNumTeams : (Math.random()>0.7?2:1);
-                
+                const lv = rng(1,5);
+                const numTeams = Math.random()>0.7?2:1;
                 const myTeams = [];
-                if (forcedTeam) myTeams.push(forcedTeam);
-                while(myTeams.length<numTeams) {
-                    const t = rPick(teamSlots);
-                    if(!myTeams.includes(t)) myTeams.push(t);
-                }
-                
+                while(myTeams.length<numTeams){const t=rPick(teamSlots);if(!myTeams.includes(t))myTeams.push(t);}
                 const readingLevels = {};
                 myTeams.forEach(t => { readingLevels[t] = Math.random() > 0.3 ? lv : Math.max(1, Math.min(5, lv + rng(-2, 2))); });
                 const att=rng(1,7), abs=rng(0,3), sub=rng(0,2);
@@ -598,18 +78,17 @@
                 const total=8;
                 const rate=done>0?Math.round((att/done)*100):0;
                 const rateColor=rate>=70?'text-emerald-600':rate>=40?'text-amber-600':'text-red-600';
-                
+
                 // Generate 8 attendance blocks
                 const blocks=[];
-                const memberPool=['김민수(010-1111-2222)','이지현(010-3333-4444)','최영호(010-5555-6666)','정다은(010-7777-8888)','강서연(010-9999-0000)','조하은(010-1234-5678)','박보검(010-2345-6789)','배수지(010-3456-7890)','이동욱(010-4567-8901)','차은우(010-5678-9012)','송혜교(010-6789-0123)','공지철(010-7890-1234)'];
+                const memberPool=['김민수(010-1111-2222)','이지현(010-3333-4444)','최영호(010-5555-6666)','정다은(010-7777-8888)','강서연(010-9999-0000)','조하은(010-1234-5678)'];
                 for(let b=0;b<8;b++){
                     let st;
                     if(b<att) st=Math.random()>0.85?blockStatuses[2]:blockStatuses[0];
                     else if(b<att+abs) st=blockStatuses[1];
                     else st=blockStatuses[3];
-                    // Force the first valid block to have 7 members, others random 2-7
                     const mems=st.s==='불참'||st.s==='출석 예정'?'—':
-                        [...memberPool].sort(()=>Math.random()-0.5).slice(0, b===0 ? 7 : rng(2,7)).join(', ');
+                        Array.from({length:rng(2,4)},()=>rPick(memberPool)).join(', ');
                     const myPrimaryTeam = myTeams[0];
                     const myPrimaryRL = readingLevels[myPrimaryTeam] || lv;
                     blocks.push({...st,date:dates8[b],members:mems, teamName: myPrimaryTeam, teamLv: myPrimaryRL});
@@ -626,20 +105,8 @@
                     if (schedule[b.s]) schedule[b.s].push(entry);
                 });
 
-                return {name,phone,age,lv,teams:myTeams,readingLevels,att,abs,sub,total,done,rate,rateColor,blocks,todayChecked,memo,schedule};
+                leaders.push({name,phone,age,lv,teams:myTeams,readingLevels,att,abs,sub,total,done,rate,rateColor,blocks,todayChecked,memo,schedule});
             }
-
-            // Guarantee exactly 2 leaders per level per specific class slot (teamSlot)
-            teamSlots.forEach(slot => {
-                for (let level = 0; level <= 5; level++) {
-                    for (let count = 0; count < 2; count++) {
-                        leaders.push(createLeaderObj(level, 1, slot));
-                    }
-                }
-            });
-
-            // Sort leaders by level (lowest to highest) as the default presentation order
-            leaders.sort((a, b) => a.lv - b.lv);
 
             function renderLeaders(){
                 const tbody = document.getElementById('leader-tbody');
@@ -658,11 +125,9 @@
                         : `<button class="w-7 h-7 rounded border border-slate-200 bg-white text-slate-300 flex items-center justify-center transition-all mx-auto hover:border-emerald-300 hover:text-emerald-500"><i class="ph ph-minus text-xs"></i></button>`;
                     const memoHtml = l.memo ? `${l.memo}<i class="ph ph-pencil-simple absolute right-2 bottom-1.5 bg-slate-50 opacity-0 group-hover:opacity-100 text-brand-600 p-0.5"></i>` : `<span class="text-slate-300 italic">메모 없음</span>`;
                     
-                    const lvColors = ['#94a3b8','#22c55e','#3b82f6','#a855f7','#f59e0b','#ef4444'];
-                    const lvBg = ['#f1f5f9','#dcfce7','#dbeafe','#f3e8ff','#fef3c7','#fee2e2'];
                     return `<tr class="member-row" data-idx="${i}" data-teams="${l.teams.join(',')}" data-leader-lv="${l.lv}" data-reading-lvs="${Object.entries(l.readingLevels).map(([t,v])=>(t.startsWith('영')?'eng-':'jpn-')+v).join(',')}">
                         <td class="px-3 py-2"><div class="flex items-center justify-center gap-1 opacity-80 hover:opacity-100 transition-opacity"><span class="text-[10px] font-bold text-slate-400 w-3 text-right">${i+1}</span><i class="ph-bold ph-dots-six-vertical drag-handle text-slate-300 cursor-grab text-lg"></i><input type="checkbox" class="row-checkbox w-4 h-4 rounded border-slate-300 text-brand-600 cursor-pointer"></div></td>
-                        <td class="px-3 py-2"><div class="flex items-center gap-2"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black flex-shrink-0 border" style="background:${lvBg[l.lv]||'#f1f5f9'};color:${lvColors[l.lv]||'#94a3b8'};border-color:${lvColors[l.lv]||'#94a3b8'}40">${l.lv}</span><button class="font-extrabold text-brand-600 hover:text-brand-800 hover:underline text-left transition-colors flex items-center gap-1 text-[14px]" onclick="openProfileModal('${l.name}')">${l.name}</button></div><div class="font-mono text-[11px] text-slate-500 mt-0.5 ml-7"><span class="cursor-pointer hover:text-brand-600 active:scale-95 transition-all" onclick="event.stopPropagation();copyPhone('${l.phone}')">${l.phone}</span> (${l.age}세)</div></td>
+                        <td class="px-3 py-2"><div class="flex items-center gap-2"><button class="font-extrabold text-brand-600 hover:text-brand-800 hover:underline text-left transition-colors flex items-center gap-1 text-[14px]" onclick="openProfileModal('${l.name}')">${l.name}</button></div><div class="font-mono text-[11px] text-slate-500 mt-0.5"><span class="cursor-pointer hover:text-brand-600 active:scale-95 transition-all" onclick="event.stopPropagation();copyPhone('${l.phone}')">${l.phone}</span> (${l.age}세)</div></td>
                         <td class="px-3 py-2"><div class="flex flex-wrap gap-1">${l.teams.map(t=>{const isEng=t.startsWith('영');const rl=l.readingLevels[t]||l.lv;const bg=isEng?'background:#f5eafa;color:#9B59B6;border-color:#9B59B6':'background:#e6f0ff;color:#007BFF;border-color:#007BFF';return `<span class="px-1.5 py-0.5 text-[10px] rounded font-bold border" style="${bg}"><i class="ph-fill ph-book-open mr-0.5 text-[8px]"></i>LV${rl}</span>`;}).join('')}</div></td>
                         <td class="px-3 py-2"><div class="flex flex-wrap gap-1">${teamBadges}</div></td>
                         <td class="px-3 py-2"><button onclick="openCalendarModal('${l.name}','출석 완료')" class="flex items-center justify-center gap-1.5 hover:bg-slate-50 rounded-lg px-2 py-1 transition-colors cursor-pointer w-full"><span class="flex items-center gap-0.5" title="출석 완료"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-sm font-bold text-emerald-600">${l.att}</span></span><span class="flex items-center gap-0.5" title="불참"><span class="w-2 h-2 rounded-full bg-red-400"></span><span class="text-sm font-bold text-red-500">${l.abs}</span></span><span class="flex items-center gap-0.5" title="대타 예정"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-sm font-bold text-amber-600">${l.sub}</span></span></button><div class="text-[9px] text-slate-400 font-medium text-center mt-0.5">총 ${l.total}회 중 ${l.done}회 진행</div></td>
@@ -680,96 +145,17 @@
                 // Re-bind checkboxes
                 const newRcbs = document.querySelectorAll('.row-checkbox');
                 const chkAllEl = document.getElementById('check-all');
-                const bBar = document.getElementById('bulk-action-bar');
                 newRcbs.forEach(i=>i.addEventListener('change', ()=>{
                     const c = Array.from(newRcbs).filter(x=>x.checked).length;
-                    if(c>0){if(bBar) {bBar.classList.remove('hidden');bBar.classList.add('flex');document.getElementById('selected-count').innerText=c;}}
-                    else{if(bBar){bBar.classList.add('hidden');bBar.classList.remove('flex');}}
+                    if(c>0){bBar.classList.remove('hidden');bBar.classList.add('flex');document.getElementById('selected-count').innerText=c;}
+                    else{bBar.classList.add('hidden');bBar.classList.remove('flex');}
                 }));
                 if(chkAllEl) chkAllEl.addEventListener('change', e=>{newRcbs.forEach(i=>i.checked=e.target.checked);newRcbs[0]?.dispatchEvent(new Event('change'));});
+                
+                if (gridContainer) gridContainer.innerHTML = gridHtml;
 
-                // === Render Card Grid ===
-                const cardGrid = document.getElementById('leader-card-grid');
-                if (cardGrid) {
-                    cardGrid.innerHTML = leaders.map((l, i) => {
-                        const lvBadges = l.teams.map(t => {
-                            const isEng = t.startsWith('영');
-                            const rl = l.readingLevels[t] || l.lv;
-                            const style = isEng ? 'background:#f5eafa;color:#9B59B6;border-color:#9B59B6' : 'background:#e6f0ff;color:#007BFF;border-color:#007BFF';
-                            return `<span class="px-1 py-0.5 text-[9px] rounded font-bold border" style="${style}"><i class="ph-fill ph-book-open mr-0.5 text-[7px]"></i>LV${rl}</span>`;
-                        }).join('');
-                        const teamBadgesCard = l.teams.map(t => {
-                            const lang = t.startsWith('영') ? '영' : '일';
-                            const display = t.replace(/^[영일]\s*/, '');
-                            return `<span class="px-1 py-0.5 text-[9px] rounded font-semibold border" style="color:${teamColors[lang]};background:${teamBgs[lang]};border-color:${teamColors[lang]}">${display}</span>`;
-                        }).join('');
-                        const miniBlocks = l.blocks.map(b =>
-                            `<div class="attendance-block h-2 flex-1 rounded-sm ${b.bg} border ${b.border} cursor-pointer" data-date="${b.date.d} (${b.date.w})" data-status="${b.s}" data-color="${b.color}" data-members="${b.members}"></div>`
-                        ).join('');
-                        const todayDot = l.todayChecked
-                            ? `<span class="w-4 h-4 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center"><i class="ph-bold ph-check text-[8px] text-emerald-600"></i></span>`
-                            : `<span class="w-4 h-4 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center"><i class="ph ph-minus text-[8px] text-slate-400"></i></span>`;
-                        const rateColor = l.rateColor;
-
-                        return `<div class="grid-card bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 p-3 flex flex-col gap-2 cursor-pointer" data-idx="${i}" data-teams="${l.teams.join(',')}" data-leader-lv="${l.lv}" data-reading-lvs="${Object.entries(l.readingLevels).map(([t,v])=>(t.startsWith('영')?'eng-':'jpn-')+v).join(',')}" onclick="openProfileModal('${l.name}')">
-                            <div class="flex items-start justify-between gap-1">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black flex-shrink-0 border" style="background:${['#f1f5f9','#dcfce7','#dbeafe','#f3e8ff','#fef3c7','#fee2e2'][l.lv]||'#f1f5f9'};color:${['#94a3b8','#22c55e','#3b82f6','#a855f7','#f59e0b','#ef4444'][l.lv]||'#94a3b8'};border-color:${['#94a3b8','#22c55e','#3b82f6','#a855f7','#f59e0b','#ef4444'][l.lv]||'#94a3b8'}40">${l.lv}</span>
-                                    <div>
-                                        <div class="font-extrabold text-slate-800 text-[13px] leading-tight">${l.name}</div>
-                                        <div class="font-mono text-[9px] text-slate-400 mt-0.5 cursor-pointer hover:text-brand-600 transition-colors" onclick="event.stopPropagation();copyPhone('${l.phone}')">${l.phone}</div>
-                                    </div>
-                                </div>
-                                ${todayDot}
-                            </div>
-                            <div class="flex flex-wrap gap-1">${lvBadges}${teamBadgesCard}</div>
-                            <div class="flex items-center gap-[2px] w-full">${miniBlocks}</div>
-                            <div class="flex items-center justify-between text-[9px] mt-auto pt-1 border-t border-slate-100">
-                                <span class="flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="font-bold text-emerald-600">${l.att}</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-red-400 ml-1"></span><span class="font-bold text-red-500">${l.abs}</span>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 ml-1"></span><span class="font-bold text-amber-600">${l.sub}</span>
-                                </span>
-                                <button class="font-bold ${rateColor} hover:underline" onclick="event.stopPropagation();openAttendanceHistory('${l.name}')">${l.rate}%</button>
-                            </div>
-                        </div>`;
-                    }).join('');
-                }
             }
             renderLeaders();
-
-            // === View Mode Toggle ===
-            window.setViewMode = function(mode) {
-                const tableSection = document.getElementById('view-list-section');
-                const cardSection = document.getElementById('view-card-section');
-                const btnTable = document.getElementById('view-btn-table');
-                const btnCard = document.getElementById('view-btn-card');
-
-                if (mode === 'card') {
-                    tableSection.classList.add('hidden');
-                    cardSection.classList.remove('hidden');
-                    btnCard.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
-                    btnCard.classList.remove('text-slate-500', 'hover:text-slate-700');
-                    btnTable.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
-                    btnTable.classList.add('text-slate-500', 'hover:text-slate-700');
-                } else {
-                    cardSection.classList.add('hidden');
-                    tableSection.classList.remove('hidden');
-                    btnTable.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
-                    btnTable.classList.remove('text-slate-500', 'hover:text-slate-700');
-                    btnCard.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
-                    btnCard.classList.add('text-slate-500', 'hover:text-slate-700');
-                }
-                try { localStorage.setItem('leaderViewMode', mode); } catch(e) {}
-            };
-
-            // Restore last view mode
-            try {
-                const savedMode = localStorage.getItem('leaderViewMode');
-                if (savedMode) setViewMode(savedMode);
-            } catch(e) {}
-
-
 
             // === Daily Memo Storage ===
             const dailyMemos = {};
@@ -905,127 +291,63 @@
                     // Filter out '예정' status
                     blocksToShow = blocksToShow.filter(b => !b.s.includes('예정'));
 
-                    window.ahState = { blocks: blocksToShow, limit: 8, offset: 0 };
-
-                    window.setAhLimit = function(limit) {
-                        window.ahState.limit = limit;
-                        window.ahState.offset = 0;
-                        renderAhStats();
-                    };
-
-                    window.shiftAhOffset = function(delta) {
-                        window.ahState.offset += delta;
-                        if (window.ahState.offset < 0) window.ahState.offset = 0;
-                        renderAhStats();
-                    };
-
-                    window.renderAhStats = function() {
-                        const s = window.ahState;
-                        const maxOffset = Math.max(0, Math.ceil(s.blocks.length / s.limit) - 1);
-                        if (s.offset > maxOffset) s.offset = maxOffset;
-
-                        const btn1w = document.getElementById('ah-btn-1w');
-                        const btn2w = document.getElementById('ah-btn-2w');
-                        const btn1m = document.getElementById('ah-btn-1m');
-                        const activeCls = 'px-2 py-0.5 text-[10px] font-bold rounded-md bg-white shadow-sm text-brand-700 transition-all';
-                        const inactiveCls = 'px-2 py-0.5 text-[10px] font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all';
-                        
-                        if(btn1w) btn1w.className = s.limit === 2 ? activeCls : inactiveCls;
-                        if(btn2w) btn2w.className = s.limit === 4 ? activeCls : inactiveCls;
-                        if(btn1m) btn1m.className = s.limit === 8 ? activeCls : inactiveCls;
-
-                        const leftBtn = document.getElementById('ah-btn-left');
-                        const rightBtn = document.getElementById('ah-btn-right');
-                        if(leftBtn) leftBtn.disabled = s.offset >= maxOffset;
-                        if(rightBtn) rightBtn.disabled = s.offset === 0;
-
-                        let endIdx = s.blocks.length - (s.offset * s.limit);
-                        let startIdx = endIdx - s.limit;
-                        if (startIdx < 0) startIdx = 0;
-                        if (endIdx < 0) endIdx = 0;
-
-                        const sliced = s.blocks.slice(startIdx, endIdx);
-                        const lbl = document.getElementById('ah-period-label');
-                        if (lbl) {
-                            if (sliced.length > 0) {
-                                const d1 = sliced[0].date.d;
-                                const d2 = sliced[sliced.length-1].date.d;
-                                lbl.innerText = (d1 === d2) ? d1 : `${d1} ~ ${d2}`;
-                            } else {
-                                lbl.innerText = '데이터 없음';
-                            }
+                    // --- Member Aggregation & Ranking ---
+                    const memberCounts = {};
+                    blocksToShow.forEach(b => {
+                        if (b.members && b.members !== '—') {
+                            const membersArr = b.members.split(', ');
+                            membersArr.forEach(m => {
+                                const match = m.match(/^(.+?)\((010-\d{4}-\d{4})\)$/);
+                                const nm = match ? match[1] : m;
+                                const fullPhone = match ? match[2] : '';
+                                const key = nm + '|' + fullPhone;
+                                memberCounts[key] = (memberCounts[key] || 0) + 1;
+                            });
                         }
+                    });
+                    
+                    const sortedMembers = Object.entries(memberCounts).map(([key, count]) => {
+                        const [name, phone] = key.split('|');
+                        return { name, phone, count };
+                    }).sort((a, b) => b.count - a.count);
 
-                        const container = document.getElementById('ah-dynamic-stats-content');
-                        if (!container) return;
-
-                        // Exclude substitute-led sessions from the participation rate calculations
-                        const ledBlocks = sliced.filter(b => b.s.includes('완료') && !b.s.includes('대타'));
-                        const validCount = ledBlocks.length;
-                        
-                        if (validCount === 0) {
-                            container.innerHTML = '<div class="text-[10px] text-slate-400 italic text-center py-2">해당 기간 내 리더가 직접 진행한 세션이 없습니다</div>';
-                            return;
-                        }
-
-                        const counts = {};
-                        ledBlocks.forEach(b => {
-                            if (b.members && b.members !== '—') {
-                                b.members.split(', ').forEach(m => {
-                                    const nm = m.match(/^(.+?)\(/) ? m.match(/^(.+?)\(/)[1] : m;
-                                    counts[nm] = (counts[nm] || 0) + 1;
-                                });
-                            }
-                        });
-
-                        const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-                        if (sorted.length === 0) {
-                            container.innerHTML = '<div class="text-[10px] text-slate-400 italic text-center py-2">해당 기간 내 리더가 진행한 세션에 참여한 멤버가 없습니다</div>';
-                            return;
-                        }
-
-                        const tags = sorted.map(([nm, cnt]) => {
-                            const rate = Math.round((cnt / validCount) * 100);
-                            const rateColor = rate >= 70 ? 'text-emerald-600' : rate >= 40 ? 'text-amber-600' : 'text-slate-500';
-                            return `<span class="inline-flex items-center bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] shadow-sm"><strong class="text-slate-700 font-bold mr-1">${nm}</strong><span class="text-slate-500 font-medium mr-1 border-r border-slate-200 pr-1">(${cnt}회)</span><span class="${rateColor} font-black">${rate}%</span></span>`;
+                    let summaryHtml = '';
+                    if (sortedMembers.length > 0) {
+                        const tags = sortedMembers.map((m, rank) => {
+                            const rankBadge = rank < 3 ? 'bg-amber-50 text-amber-700 border-amber-300' : 'bg-white text-slate-600 border-slate-300 shadow-sm';
+                            const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
+                            return `<div class="flex items-center gap-1 px-2 py-1 ${rankBadge} rounded-lg font-medium text-[11px] border">
+                                <span>${medal} <span class="font-extrabold cursor-pointer hover:text-brand-600" onclick="event.stopPropagation();copyPhone('${m.phone}')" title="${m.phone}">${m.name}</span></span>
+                                <span class="text-[10px] font-black opacity-80 border-l px-1 py-0.5 border-current bg-white/50 rounded-sm ml-0.5">${m.count}회</span>
+                            </div>`;
                         }).join('');
-
-                        container.innerHTML = `<div class="flex flex-wrap gap-1.5">${tags}</div>`;
-                    };
-
-                    const statsHtml = `
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 shadow-sm">
-                            <div class="text-[12px] font-black text-brand-800 mb-2 flex items-center justify-between border-b border-brand-100 pb-2">
-                                <span class="flex items-center gap-1.5"><i class="ph-fill ph-chart-bar text-lg text-brand-500"></i> 해당 팀 세션 참여율</span>
-                                <div class="flex bg-slate-200/70 p-0.5 rounded-lg gap-0.5">
-                                    <button id="ah-btn-1w" onclick="setAhLimit(2)" class="px-2 py-0.5 text-[10px] font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all">1주</button>
-                                    <button id="ah-btn-2w" onclick="setAhLimit(4)" class="px-2 py-0.5 text-[10px] font-bold rounded-md text-slate-500 hover:text-slate-700 transition-all">2주</button>
-                                    <button id="ah-btn-1m" onclick="setAhLimit(8)" class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-white shadow-sm text-brand-700 transition-all">1달</button>
+                        
+                        summaryHtml = `
+                            <div class="bg-white p-4 rounded-xl border-2 border-brand-200 shadow-sm mb-4 relative overflow-hidden">
+                                <div class="absolute -right-4 -top-4 text-brand-50 opacity-50 pointer-events-none">
+                                    <i class="ph-fill ph-ranking text-8xl"></i>
+                                </div>
+                                <div class="text-[12px] font-black text-brand-800 mb-3 flex items-center justify-between border-b border-brand-100 pb-2 relative z-10">
+                                    <span class="flex items-center gap-1.5"><i class="ph-fill ph-crown text-lg text-amber-500"></i>누적 참여 멤버 랭킹</span>
+                                    <span class="px-2 py-0.5 bg-brand-50 rounded-full text-[10px] text-brand-600">총 ${sortedMembers.length}명</span>
+                                </div>
+                                <div class="flex flex-wrap gap-2 relative z-10">
+                                    ${tags}
                                 </div>
                             </div>
-                            <div class="text-[9px] text-slate-400 mb-2 leading-tight">※ 멤버의 "총 출석률"이 아닌, 선택된 기간 내 <span class="font-bold text-slate-500">리더가 직접 진행한 횟수(대타 제외) 대비 멤버의 실 참여율</span>입니다.</div>
-                            <div class="flex items-center justify-between mt-1 mb-3 bg-white rounded-lg border border-slate-100 shadow-sm px-2 py-1">
-                                <button id="ah-btn-left" onclick="shiftAhOffset(1)" class="w-6 h-6 rounded flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-brand-600 transition-colors disabled:opacity-30 disabled:hover:text-slate-500 disabled:hover:bg-slate-50"><i class="ph-bold ph-caret-left"></i></button>
-                                <span class="text-[10px] font-bold text-brand-600 tracking-wide" id="ah-period-label"></span>
-                                <button id="ah-btn-right" onclick="shiftAhOffset(-1)" class="w-6 h-6 rounded flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-brand-600 transition-colors disabled:opacity-30 disabled:hover:text-slate-500 disabled:hover:bg-slate-50"><i class="ph-bold ph-caret-right"></i></button>
-                            </div>
-                            <div id="ah-dynamic-stats-content" class="min-h-[24px]"></div>
-                        </div>
-                    `;
-
+                            <div class="text-[11px] font-black text-slate-400 mb-2 px-1 flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i> 날짜별 상세 기록</div>
+                        `;
+                    }
+                    
                     const listHtml = blocksToShow.map(b => {
                         const membersArr = b.members === '—' ? [] : b.members.split(', ');
                         const membersHtml = membersArr.map(m => {
                             const match = m.match(/^(.+?)\((010-\d{4}-\d{4})\)$/);
                             const nm = match ? match[1] : m;
                             const fullPhone = match ? match[2] : '';
-                            return `
-                                <div class="flex flex-col items-start px-2 py-1.5 bg-white rounded border border-slate-200 shadow-sm hover:border-brand-300 transition-colors cursor-pointer group/item">
-                                    <span class="text-[11px] font-bold text-slate-700 leading-tight">${nm}</span>
-                                    <span class="text-[9px] text-slate-400 font-mono group-hover/item:text-brand-600 transition-colors mt-0.5 tracking-tighter" onclick="event.stopPropagation();copyPhone('${fullPhone}')">${fullPhone}</span>
-                                </div>
-                            `;
-                        }).join('');
+                            const phTag = fullPhone ? `<span class="text-slate-400 font-normal ml-0.5 cursor-pointer hover:text-brand-600 active:scale-95 transition-all underline decoration-slate-200" onclick="event.stopPropagation();copyPhone('${fullPhone}')">${fullPhone}</span>` : '';
+                            return `<span class="px-1.5 py-0.5 bg-white text-slate-600 text-[10px] rounded font-medium border border-slate-200 shadow-sm">${nm}${phTag}</span>`;
+                        }).join(' ');
 
                         const taTag = b.taName ? `<span class="px-1 py-0.5 bg-amber-500 text-white text-[9px] font-black rounded-sm mr-2 leading-none shadow-sm capitalize">TA: ${b.taName} <span class="font-mono font-normal opacity-90 cursor-pointer hover:underline ml-1" onclick="event.stopPropagation();copyPhone('${b.taPhone}')">${b.taPhone}</span></span>` : '';
                         
@@ -1036,11 +358,11 @@
                         const bg = lang === '영' ? '#f5eafa' : '#e6f0ff';
 
                         return `
-                            <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow transition-shadow relative overflow-hidden">
-                                <div class="flex items-center justify-between relative z-10 border-b border-slate-100 pb-2 mb-2">
+                            <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm space-y-2 relative overflow-hidden group">
+                                <div class="flex items-center justify-between relative z-10">
                                     <div class="flex items-center">
                                         ${taTag}
-                                        <span class="text-xs font-bold text-slate-700">${b.date.d} <span class="font-medium text-slate-400">(${b.date.w})</span></span>
+                                        <span class="text-xs font-bold text-slate-600">${b.date.d} <span class="font-medium text-slate-400">(${b.date.w})</span></span>
                                         <span class="mx-2 w-px h-2.5 bg-slate-200"></span>
                                         <div class="flex items-center gap-1.5">
                                             <span class="px-1.5 py-0.5 text-[9px] rounded font-bold border" style="color:${color};background:${bg};border-color:${color}">${lang} ${time}</span>
@@ -1049,24 +371,15 @@
                                     </div>
                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${b.bg} ${b.color.replace('text-', 'text-opacity-90 ')} shadow-inner">${b.s}</span>
                                 </div>
-                                <!-- Members Grid -->
-                                ${membersHtml ? `
-                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 relative z-10">
-                                    ${membersHtml}
+                                <div class="flex flex-wrap gap-1 mt-2 p-1.5 bg-slate-50 rounded border border-slate-100 relative z-10">
+                                    ${membersHtml || '<span class="text-[10px] text-slate-300 italic px-1 font-medium">참여 멤버 없음</span>'}
                                 </div>
-                                ` : `
-                                <div class="p-2 bg-slate-50 border border-slate-100 rounded text-center">
-                                    <span class="text-[10px] text-slate-400 font-medium italic">참여 내역 없음</span>
-                                </div>
-                                `}
                             </div>
                         `;
                     }).reverse().join(''); // Show recent first
                     
-                    document.getElementById('ah-modal-list').innerHTML = statsHtml + (listHtml || '<div class="text-center py-6 text-slate-400 text-sm font-medium">참여 내역이 없습니다</div>');
+                    document.getElementById('ah-modal-list').innerHTML = summaryHtml + (listHtml || '<div class="text-center py-6 text-slate-400 text-sm font-medium">참여 내역이 없습니다</div>');
                     
-                    setTimeout(() => renderAhStats(), 0);
-
                     const modal = document.getElementById('ah-modal');
                     const overlay = document.getElementById('ah-modal-overlay');
                     overlay.classList.remove('hidden');
@@ -1491,43 +804,39 @@
                 const rows = Array.from(tbody.querySelectorAll('.member-row'));
 
                 // Sort
-                let actualSortVal = sortVal;
-                if (actualSortVal === 'default') actualSortVal = 'level-asc'; // 기본 정렬 = 레벨 낮은순
-
-                rows.sort((a, b) => {
-                    if (actualSortVal.startsWith('name')) {
-                        const nA = a.querySelector('td:nth-child(2) button')?.textContent.trim() || '';
-                        const nB = b.querySelector('td:nth-child(2) button')?.textContent.trim() || '';
-                        return actualSortVal === 'name-asc' ? nA.localeCompare(nB, 'ko') : nB.localeCompare(nA, 'ko');
-                    } else if (actualSortVal.startsWith('rate')) {
-                        const rateText = el => el.querySelector('td:nth-child(6) .font-bold')?.textContent || '0%';
-                        const rA = parseInt(rateText(a));
-                        const rB = parseInt(rateText(b));
-                        return actualSortVal === 'rate-asc' ? rA - rB : rB - rA;
-                    } else if (actualSortVal.startsWith('level')) {
-                        // 레벨 컬럼을 기준으로 정렬
-                        const getLv = el => parseInt(el.querySelector('td:nth-child(3) .font-bold')?.textContent.replace(/\D/g,'') || '0');
-                        return actualSortVal === 'level-asc' ? getLv(a) - getLv(b) : getLv(b) - getLv(a);
-                    } else if (actualSortVal.startsWith('today')) {
-                        const isChecked = el => el.querySelector('td:nth-child(7) .bg-emerald-50') ? 1 : 0;
-                        return actualSortVal === 'today-first' ? isChecked(b) - isChecked(a) : isChecked(a) - isChecked(b);
-                    }
-                    return 0;
-                });
-                rows.forEach(r => tbody.appendChild(r));
+                if (sortVal !== 'default') {
+                    rows.sort((a, b) => {
+                        if (sortVal.startsWith('name')) {
+                            const nA = a.querySelector('td:nth-child(2) button')?.textContent.trim() || '';
+                            const nB = b.querySelector('td:nth-child(2) button')?.textContent.trim() || '';
+                            return sortVal === 'name-asc' ? nA.localeCompare(nB, 'ko') : nB.localeCompare(nA, 'ko');
+                        } else if (sortVal.startsWith('rate')) {
+                            const rateText = el => el.querySelector('td:nth-child(6) .font-bold')?.textContent || '0%';
+                            const rA = parseInt(rateText(a));
+                            const rB = parseInt(rateText(b));
+                            return sortVal === 'rate-asc' ? rA - rB : rB - rA;
+                        } else if (sortVal.startsWith('level')) {
+                            const getLv = el => parseInt(el.querySelector('td:nth-child(2) .bg-purple-50')?.textContent.replace(/\D/g,'') || '0');
+                            return sortVal === 'level-asc' ? getLv(a) - getLv(b) : getLv(b) - getLv(a);
+                        } else if (sortVal.startsWith('today')) {
+                            const isChecked = el => el.querySelector('td:nth-child(7) .bg-emerald-50') ? 1 : 0;
+                            return sortVal === 'today-first' ? isChecked(b) - isChecked(a) : isChecked(a) - isChecked(b);
+                        }
+                        return 0;
+                    });
+                    rows.forEach(r => tbody.appendChild(r));
                     
-                    // Sync card grid sort order to match table
-                    const cardGridEl = document.getElementById('leader-card-grid');
-                    if (cardGridEl) {
-                        const gridCards = Array.from(cardGridEl.querySelectorAll('.grid-card'));
+                    const gridContainer = document.getElementById('leader-grid-container');
+                    if (gridContainer) {
+                        const gridCards = Array.from(gridContainer.querySelectorAll('.grid-card'));
                         rows.forEach((r) => {
                             const gridCard = gridCards.find(c => c.dataset.idx === r.dataset.idx);
-                            if (gridCard) cardGridEl.appendChild(gridCard);
+                            if (gridCard) gridContainer.appendChild(gridCard);
                         });
                     }
+                }
 
                 let visibleCount = 0;
-                const visibleRows = [];
 
                 rows.forEach(row => {
                     // Team filter
@@ -1567,55 +876,10 @@
                     
                     if (visible) {
                         visibleCount++;
-                        visibleRows.push(row);
                         const numEl = row.querySelector('.text-\\[10px\\].font-bold.text-slate-400');
                         if (numEl) numEl.textContent = visibleCount;
                     }
                 });
-
-                // === Level Section Dividers ===
-                // Remove existing dividers
-                tbody.querySelectorAll('.level-divider-row').forEach(el => el.remove());
-                if (cardGridEl) cardGridEl.querySelectorAll('.level-divider-card').forEach(el => el.remove());
-
-                const isLevelSort = actualSortVal === 'level-asc' || actualSortVal === 'level-desc';
-                if (isLevelSort && visibleRows.length > 0) {
-                    const lvColors = ['#94a3b8','#22c55e','#3b82f6','#a855f7','#f59e0b','#ef4444'];
-                    const lvBg = ['#f1f5f9','#dcfce7','#dbeafe','#f3e8ff','#fef3c7','#fee2e2'];
-                    let lastLv = null;
-                    const lvGroups = {};
-                    visibleRows.forEach(row => {
-                        const lv = row.dataset.leaderLv || '0';
-                        lvGroups[lv] = (lvGroups[lv] || 0) + 1;
-                    });
-
-                    visibleRows.forEach(row => {
-                        const lv = row.dataset.leaderLv || '0';
-                        if (lv !== lastLv) {
-                            const lvNum = parseInt(lv);
-                            const color = lvColors[lvNum] || '#94a3b8';
-                            const bg = lvBg[lvNum] || '#f1f5f9';
-                            const count = lvGroups[lv] || 0;
-                            // Table divider
-                            const dividerRow = document.createElement('tr');
-                            dividerRow.className = 'level-divider-row';
-                            dividerRow.innerHTML = `<td colspan="8" class="px-0 py-0"><div class="flex items-center gap-2 px-4 py-1.5" style="background:${bg}"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black border" style="background:white;color:${color};border-color:${color}">${lv}</span><span class="text-[11px] font-bold" style="color:${color}">LEVEL ${lv}</span><span class="text-[10px] font-semibold text-slate-400">${count}명</span><span class="flex-1 h-px" style="background:${color}20"></span></div></td>`;
-                            row.parentNode.insertBefore(dividerRow, row);
-
-                            // Card grid divider
-                            if (cardGridEl) {
-                                const matchingCard = cardGridEl.querySelector(`.grid-card[data-idx="${row.dataset.idx}"]`);
-                                if (matchingCard) {
-                                    const cardDivider = document.createElement('div');
-                                    cardDivider.className = 'level-divider-card col-span-full';
-                                    cardDivider.innerHTML = `<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg" style="background:${bg}"><span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black border" style="background:white;color:${color};border-color:${color}">${lv}</span><span class="text-[11px] font-bold" style="color:${color}">LEVEL ${lv}</span><span class="text-[10px] font-semibold text-slate-400">${count}명</span><span class="flex-1 h-px" style="background:${color}20"></span></div>`;
-                                    cardGridEl.insertBefore(cardDivider, matchingCard);
-                                }
-                            }
-                            lastLv = lv;
-                        }
-                    });
-                }
 
                 noResult.classList.toggle('hidden', visibleCount > 0 || (!q && activeTeams.has('all')));
                 searchClear.classList.toggle('hidden', !q);
@@ -1630,9 +894,6 @@
                 applyFilters();
                 searchInput.focus();
             });
-            
-            // Initial call to render level section dividers
-            applyFilters();
 
             // Profile Modal Dynamic Data
             const mockMembers = {
@@ -2059,87 +1320,4 @@
 
             // View Toggles removed
         });
-    </script>
-
-    <!-- Calendar Detail Modal -->
-    <div id="cal-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] hidden opacity-0 transition-opacity duration-300" onclick="closeCalendarModal()"></div>
-    <div id="cal-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] sm:w-[440px] max-h-[85vh] bg-white rounded-2xl shadow-2xl z-[90] hidden opacity-0 scale-95 transition-all duration-300 flex flex-col overflow-hidden">
-        <!-- Header -->
-        <div class="p-5 border-b border-slate-200 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <i class="ph-fill ph-calendar-check text-brand-500 text-xl"></i>
-                <h3 id="cal-modal-title" class="text-lg font-bold text-slate-800">리더 — 출석 일정</h3>
-                <span id="cal-modal-type-badge" class="px-2 py-0.5 rounded text-xs font-bold">출석</span>
-            </div>
-            <button onclick="closeCalendarModal()" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                <i class="ph ph-x text-lg"></i>
-            </button>
-        </div>
-        <!-- Calendar Grid -->
-        <div class="p-5">
-            <div class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                <i class="ph ph-calendar-blank text-brand-500"></i> 2026년 4월
-            </div>
-            <div id="cal-modal-grid" class="grid grid-cols-7 gap-1">
-                <!-- JS fills -->
-            </div>
-            <!-- Legend -->
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 pt-3 border-t border-slate-100">
-                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-[10px] text-slate-500">출석 완료</span></div>
-                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-[10px] text-slate-500">대타 출석 완료</span></div>
-                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-[10px] text-slate-500">출석 예정</span></div>
-                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-[10px] text-slate-500">불참</span></div>
-                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-[10px] text-slate-500">대타 예정</span></div>
-            </div>
-        </div>
-        <!-- Detail List -->
-        <div class="px-5 pb-4 flex-1 overflow-y-auto">
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">상세 내역</div>
-            <div id="cal-modal-list" class="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                <!-- JS fills -->
-            </div>
-        </div>
-        <!-- Footer -->
-        <div class="p-4 border-t border-slate-200 bg-white flex items-center justify-between gap-2 flex-shrink-0">
-            <p class="text-[11px] text-slate-400 flex items-center gap-1"><i class="ph ph-info text-sm"></i> 날짜를 클릭하여 상태를 변경하세요</p>
-            <div class="flex items-center gap-2">
-                <button onclick="closeCalendarModal()" class="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors">
-                    취소
-                </button>
-                <button onclick="saveCalendarChanges()" class="px-4 py-1.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition-colors shadow-sm flex items-center gap-1.5">
-                    <i class="ph-bold ph-floppy-disk text-base"></i> 저장
-                </button>
-            </div>
-        </div>
-    </div>
-<!-- 맨 위로 가기 버튼 -->
-<button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})"
-    class="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-brand-600 text-white shadow-lg hover:bg-brand-700 transition-all duration-300 flex items-center justify-center opacity-0 pointer-events-none"
-    style="transition: opacity 0.3s, transform 0.3s;" aria-label="맨 위로 가기">
-    <i class="ph-bold ph-arrow-up text-lg"></i>
-</button>
-<script>
-(function(){
-    const btn = document.getElementById('scrollTopBtn');
-    window.addEventListener('scroll', function(){
-        if(window.scrollY > 300){
-            btn.style.opacity='1'; btn.style.pointerEvents='auto';
-        } else {
-            btn.style.opacity='0'; btn.style.pointerEvents='none';
-        }
-    });
-})();
-
-function copyPhone(phone) {
-    const clean = phone.replace(/[^0-9-]/g, '').trim();
-    navigator.clipboard.writeText(clean).then(() => {
-        const toast = document.createElement('div');
-        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-[9999] transition-opacity duration-300';
-        toast.innerText = clean + ' 복사됨';
-        document.body.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 1500);
-    });
-}
-</script>
-</body>
-</html>
+    
