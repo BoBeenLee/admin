@@ -38,11 +38,12 @@
         }
 
         .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
+        /* CSS variables for dynamic sticky positions — set by JS on load */
+        :root { --header-h: 60px; --tabs-top: 60px; --level-nav-top: 104px; --level-header-top: 147px; }
 
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
@@ -172,6 +173,10 @@
         .view-hidden {
             display: none !important;
         }
+
+        .alert-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
     </style>
 </head>
 
@@ -252,10 +257,10 @@
     </div>
 
     <!-- TEAM ATTENDANCE VIEW (Hidden by default, triggered by drawer navigation) -->
-    <div id="team-view" class="max-w-[1600px] mx-auto space-y-4">
+    <div id="team-view" class="max-w-[1600px] mx-auto">
 
         <!-- Team Tabs inside Team View -->
-        <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-[61px] z-40">
+        <nav id="team-tabs-nav" class="bg-white border-b border-slate-200 sticky z-40" style="top:var(--tabs-top)">
             <div class="flex items-center gap-1.5 px-4 scrollbar-hide overflow-x-auto pb-1 py-1.5">
                 <!-- 영어 팀 -->
                 <span class="flex-shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-tighter mr-1">영어</span>
@@ -279,16 +284,16 @@
         </nav>
 
         <!-- Level Quick-Nav (scroll jump) -->
-        <nav id="level-nav" class="bg-slate-50/90 backdrop-blur-sm border-b border-slate-200 sticky top-[105px] z-30">
+        <nav id="level-nav" class="bg-slate-50/90 backdrop-blur-sm border-b border-slate-200 sticky z-30" style="top:var(--level-nav-top)">
             <div class="max-w-[1600px] mx-auto overflow-x-auto hide-scrollbar flex items-center gap-1.5 px-4 py-1.5">
                 <span class="flex-shrink-0 text-[9px] font-bold text-slate-400 uppercase tracking-wider mr-1">바로가기</span>
                 <!-- Level jump buttons injected by JS -->
             </div>
         </nav>
 
-        <div class="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div class="px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 pt-0 space-y-6">
             <!-- Team Content Header & Toolbar -->
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-4">
                 <div
                     class="flex items-center gap-2 group cursor-pointer transition-colors hover:bg-slate-50 p-1.5 -ml-1.5 rounded-lg">
                     <h2 id="team-title" class="text-2xl font-bold text-slate-800 flex flex-wrap items-center gap-1.5">
@@ -318,6 +323,16 @@
                         <i class="ph-fill ph-warning-circle text-lg"></i> 주의 알림 (CHECK)
                     </h3>
                     <div class="flex items-center gap-3">
+                        <div class="flex items-center bg-white/50 rounded-lg p-0.5 gap-0.5 border border-amber-200">
+                            <button id="alert-view-btn-list" onclick="setAlertViewMode('list')" title="리스트 보기"
+                                class="w-7 h-7 rounded-md flex items-center justify-center transition-all bg-white shadow-sm text-amber-600">
+                                <i class="ph-bold ph-list-bullets text-sm"></i>
+                            </button>
+                            <button id="alert-view-btn-card" onclick="setAlertViewMode('card')" title="카드 보기"
+                                class="w-7 h-7 rounded-md flex items-center justify-center transition-all text-amber-400 hover:text-amber-600">
+                                <i class="ph-bold ph-squares-four text-sm"></i>
+                            </button>
+                        </div>
                         <select id="inner-alert-filter" class="px-2 py-1 bg-white border border-amber-300 rounded text-xs font-medium text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none cursor-pointer">
                             <option value="all">전체 유형</option>
                             <option value="0">첫 스터디 미체크</option>
@@ -330,7 +345,7 @@
                             class="px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs font-bold shadow-inner border border-amber-300">5명</span>
                     </div>
                 </div>
-                <div class="divide-y divide-amber-100">
+                <div id="alert-list-container" class="divide-y divide-amber-100">
                     <!-- Alert Item 1 -->
                     <div class="p-3 hover:bg-amber-100/50 transition-colors group flex items-center justify-between gap-2 border-b border-amber-100/50"
                         id="alert-1">
@@ -412,6 +427,9 @@
                         </button>
                     </div>
                 </div>
+                <!-- Card Grid View for Alerts -->
+                <div id="alert-card-container" class="hidden p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                </div>
             </div>
 
             <!-- 검색 및 필터 바 -->
@@ -455,14 +473,17 @@
                     <option value="T">T</option>
                 </select>
                 <span class="w-px h-6 bg-slate-200 mx-1 flex-shrink-0 hidden sm:block"></span>
-                <select id="level-filter" class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm cursor-pointer">
-                    <option value="all">레벨 전체</option>
-                    <option value="0">LV 0</option>
-                    <option value="1">LV 1</option>
-                    <option value="2">LV 2</option>
-                    <option value="3">LV 3</option>
-                    <option value="4">LV 4</option>
-                </select>
+                <!-- View toggle -->
+                <div class="flex items-center bg-slate-100 rounded-lg p-0.5 gap-0.5">
+                    <button id="view-btn-table" onclick="setViewMode('table')" title="테이블 뷰"
+                        class="w-8 h-8 rounded-md flex items-center justify-center transition-all bg-white shadow-sm text-brand-700">
+                        <i class="ph-bold ph-list-bullets text-base"></i>
+                    </button>
+                    <button id="view-btn-card" onclick="setViewMode('card')" title="카드 그리드 뷰"
+                        class="w-8 h-8 rounded-md flex items-center justify-center transition-all text-slate-500 hover:text-slate-700">
+                        <i class="ph-bold ph-squares-four text-base"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- 검색 결과 없음 -->
@@ -492,9 +513,19 @@
                 </div>
             </div>
 
-            <!-- Level Sections Container -->
-            <div id="levels-container" class="space-y-6">
-                <!-- Each level section (header + table) injected by JS -->
+            <!-- List View Section -->
+            <div id="view-list-section">
+                <!-- Level Sections Container -->
+                <div id="levels-container" class="space-y-6">
+                    <!-- Each level section (header + table) injected by JS -->
+                </div>
+            </div>
+
+            <!-- Card Grid Section -->
+            <div id="view-card-section" class="hidden">
+                <div id="levels-card-container" class="space-y-6">
+                    <!-- Each level section (header + card grid) injected by JS -->
+                </div>
             </div>
         </div>
     </div>
@@ -885,6 +916,61 @@
             // ─── STATE ───
             let currentTeamIdx = 0;
             let currentSort = 'att-desc';
+            let currentViewMode = 'table';
+            let currentAlertViewMode = 'list';
+
+            window.setAlertViewMode = function(mode) {
+                currentAlertViewMode = mode;
+                const vList = document.getElementById('alert-list-container');
+                const vCard = document.getElementById('alert-card-container');
+                const btnList = document.getElementById('alert-view-btn-list');
+                const btnCard = document.getElementById('alert-view-btn-card');
+
+                if (mode === 'list') {
+                    vList.classList.remove('hidden');
+                    vCard.classList.add('hidden');
+                    btnList.classList.add('bg-white', 'shadow-sm', 'text-amber-600');
+                    btnList.classList.remove('text-amber-400');
+                    btnCard.classList.remove('bg-white', 'shadow-sm', 'text-amber-600');
+                    btnCard.classList.add('text-amber-400');
+                } else {
+                    vList.classList.add('hidden');
+                    vCard.classList.remove('hidden');
+                    btnCard.classList.add('bg-white', 'shadow-sm', 'text-amber-600');
+                    btnCard.classList.remove('text-amber-400');
+                    btnList.classList.remove('bg-white', 'shadow-sm', 'text-amber-600');
+                    btnList.classList.add('text-amber-400');
+                }
+                renderTeam(currentTeamIdx);
+            };
+
+            window.setViewMode = function(mode) {
+                currentViewMode = mode;
+                const vList = document.getElementById('view-list-section');
+                const vCard = document.getElementById('view-card-section');
+                const btnTable = document.getElementById('view-btn-table');
+                const btnCard = document.getElementById('view-btn-card');
+
+                if (mode === 'table') {
+                    vList.classList.remove('hidden');
+                    vCard.classList.add('hidden');
+                    btnTable.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
+                    btnTable.classList.remove('text-slate-500');
+                    btnCard.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
+                    btnCard.classList.add('text-slate-500');
+                } else {
+                    vList.classList.add('hidden');
+                    vCard.classList.remove('hidden');
+                    btnCard.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
+                    btnCard.classList.remove('text-slate-500');
+                    btnTable.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
+                    btnTable.classList.add('text-slate-500');
+                }
+                renderTeam(currentTeamIdx);
+
+                // Recalc sticky because layout changed
+                if (window._recalcSticky) setTimeout(window._recalcSticky, 10);
+            };
 
             function getLevelsForTeam(idx) {
                 return [0,1,2,3,4];
@@ -943,8 +1029,14 @@
                     btn.className = `flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-600 border border-slate-200 hover:border-slate-400 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm hover:shadow`;
                     btn.innerHTML = `<span class="w-2 h-2 rounded-full ${c.bg}"></span>LV ${lv} <span class="text-[9px] text-slate-400 font-normal">(${count})</span>`;
                     btn.addEventListener('click', () => {
-                        const target = document.getElementById(`level-section-${lv}`);
-                        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const targetId = currentViewMode === 'table' ? `level-section-${lv}` : `level-section-card-${lv}`;
+                        const target = document.getElementById(targetId);
+                        if (target) {
+                            const headerOffset = 150; 
+                            const elementPosition = target.getBoundingClientRect().top;
+                            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                        }
                     });
                     levelNavContainer.appendChild(btn);
                 });
@@ -1033,6 +1125,85 @@
                 </tr>`;
             }
 
+            // ─── BUILD MEMBER CARD HTML ───
+            function buildCardHtml(m) {
+                const ms = m.membership;
+                const blocksHtml = m.blocks.map(b =>
+                    `<div class="attendance-block h-2 flex-1 rounded-sm ${b.bg} cursor-pointer" data-date="${b.date}" data-status="${b.status}" data-color="${b.color}" data-leader="${b.leader}"></div>`
+                ).join('');
+                
+                const levelCls = lvColors[m.level] || lvColors[0];
+                
+                return `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col p-2.5 transition-all hover:shadow-md hover:border-brand-200 group relative">
+                    <div class="flex items-center justify-between mb-1.5 gap-2">
+                        <div class="flex items-center gap-2 overflow-hidden flex-1">
+                            <button class="font-bold text-slate-800 hover:text-brand-600 text-[14px] truncate" onclick="openProfileModal('${m.name}')">${m.name}</button>
+                            <span class="hidden xl:inline text-[9px] font-mono text-slate-400 cursor-pointer hover:text-brand-600 truncate" onclick="copyPhone('${m.phone}')">${m.phone}</span>
+                            <span class="px-1 py-0.5 ${ms.colorRow} text-[8.5px] font-bold rounded border whitespace-nowrap">${ms.name}</span>
+                        </div>
+                        <span class="shrink-0 px-1 py-0.5 rounded text-[8.5px] font-bold ${levelCls.bg} text-white shadow-sm">LV ${m.level}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-1.5">
+                        <div class="flex items-center gap-1 text-[9px] text-slate-500 font-medium">
+                            <span class="font-bold text-slate-700 text-[10px]">${m.remaining}</span>
+                            <span class="text-slate-400">/ ${ms.total}회</span>
+                            <span class="text-slate-300 ml-0.5">|</span>
+                            <span>${m.expDate}</span>
+                        </div>
+                        <span class="text-[10px] font-black ${m.attRate >= 80 ? 'text-emerald-600' : m.attRate < 50 ? 'text-purple-600' : 'text-slate-600'} cursor-pointer hover:underline" onclick="openMemberAttendanceHistory('${m.name}')">${m.attRate}%</span>
+                    </div>
+
+                    <div class="mb-1.5">
+                        <input type="text" value="${m.memo || ''}" placeholder="메모 입력..." 
+                            class="w-full bg-slate-50 border-none text-[10px] py-1 px-2 rounded focus:ring-1 focus:ring-brand-400 outline-none text-slate-500 placeholder:text-slate-300 transition-all border-transparent hover:border-slate-200">
+                    </div>
+
+                    <div class="flex items-center gap-[1px] w-full tooltip-container">
+                        ${blocksHtml}
+                    </div>
+                </div>`;
+            }
+
+            // ─── BUILD ALERT CARD HTML ───
+            function buildAlertCardHtml(m, a) {
+                const badgeCls = a.alertInfo.cls;
+                const badgeContent = a.alertInfo.badge;
+
+                return `
+                <div class="bg-white rounded-xl p-3 border border-amber-200 shadow-sm hover:shadow-md transition-all group relative flex flex-col justify-between h-full min-h-[165px]" id="alert-card-${m.id}">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${badgeCls} shadow-sm whitespace-nowrap">${badgeContent}</span>
+                             <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold border border-slate-200 uppercase tracking-tighter">LV ${a.level}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                            <button onclick="scrollToMember('${a.rowId}')" class="text-[15px] font-black text-slate-800 hover:text-brand-600 transition-colors flex items-center gap-1">
+                                ${m.name}
+                            </button>
+                            <div class="flex flex-wrap gap-1">
+                                ${m.teamBadges.slice(0, 2).map(tb => {
+                    const cls = tb.isJapanese ? 'color:#007BFF;background:#e6f0ff;border-color:#007BFF' : 'color:#9B59B6;background:#f5eafa;border-color:#9B59B6';
+                    const label = tb.label.split('(')[0];
+                    return `<span class="px-1 py-0.5 text-[8px] rounded font-bold border truncate max-w-[60px]" style="${cls}" title="${tb.label}">${label}</span>`;
+                }).join('')}
+                            </div>
+                            <i class="ph-bold ph-arrow-right text-[10px] text-slate-300 ml-auto group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all"></i>
+                        </div>
+                        <div class="text-[11px] text-slate-500 bg-amber-50/50 p-2 rounded-lg border border-amber-100/50 mb-3 line-clamp-2 min-h-[42px] leading-relaxed">
+                            <i class="ph ph-chat-centered-text text-amber-400 mr-1"></i> ${m.memo || '코멘트가 없습니다.'}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 pt-1">
+                        <span class="text-[10px] font-mono text-slate-400 cursor-pointer hover:text-brand-600 active:scale-95 transition-all truncate" onclick="event.stopPropagation();copyPhone('${m.phone}')" title="${m.phone}">${m.phone}</span>
+                        <button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-1 px-3 rounded-lg text-amber-700 bg-white border border-amber-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center justify-center gap-1">
+                            <i class="ph-bold ph-check"></i> 해결
+                        </button>
+                    </div>
+                </div>`;
+            }
+
             // ─── RENDER FULL TEAM (all levels) ───
             function renderTeam(teamIdx) {
                 const levels = getLevelsForTeam(teamIdx);
@@ -1099,12 +1270,16 @@
                 // Render check-section
                 const checkSection = document.getElementById('check-section');
                 const checkCount = document.getElementById('check-count');
-                const alertContainer = checkSection.querySelector('.divide-y');
+                const alertListContainer = document.getElementById('alert-list-container');
+                const alertCardContainer = document.getElementById('alert-card-container');
+
                 if (displayAlerts.length > 0) {
                     checkSection.style.display = '';
                     checkSection.style.opacity = '1';
                     checkCount.textContent = displayAlerts.length + '명';
-                    alertContainer.innerHTML = displayAlerts.map((a, i) => {
+                    
+                    // Populate List View
+                    alertListContainer.innerHTML = displayAlerts.map((a, i) => {
                         const m = a.member;
                         const badgeCls = a.alertInfo.cls;
                         const badgeContent = a.alertInfo.badge;
@@ -1137,15 +1312,21 @@
                         </div>`;
                     }).join('');
 
+                    // Populate Card View
+                    alertCardContainer.innerHTML = displayAlerts.map(a => buildAlertCardHtml(a.member, a)).join('');
+
                 } else {
                     checkSection.style.display = '';
                     checkCount.textContent = '0명';
-                    alertContainer.innerHTML = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                    alertListContainer.innerHTML = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                    alertCardContainer.innerHTML = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold w-full col-span-full">선택하신 유형의 알림 대상자가 없습니다.</div>`;
                 }
 
                 // Render level sections
                 const container = document.getElementById('levels-container');
+                const cardContainer = document.getElementById('levels-card-container');
                 container.innerHTML = '';
+                cardContainer.innerHTML = '';
                 let globalIdx = 0;
                 let totalVisible = 0;
 
@@ -1155,88 +1336,131 @@
                     filteredLevels = levels.filter(l => String(l) === lvFilter);
                 }
 
+                const searchQ = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+                const searchTarget = document.getElementById('search-target')?.value || 'all';
+                const msFilter = document.getElementById('membership-filter')?.value || 'all';
+
                 filteredLevels.forEach(lv => {
                     const members = sortMembers(allMembers[td.key][lv] || [], currentSort);
                     const c = lvColors[lv];
 
-                    // Level section wrapper
-                    const section = document.createElement('div');
-                    section.id = `level-section-${lv}`;
-                    section.className = 'scroll-mt-[160px]'; // offset for sticky headers
+                    if (currentViewMode === 'table') {
+                        // Level section wrapper
+                        const section = document.createElement('div');
+                        section.id = `level-section-${lv}`;
+                        section.className = 'scroll-mt-[160px]'; // offset for sticky headers
 
-                    // Level header
-                    section.innerHTML = `
-                        <div class="flex items-center gap-3 mb-3 mt-2">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full ${c.bg}"></span>
-                                <h3 class="text-lg font-bold ${c.text}">Level ${lv}</h3>
-                                <span class="px-2 py-0.5 rounded-full ${c.light} ${c.text} ${c.border} border text-xs font-bold">${members.length}명</span>
+                        // Level header (sticky)
+                        section.innerHTML = `
+                            <div class="level-sticky-header flex items-center gap-3 px-3 py-2 mb-0 mt-0" style="position:sticky;top:var(--level-header-top);z-index:20;background:rgba(255,255,255,0.98);backdrop-filter:blur(6px);border-bottom:1px solid #e2e8f0;">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full ${c.bg}"></span>
+                                    <h3 class="text-base font-bold ${c.text}">Level ${lv}</h3>
+                                    <span class="px-2 py-0.5 rounded-full ${c.light} ${c.text} ${c.border} border text-xs font-bold">${members.length}명</span>
+                                </div>
+                                <div class="flex-1 h-px bg-slate-200"></div>
                             </div>
-                            <div class="flex-1 h-px bg-slate-200"></div>
-                        </div>
-                    `;
+                        `;
 
-                    // Table
-                    const tableWrap = document.createElement('div');
-                    tableWrap.className = 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4';
-                    tableWrap.innerHTML = `
-                        <div class="overflow-x-auto w-full">
-                            <table class="w-full text-left border-collapse min-w-[1000px]">
-                                <thead>
-                                    <tr class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                                        <th class="px-2 py-1 font-medium w-16 text-center">
-                                            <div class="flex items-center justify-center gap-1">
-                                                <span class="text-[10px] text-slate-400 w-3 text-right">No.</span>
-                                                <input type="checkbox" class="check-all-lv w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer" data-level="${lv}">
-                                            </div>
-                                        </th>
-                                        <th class="px-2 py-1 font-medium min-w-[140px]">회원 정보</th>
-                                        <th class="px-2 py-1 font-medium min-w-[160px]">멤버 레벨 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal text-slate-400"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
-                                        <th class="px-2 py-1 font-medium min-w-[160px]">참여 팀 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal text-slate-400"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
-                                        <th class="px-2 py-1 font-medium min-w-[160px]">멤버십 현황</th>
-                                        <th class="px-2 py-1 font-medium min-w-[180px]">메모 (Click-to-Edit)</th>
-                                        <th class="px-2 py-1 font-medium text-center w-40">최근 출석률</th>
-                                        <th class="px-2 py-1 font-medium text-center w-24">금일 출석</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 text-sm text-slate-700 align-top" id="tbody-lv-${lv}"></tbody>
-                            </table>
-                        </div>
-                    `;
-                    section.appendChild(tableWrap);
-                    container.appendChild(section);
+                        // Table
+                        const tableWrap = document.createElement('div');
+                        tableWrap.className = 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4';
+                        tableWrap.innerHTML = `
+                            <div class="overflow-x-auto w-full">
+                                <table class="w-full text-left border-collapse min-w-[1000px]">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                                            <th class="px-2 py-1 font-medium w-16 text-center">
+                                                <div class="flex items-center justify-center gap-1">
+                                                    <span class="text-[10px] text-slate-400 w-3 text-right">No.</span>
+                                                    <input type="checkbox" class="check-all-lv w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer" data-level="${lv}">
+                                                </div>
+                                            </th>
+                                            <th class="px-2 py-1 font-medium min-w-[140px]">회원 정보</th>
+                                            <th class="px-2 py-1 font-medium min-w-[160px]">멤버 레벨 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal text-slate-400"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
+                                            <th class="px-2 py-1 font-medium min-w-[160px]">참여 팀 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal text-slate-400"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
+                                            <th class="px-2 py-1 font-medium min-w-[160px]">멤버십 현황</th>
+                                            <th class="px-2 py-1 font-medium min-w-[180px]">메모 (Click-to-Edit)</th>
+                                            <th class="px-2 py-1 font-medium text-center w-40">최근 출석률</th>
+                                            <th class="px-2 py-1 font-medium text-center w-24">금일 출석</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 text-sm text-slate-700 align-top" id="tbody-lv-${lv}"></tbody>
+                                </table>
+                            </div>
+                        `;
+                        section.appendChild(tableWrap);
+                        container.appendChild(section);
 
-                    // Fill tbody (with search filter)
-                    const tbody = document.getElementById(`tbody-lv-${lv}`);
-                    const searchQ = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
-                    const searchTarget = document.getElementById('search-target')?.value || 'all';
-                    const msFilter = document.getElementById('membership-filter')?.value || 'all';
-                    let visibleIdx = 0;
-                    members.forEach((m, idx) => {
-                        let match = !searchQ;
-                        if (searchQ) {
-                            const name = (m.name || '').toLowerCase();
-                            const phone = (m.phone || '').replace(/-/g, '');
-                            const qNorm = searchQ.replace(/-/g, '');
-                            if (searchTarget === 'name') match = name.includes(searchQ);
-                            else if (searchTarget === 'phone') match = phone.includes(qNorm);
-                            else match = name.includes(searchQ) || phone.includes(qNorm);
-                        }
-                        if (match && msFilter !== 'all') {
-                            match = m.membership && m.membership.name === msFilter;
-                        }
-                        if (match) {
-                            visibleIdx++;
-                            tbody.innerHTML += buildRowHtml(m, visibleIdx);
-                            totalVisible++;
-                        }
-                        globalIdx++;
-                    });
+                        // Fill tbody (with search filter)
+                        const tbody = document.getElementById(`tbody-lv-${lv}`);
+                        let visibleIdx = 0;
+                        members.forEach((m) => {
+                            let match = !searchQ;
+                            if (searchQ) {
+                                const name = (m.name || '').toLowerCase();
+                                const phone = (m.phone || '').replace(/-/g, '');
+                                const qNorm = searchQ.replace(/-/g, '');
+                                if (searchTarget === 'name') match = name.includes(searchQ);
+                                else if (searchTarget === 'phone') match = phone.includes(qNorm);
+                                else match = name.includes(searchQ) || phone.includes(qNorm);
+                            }
+                            if (match && msFilter !== 'all') {
+                                match = m.membership && m.membership.name === msFilter;
+                            }
+                            if (match) {
+                                visibleIdx++;
+                                tbody.innerHTML += buildRowHtml(m, visibleIdx);
+                                totalVisible++;
+                            }
+                            globalIdx++;
+                        });
+                    } else {
+                        // Card section wrapper
+                        const section = document.createElement('div');
+                        section.id = `level-section-card-${lv}`;
+                        section.className = 'scroll-mt-[160px]';
+
+                        // Card header (sticky)
+                        section.innerHTML = `
+                            <div class="level-sticky-header flex items-center gap-3 px-3 py-2 mb-3 mt-0" style="position:sticky;top:var(--level-header-top);z-index:20;background:rgba(255,255,255,0.98);backdrop-filter:blur(6px);border-bottom:1px solid #e2e8f0;">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full ${c.bg}"></span>
+                                    <h3 class="text-base font-bold ${c.text}">Level ${lv}</h3>
+                                    <span class="px-2 py-0.5 rounded-full ${c.light} ${c.text} ${c.border} border text-xs font-bold">${members.length}명</span>
+                                </div>
+                                <div class="flex-1 h-px bg-slate-200"></div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-1" id="card-grid-lv-${lv}"></div>
+                        `;
+                        cardContainer.appendChild(section);
+
+                        const grid = document.getElementById(`card-grid-lv-${lv}`);
+                        let visibleIdx = 0;
+                        members.forEach((m) => {
+                            let match = !searchQ;
+                            if (searchQ) {
+                                const name = (m.name || '').toLowerCase();
+                                const phone = (m.phone || '').replace(/-/g, '');
+                                const qNorm = searchQ.replace(/-/g, '');
+                                if (searchTarget === 'name') match = name.includes(searchQ);
+                                else if (searchTarget === 'phone') match = phone.includes(qNorm);
+                                else match = name.includes(searchQ) || phone.includes(qNorm);
+                            }
+                            if (match && msFilter !== 'all') {
+                                match = m.membership && m.membership.name === msFilter;
+                            }
+                            if (match) {
+                                visibleIdx++;
+                                grid.innerHTML += buildCardHtml(m);
+                                totalVisible++;
+                            }
+                        });
+                    }
                 });
 
                 // Show/hide no-result message
                 const noResult = document.getElementById('no-result');
-                const searchQ = (document.getElementById('search-input')?.value || '').trim();
                 noResult.classList.toggle('hidden', totalVisible > 0 || !searchQ);
 
                 // Bind checkboxes & level nav
@@ -1462,25 +1686,40 @@
             };
 
             window.resolveAlert = function(alertId, memberRowId) {
-                const el = document.getElementById(alertId);
-                if (el) {
-                    el.style.opacity = '0'; el.style.transform = 'translateX(10px)'; el.style.transition = 'all 0.3s ease';
-                    setTimeout(() => {
-                        el.remove();
-                        const checkSection = document.getElementById('check-section');
-                        const countSpan = document.getElementById('check-count');
-                        const alertContainer = checkSection ? checkSection.querySelector('.divide-y') : null;
-                        if (countSpan) {
-                            let current = parseInt(countSpan.innerText);
-                            if (!isNaN(current) && current > 0) {
-                                current--; countSpan.innerText = current + '명';
-                                if (current === 0 && alertContainer) {
-                                    alertContainer.innerHTML = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold">선택하신 유형의 알림 대상자가 없습니다.</div>`;
-                                }
+                const baseId = alertId.replace('alert-card-', '').replace('alert-', '');
+                const listEl = document.getElementById('alert-' + baseId);
+                const cardEl = document.getElementById('alert-card-' + baseId);
+                
+                const removeWithAnim = (el) => {
+                    if (!el) return;
+                    el.style.opacity = '0'; 
+                    el.style.transform = 'translateY(10px)'; 
+                    el.style.transition = 'all 0.3s ease';
+                    setTimeout(() => el.remove(), 300);
+                };
+
+                removeWithAnim(listEl);
+                removeWithAnim(cardEl);
+
+                setTimeout(() => {
+                    const checkSection = document.getElementById('check-section');
+                    const countSpan = document.getElementById('check-count');
+                    const listContainer = document.getElementById('alert-list-container');
+                    const cardContainer = document.getElementById('alert-card-container');
+                    
+                    if (countSpan) {
+                        let current = parseInt(countSpan.innerText);
+                        if (!isNaN(current) && current > 0) {
+                            current--; 
+                            countSpan.innerText = current + '명';
+                            if (current === 0) {
+                                const emptyMsg = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold w-full col-span-full">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                                if (listContainer) listContainer.innerHTML = emptyMsg;
+                                if (cardContainer) cardContainer.innerHTML = emptyMsg;
                             }
                         }
-                    }, 300);
-                }
+                    }
+                }, 300);
                 
                 if (memberRowId) {
                     const row = document.getElementById(memberRowId);
@@ -1546,7 +1785,39 @@ function copyPhone(phone) {
         setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 1500);
     });
 }
+
+/* ── DYNAMIC STICKY POSITIONS ── */
+(function fixStickyPositions(){
+    function calc() {
+        const header = document.querySelector('header');
+        const tabsNav = document.getElementById('team-tabs-nav');
+        const levelNav = document.getElementById('level-nav');
+        if (!header || !tabsNav) return;
+
+        const headerH = header.getBoundingClientRect().height;
+        const tabsH   = tabsNav.getBoundingClientRect().height;
+        const levelNavH = (levelNav && !levelNav.classList.contains('hidden'))
+                          ? levelNav.getBoundingClientRect().height : 0;
+
+        // Force a 1px overlap to eliminate sub-pixel gaps caused by borders/anti-aliasing
+        const tabsTop      = headerH - 1; 
+        const levelNavTop  = headerH + tabsH - 2; 
+        const levelHeaderTop = headerH + tabsH + levelNavH - 3; 
+
+        const root = document.documentElement;
+        root.style.setProperty('--tabs-top',      tabsTop + 'px');
+        root.style.setProperty('--level-nav-top', levelNavTop + 'px');
+        root.style.setProperty('--level-header-top', levelHeaderTop + 'px');
+    }
+
+    // Run multiple times to catch layout settled state
+    calc();
+    window.addEventListener('scroll', calc, { passive: true });
+    window.addEventListener('resize', calc);
+    document.addEventListener('DOMContentLoaded', calc);
+    window.addEventListener('load', calc);
+    window._recalcSticky = calc;
+})();
 </script>
 </body>
-
 </html>
