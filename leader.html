@@ -178,6 +178,176 @@
         .view-hidden {
             display: none !important;
         }
+
+        /* Matrix view */
+        .mx-cell {
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 4px 8px;
+            font-size: 11px;
+            line-height: 1.15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 38px;
+            min-height: 38px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mx-head {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: #f8fafc;
+            font-weight: 700;
+            color: #475569;
+            font-size: 10.5px;
+            text-transform: none;
+            letter-spacing: 0;
+            border-bottom: 1.5px solid #cbd5e1;
+            height: 44px;
+            min-height: 44px;
+        }
+        .mx-col-sticky {
+            position: sticky;
+            left: 0;
+            z-index: 15;
+            background: #fff;
+            border-right: 1px solid #cbd5e1;
+        }
+        .mx-col-sticky.mx-head {
+            z-index: 30;
+            background: #f8fafc;
+        }
+        .mx-row-leader {
+            background: #fff;
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 11.5px;
+            justify-content: flex-start;
+            padding-left: 12px;
+            gap: 6px;
+        }
+        .mx-row-leader .mx-name {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .mx-row-leader .mx-phone {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10px;
+            color: #94a3b8;
+        }
+        /* zebra */
+        .mx-row-even .mx-cell { background: #fff; }
+        .mx-row-odd  .mx-cell { background: #fbfcfd; }
+        .mx-row-odd  .mx-col-sticky:not(.mx-head) { background: #fbfcfd; }
+
+        /* cell status */
+        .mx-s-att   { background: #ecfdf5 !important; color: #065f46; font-weight: 600; }
+        .mx-s-abs   { background: #fee2e2 !important; color: #991b1b; font-weight: 700; }
+        .mx-s-sub   { background: #fef3c7 !important; color: #92400e; font-weight: 600; }
+        .mx-s-merge { background: #fefce8 !important; color: #713f12; font-weight: 600; }
+        .mx-s-plan  { background: #f8fafc !important; color: #64748b; font-weight: 500; }
+        .mx-s-empty { background: #ffffff !important; color: #cbd5e1; }
+
+        /* Date cells: outline on hover */
+        .mx-cell:not(.mx-col-sticky):not(.mx-head):hover {
+            outline: 2px solid #0ea5e9; outline-offset: -2px;
+            cursor: pointer; z-index: 5; position: relative;
+        }
+
+        /* Sticky identity cells: subtle hover bg via JS row sync */
+        .mx-col-sticky:not(.mx-head) { cursor: default; transition: background-color .12s; }
+        .mx-row-hover.mx-col-sticky:not(.mx-head) { background: #eff6ff !important; }
+        /* Date cells keep their status color; add a soft top/bottom border accent when row-hovered */
+        .mx-row-hover.mx-cell:not(.mx-col-sticky):not(.mx-head) {
+            box-shadow: inset 0 1px 0 #7dd3fc, inset 0 -1px 0 #7dd3fc;
+        }
+
+        /* Name & phone interactive spans */
+        .mx-name { cursor: pointer; transition: color .12s; padding: 1px 3px; border-radius: 3px; }
+        .mx-name:hover { color: #0284c7; text-decoration: underline; background: #dbeafe; }
+        .mx-phone { cursor: pointer; transition: color .12s; padding: 1px 4px; border-radius: 3px; }
+        .mx-phone:hover { color: #0284c7; background: #dbeafe; }
+
+        .mx-lv-pill {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 22px; height: 18px; padding: 0 5px;
+            border-radius: 4px; font-size: 10px; font-weight: 800;
+            background: #eef2ff; color: #3730a3;
+        }
+        .mx-lang-dot {
+            width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+        }
+        .mx-date-head-sub { font-size: 9px; font-weight: 600; color: #94a3b8; letter-spacing: 0.04em; }
+        .mx-date-head-main { font-size: 11.5px; font-weight: 800; color: #1e293b; }
+        .mx-weekend { color: #dc2626 !important; }
+
+        .mx-filter-btn.active { background: #0f172a; color: #fff; }
+
+        /* Cell with comment: two-line layout — only for data/date cells, not identity sticky cells */
+        .mx-cell { position: relative; }
+        .mx-cell:not(.mx-col-sticky):not(.mx-head) {
+            flex-direction: column;
+            gap: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .mx-status-text { font-weight: inherit; line-height: 1.1; }
+        .mx-comment-chip {
+            display: inline-block;
+            font-size: 9.5px;
+            font-weight: 600;
+            color: inherit;
+            opacity: 0.75;
+            padding: 0 4px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.55);
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-top: 1px;
+        }
+        .mx-s-abs  .mx-comment-chip { background: rgba(255,255,255,0.7); color: #7f1d1d; }
+        .mx-s-sub  .mx-comment-chip { background: rgba(255,255,255,0.7); color: #78350f; }
+        .mx-s-att  .mx-comment-chip { background: rgba(255,255,255,0.7); color: #065f46; }
+        .mx-s-plan .mx-comment-chip { background: #ffffff; color: #475569; border: 1px solid #e2e8f0; }
+
+        .mx-comment-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px; height: 16px;
+            border-radius: 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.08);
+            color: #475569;
+            font-size: 9px;
+            cursor: pointer;
+            transition: background .12s, color .12s;
+        }
+        .mx-cell:hover .mx-comment-btn { display: inline-flex; }
+        .mx-comment-btn:hover { background: #0f172a; color: #fff; }
+        .mx-comment-btn i { font-size: 10px; line-height: 1; }
+
+        /* Inline comment editor */
+        .mx-comment-input {
+            width: 100%;
+            padding: 2px 4px;
+            font-size: 10px;
+            border: 1.5px solid #0ea5e9;
+            border-radius: 3px;
+            background: #fff;
+            color: #0f172a;
+            outline: none;
+            font-weight: 600;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -564,6 +734,10 @@
                         class="w-8 h-8 rounded-md flex items-center justify-center transition-all text-slate-500 hover:text-slate-700">
                         <i class="ph-bold ph-squares-four text-base"></i>
                     </button>
+                    <button id="view-btn-matrix" onclick="setViewMode('matrix')" title="날짜 매트릭스 뷰 (불참 캘린더)"
+                        class="w-8 h-8 rounded-md flex items-center justify-center transition-all text-slate-500 hover:text-slate-700">
+                        <i class="ph-bold ph-calendar-dots text-base"></i>
+                    </button>
                 </div>
             </div>
 
@@ -640,10 +814,75 @@
                 <div id="leader-card-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 </div>
             </div>
+
+            <!-- Matrix (Date × Leader) Section -->
+            <div id="view-matrix-section" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <!-- Toolbar -->
+                <div class="px-4 py-3 border-b border-slate-200 bg-slate-50/80 flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="flex items-center gap-1.5 text-sm font-bold text-slate-700">
+                            <i class="ph-fill ph-calendar-dots text-brand-500"></i>
+                            <span>리더 × 날짜 매트릭스</span>
+                        </div>
+                        <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-0.5">
+                            <button id="mx-filter-all" data-mx-filter="all" class="mx-filter-btn px-2.5 py-1 text-[11px] font-bold rounded-md bg-slate-900 text-white">전체</button>
+                            <button id="mx-filter-eng" data-mx-filter="영" class="mx-filter-btn px-2.5 py-1 text-[11px] font-bold rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:#9B59B6"></span>영어</button>
+                            <button id="mx-filter-jpn" data-mx-filter="일" class="mx-filter-btn px-2.5 py-1 text-[11px] font-bold rounded-md text-slate-600 hover:bg-slate-100 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full" style="background:#007BFF"></span>일어</button>
+                        </div>
+                        <label class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer">
+                            <input type="checkbox" id="mx-only-absent" class="w-3.5 h-3.5 rounded border-slate-300 text-red-500 focus:ring-red-400">
+                            <i class="ph-bold ph-x-circle text-red-500"></i> 불참 있는 리더만
+                        </label>
+                    </div>
+                    <!-- Legend -->
+                    <div class="flex items-center gap-3 text-[10px] font-semibold text-slate-500 flex-wrap">
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-300"></span>출석 완료</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-50 border border-slate-200"></span>출석 예정</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-100 border border-amber-300"></span>대타</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-100 border border-red-300"></span>불참</span>
+                        <span class="text-slate-300">·</span>
+                        <span class="flex items-center gap-1 text-slate-400"><i class="ph-bold ph-note-pencil"></i>셀 호버 → 코멘트 편집</span>
+                    </div>
+                </div>
+
+                <!-- Scrollable grid -->
+                <div id="mx-scroller" class="w-full overflow-auto" style="max-height:calc(100vh - 260px);">
+                    <div id="mx-grid" class="relative" style="display:grid;">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
 
+
+    <!-- Matrix Attendance Popover -->
+    <div id="mx-att-popover"
+        class="fixed hidden z-[110] w-[280px] bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden">
+        <div class="px-3.5 py-2.5 bg-gradient-to-br from-emerald-50 to-white border-b border-slate-200 flex items-start justify-between gap-2">
+            <div class="min-w-0">
+                <div class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700">
+                    <i class="ph-fill ph-check-circle"></i>
+                    <span id="mxp-status">참</span>
+                </div>
+                <div class="mt-0.5 text-[11px] text-slate-500 font-mono"><span id="mxp-date">04.01 (월)</span> · <span id="mxp-team">영 월 11시</span></div>
+                <div class="mt-1 text-[13px] font-extrabold text-slate-800 flex items-center gap-1.5">
+                    <span id="mxp-leader">리더</span>
+                    <span id="mxp-count" class="px-1.5 py-0 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold">0명</span>
+                </div>
+            </div>
+            <button onclick="hideMxAttendance()" class="p-1 -m-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors">
+                <i class="ph ph-x text-sm"></i>
+            </button>
+        </div>
+        <div class="px-3.5 py-2.5 max-h-[280px] overflow-y-auto">
+            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <i class="ph ph-users-three"></i> 참여 멤버 히스토리
+            </div>
+            <div id="mxp-members" class="flex flex-col gap-1"></div>
+        </div>
+    </div>
 
     <!-- Global Block Tooltip -->
     <div id="global-block-tooltip"
@@ -1158,33 +1397,390 @@
             window.setViewMode = function (mode) {
                 const tableSection = document.getElementById('view-list-section');
                 const cardSection = document.getElementById('view-card-section');
+                const matrixSection = document.getElementById('view-matrix-section');
                 const btnTable = document.getElementById('view-btn-table');
                 const btnCard = document.getElementById('view-btn-card');
+                const btnMatrix = document.getElementById('view-btn-matrix');
+
+                const all = [btnTable, btnCard, btnMatrix].filter(Boolean);
+                all.forEach(b => {
+                    b.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
+                    b.classList.add('text-slate-500', 'hover:text-slate-700');
+                });
+
+                tableSection.classList.add('hidden');
+                cardSection.classList.add('hidden');
+                if (matrixSection) matrixSection.classList.add('hidden');
 
                 if (mode === 'card') {
-                    tableSection.classList.add('hidden');
                     cardSection.classList.remove('hidden');
-                    if (btnCard && btnTable) {
+                    if (btnCard) {
                         btnCard.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
                         btnCard.classList.remove('text-slate-500', 'hover:text-slate-700');
-                        btnTable.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
-                        btnTable.classList.add('text-slate-500', 'hover:text-slate-700');
                     }
+                } else if (mode === 'matrix') {
+                    if (matrixSection) matrixSection.classList.remove('hidden');
+                    if (btnMatrix) {
+                        btnMatrix.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
+                        btnMatrix.classList.remove('text-slate-500', 'hover:text-slate-700');
+                    }
+                    if (typeof renderMatrixView === 'function') renderMatrixView();
                 } else {
-                    cardSection.classList.add('hidden');
                     tableSection.classList.remove('hidden');
-                    if (btnTable && btnCard) {
+                    if (btnTable) {
                         btnTable.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
                         btnTable.classList.remove('text-slate-500', 'hover:text-slate-700');
-                        btnCard.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
-                        btnCard.classList.add('text-slate-500', 'hover:text-slate-700');
                     }
                 }
                 setTimeout(() => window._recalcSticky && window._recalcSticky(), 50);
                 try { localStorage.setItem('leaderViewMode', mode); } catch (e) { }
             };
 
-            // Restore last view mode
+            // === Matrix View (Leader × Date) ===
+            let mxFilterLang = 'all';
+            let mxOnlyAbsent = false;
+
+            // Pool of substitute/merge labels used to SEED comments on initial render
+            const subNamePool = ['애슬리','야야','제프','테이','애나','피스','민성','이예진','제니','리더참관','재니','19번으로','19번 합침','아이야','30분늦','지구','다니엘','Kirill','타라스','Miso','해리','루미'];
+            const mergeLabels = ['합침','리더참관'];
+
+            // Persistent comments keyed by `${leaderName}|${dateStr}` — survives toggles via localStorage
+            const MX_COMMENTS_KEY = 'leaderMxComments';
+            let mxComments = {};
+            try {
+                mxComments = JSON.parse(localStorage.getItem(MX_COMMENTS_KEY) || '{}');
+            } catch (e) { mxComments = {}; }
+            function mxCommentKey(leaderName, date) { return leaderName + '|' + date; }
+            function getMxComment(leaderName, date) { return mxComments[mxCommentKey(leaderName, date)] || ''; }
+            function setMxComment(leaderName, date, val) {
+                const k = mxCommentKey(leaderName, date);
+                const trimmed = (val || '').trim();
+                if (trimmed) mxComments[k] = trimmed;
+                else delete mxComments[k];
+                try { localStorage.setItem(MX_COMMENTS_KEY, JSON.stringify(mxComments)); } catch (e) {}
+            }
+
+            // One-time seed: pre-fill comments using the old auto-labels so the first view matches the reference sheet
+            const MX_SEED_FLAG = 'leaderMxCommentsSeeded_v1';
+            function seedMxComments() {
+                if (localStorage.getItem(MX_SEED_FLAG)) return;
+                leaders.forEach(l => {
+                    l.blocks.forEach(b => {
+                        const key = mxCommentKey(l.name, b.date.d);
+                        if (mxComments[key]) return;
+                        const h = (l.name.charCodeAt(0) + b.date.d.charCodeAt(b.date.d.length - 1));
+                        if (b.s === '불참') {
+                            mxComments[key] = subNamePool[h % subNamePool.length];
+                        } else if (b.s === '대타 완료') {
+                            mxComments[key] = subNamePool[(h + 7) % subNamePool.length];
+                        } else if (b.s === '출석 완료') {
+                            if (h % 11 === 0) mxComments[key] = mergeLabels[0];
+                            else if (h % 11 === 1) mxComments[key] = mergeLabels[1];
+                        }
+                    });
+                });
+                try {
+                    localStorage.setItem(MX_COMMENTS_KEY, JSON.stringify(mxComments));
+                    localStorage.setItem(MX_SEED_FLAG, '1');
+                } catch (e) {}
+            }
+            seedMxComments();
+
+            // Unified status labels (shared with table/calendar views)
+            const mxStatusLabel = {
+                '출석 예정': '출석 예정',
+                '출석 완료': '출석 완료',
+                '대타 예정': '대타 예정',
+                '대타 완료': '대타 완료',
+                '불참':       '불참',
+            };
+            const mxStatusShort = {
+                '출석 예정': '예정',
+                '출석 완료': '참',
+                '대타 예정': '대타',
+                '대타 완료': '대타',
+                '불참':       '불참',
+            };
+
+            // Convert a leader's block at a given date index into cell content
+            function mxClassify(block) {
+                if (!block) return { cls: 'mx-s-empty', text: '' };
+                const s = block.s;
+                if (s === '출석 완료') return { cls: 'mx-s-att',   text: mxStatusShort[s] };
+                if (s === '출석 예정') return { cls: 'mx-s-plan',  text: mxStatusShort[s] };
+                if (s === '대타 완료') return { cls: 'mx-s-sub',   text: mxStatusShort[s] };
+                if (s === '대타 예정') return { cls: 'mx-s-sub',   text: mxStatusShort[s] };
+                if (s === '불참')       return { cls: 'mx-s-abs',   text: mxStatusShort[s] };
+                return { cls: 'mx-s-empty', text: '' };
+            }
+
+            function leaderPrimaryLang(l) {
+                // First team prefix: '영' or '일'
+                const t = (l.teams && l.teams[0]) || '';
+                return t.startsWith('영') ? '영' : (t.startsWith('일') ? '일' : '');
+            }
+
+            window.renderMatrixView = function () {
+                const grid = document.getElementById('mx-grid');
+                if (!grid) return;
+
+                // Filter leaders
+                const filtered = leaders.filter(l => {
+                    if (mxFilterLang !== 'all') {
+                        const lang = leaderPrimaryLang(l);
+                        if (lang !== mxFilterLang) return false;
+                    }
+                    if (mxOnlyAbsent) {
+                        if (!l.blocks.some(b => b.s === '불참')) return false;
+                    }
+                    return true;
+                });
+
+                // Column template: [레벨] [이름] [전화번호] [date1..dateN]
+                const dateCols = dates8;
+                const colDefs = [
+                    { key: 'lv',    label: '레벨',    width: '64px' },
+                    { key: 'name',  label: '리더이름', width: '140px' },
+                    { key: 'phone', label: '전화번호', width: '140px' },
+                    ...dateCols.map((d, i) => ({ key: 'd' + i, label: d, width: '90px', isDate: true })),
+                ];
+
+                grid.style.gridTemplateColumns = colDefs.map(c => c.width).join(' ');
+
+                let html = '';
+
+                // ── Header row ──
+                colDefs.forEach((c, i) => {
+                    if (c.isDate) {
+                        const isWeekend = c.label.w === '토' || c.label.w === '일';
+                        html += `<div class="mx-cell mx-head" style="flex-direction:column;gap:2px;">
+                            <div class="mx-date-head-main ${isWeekend ? 'mx-weekend' : ''}">${c.label.d}</div>
+                            <div class="mx-date-head-sub ${isWeekend ? 'mx-weekend' : ''}">${c.label.w}</div>
+                        </div>`;
+                    } else {
+                        // Identity headers: non-sticky to avoid grid+sticky overlap glitches.
+                        // Body identity cells remain sticky so horizontal scroll keeps leader info visible.
+                        const justify = i === 0 ? 'center' : 'flex-start';
+                        const padL = i === 0 ? '0' : '12px';
+                        html += `<div class="mx-cell mx-head" style="justify-content:${justify};padding-left:${padL};">${c.label}</div>`;
+                    }
+                });
+
+                // ── Body rows ──
+                filtered.forEach((l, rowIdx) => {
+                    const rowCls = rowIdx % 2 === 0 ? 'mx-row-even' : 'mx-row-odd';
+                    const rowAttr = `data-mx-row="${rowIdx}"`;
+                    const lang = leaderPrimaryLang(l);
+                    const langColor = lang === '영' ? '#9B59B6' : lang === '일' ? '#007BFF' : '#94a3b8';
+
+                    // Level cell (sticky -- keeps LV badge visible on horizontal scroll)
+                    html += `<div class="mx-cell mx-col-sticky ${rowCls}" ${rowAttr} style="left:0px;">
+                        <span class="mx-lv-pill">LV${l.lv ?? '-'}</span>
+                    </div>`;
+                    // Name cell (non-sticky to keep column alignment with header)
+                    html += `<div class="mx-cell mx-row-leader ${rowCls}" ${rowAttr} style="justify-content:flex-start;padding-left:12px;background:inherit;">
+                        <span class="mx-lang-dot" style="background:${langColor}"></span>
+                        <span class="mx-name" onclick="event.stopPropagation();openProfileModal('${l.name.replace(/'/g,"\\'")}')">${l.name}</span>
+                    </div>`;
+                    // Phone cell (non-sticky to keep natural grid order; row-hover CSS still applies)
+                    html += `<div class="mx-cell ${rowCls}" ${rowAttr} style="justify-content:flex-start;padding-left:12px;background:inherit;">
+                        <span class="mx-phone" title="클릭하여 복사" onclick="event.stopPropagation();copyPhone('${l.phone}')">${l.phone || ''}</span>
+                    </div>`;
+                    // Date cells
+                    dateCols.forEach((d, i) => {
+                        const block = l.blocks[i];
+                        const { cls, text } = mxClassify(block);
+                        const dateKey = block ? block.date.d : '';
+                        const comment = block ? getMxComment(l.name, dateKey) : '';
+                        const tip = block ? `${d.d} (${d.w}) — ${block.s}${comment ? ' / ' + comment : ''}` : '';
+                        const isAttend = block && (block.s === '출석 완료' || block.s === '출석 예정' || block.s === '대타 완료' || block.s === '대타 예정');
+                        const statusEscaped = block ? block.s : '';
+                        const commentEscaped = comment.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                        const cellInner = `
+                            <span class="mx-status-text">${text}</span>
+                            ${comment ? `<span class="mx-comment-chip" title="코멘트: ${comment}">${comment}</span>` : ''}
+                        `;
+                        const clickAttr = isAttend
+                            ? `onclick="showMxAttendance(this, '${l.name.replace(/'/g,"\\'")}', ${rowIdx}, ${i})"`
+                            : (block ? `onclick="openCalendarModal('${l.name.replace(/'/g,"\\'")}','${statusEscaped}')"` : '');
+                        html += `<div class="mx-cell ${cls}" ${rowAttr} data-mx-col="${i}" data-mx-leader="${l.name.replace(/"/g, '&quot;')}" data-mx-date="${dateKey}" title="${tip}" ${clickAttr}>${cellInner}<button class="mx-comment-btn" title="코멘트 편집" onclick="event.stopPropagation();editMxComment(this, '${l.name.replace(/'/g,"\\'")}', '${dateKey}')"><i class="ph-bold ph-note-pencil"></i></button></div>`;
+                    });
+                });
+
+                if (filtered.length === 0) {
+                    html += `<div class="col-span-full py-8 text-center text-slate-400 text-sm" style="grid-column: 1 / -1;">
+                        <i class="ph ph-funnel text-2xl block mb-2"></i>조건에 맞는 리더가 없습니다.
+                    </div>`;
+                }
+
+                grid.innerHTML = html;
+
+                // Row-level hover sync (CSS Grid can't :hover across sibling cells natively)
+                if (!grid.dataset.hoverBound) {
+                    grid.dataset.hoverBound = '1';
+                    let activeRow = null;
+                    const setRow = (r, on) => {
+                        grid.querySelectorAll(`[data-mx-row="${r}"]`).forEach(el => {
+                            el.classList.toggle('mx-row-hover', on);
+                        });
+                    };
+                    grid.addEventListener('mouseover', (e) => {
+                        const cell = e.target.closest('[data-mx-row]');
+                        if (!cell) return;
+                        const r = cell.dataset.mxRow;
+                        if (r === activeRow) return;
+                        if (activeRow !== null) setRow(activeRow, false);
+                        activeRow = r;
+                        setRow(r, true);
+                    });
+                    grid.addEventListener('mouseleave', () => {
+                        if (activeRow !== null) setRow(activeRow, false);
+                        activeRow = null;
+                    });
+                }
+            };
+
+            // Matrix attendance popover
+            window.showMxAttendance = function (cellEl, leaderName, rowIdx, blockIdx) {
+                const leader = leaders.find(l => l.name === leaderName);
+                if (!leader) return;
+                const block = leader.blocks[blockIdx];
+                if (!block) return;
+
+                const pop = document.getElementById('mx-att-popover');
+                document.getElementById('mxp-leader').textContent = leaderName;
+                document.getElementById('mxp-date').textContent = `${block.date.d} (${block.date.w})`;
+                document.getElementById('mxp-team').textContent = block.teamName || (leader.teams && leader.teams[0]) || '-';
+                document.getElementById('mxp-status').textContent = block.s;
+
+                // Parse members string: "이름(전화), 이름(전화)"
+                const raw = (block.members && block.members !== '—') ? block.members : '';
+                const parts = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
+                document.getElementById('mxp-count').textContent = `${parts.length}명`;
+
+                // Color style by status
+                const header = pop.querySelector('.bg-gradient-to-br');
+                const statusDot = pop.querySelector('#mxp-status').parentElement;
+                const countPill = pop.querySelector('#mxp-count');
+                if (block.s === '대타 완료') {
+                    header.className = 'px-3.5 py-2.5 bg-gradient-to-br from-amber-50 to-white border-b border-slate-200 flex items-start justify-between gap-2';
+                    statusDot.className = 'flex items-center gap-1.5 text-[11px] font-bold text-amber-700';
+                    countPill.className = 'px-1.5 py-0 rounded bg-amber-100 text-amber-700 text-[10px] font-bold';
+                } else if (block.s === '출석 예정') {
+                    header.className = 'px-3.5 py-2.5 bg-gradient-to-br from-slate-50 to-white border-b border-slate-200 flex items-start justify-between gap-2';
+                    statusDot.className = 'flex items-center gap-1.5 text-[11px] font-bold text-slate-600';
+                    countPill.className = 'px-1.5 py-0 rounded bg-slate-100 text-slate-600 text-[10px] font-bold';
+                } else {
+                    header.className = 'px-3.5 py-2.5 bg-gradient-to-br from-emerald-50 to-white border-b border-slate-200 flex items-start justify-between gap-2';
+                    statusDot.className = 'flex items-center gap-1.5 text-[11px] font-bold text-emerald-700';
+                    countPill.className = 'px-1.5 py-0 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold';
+                }
+
+                const listEl = document.getElementById('mxp-members');
+                if (parts.length === 0) {
+                    listEl.innerHTML = `<div class="text-[11px] text-slate-400 italic py-2 text-center">참여 멤버 기록 없음</div>`;
+                } else {
+                    listEl.innerHTML = parts.map((p, idx) => {
+                        const m = p.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+                        const nm = m ? m[1] : p;
+                        const ph = m ? m[2] : '';
+                        const initial = nm.charAt(0);
+                        const hue = (nm.charCodeAt(0) * 37) % 360;
+                        return `<div class="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-slate-50 transition-colors group cursor-pointer">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0" style="background:hsl(${hue} 55% 55%)">${initial}</div>
+                            <div class="min-w-0 flex-1">
+                                <div class="text-[12px] font-bold text-slate-800 leading-tight truncate">${nm}</div>
+                                ${ph ? `<div class="text-[10px] font-mono text-slate-400 leading-tight truncate group-hover:text-brand-600 transition-colors" onclick="event.stopPropagation();copyPhone('${ph}')">${ph}</div>` : ''}
+                            </div>
+                            <span class="text-[9px] font-bold text-slate-400 font-mono">#${idx + 1}</span>
+                        </div>`;
+                    }).join('');
+                }
+
+                // Position popover near the cell
+                pop.classList.remove('hidden');
+                const rect = cellEl.getBoundingClientRect();
+                const popW = pop.offsetWidth;
+                const popH = pop.offsetHeight;
+                let left = rect.left + rect.width / 2 - popW / 2;
+                let top = rect.bottom + 6;
+                if (left < 8) left = 8;
+                if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+                if (top + popH > window.innerHeight - 8) {
+                    top = rect.top - popH - 6;
+                }
+                pop.style.left = left + 'px';
+                pop.style.top = top + 'px';
+            };
+
+            window.hideMxAttendance = function () {
+                document.getElementById('mx-att-popover').classList.add('hidden');
+            };
+
+            // Inline comment editor on a cell
+            window.editMxComment = function (btn, leaderName, dateKey) {
+                const cell = btn.closest('.mx-cell');
+                if (!cell) return;
+                const current = getMxComment(leaderName, dateKey);
+                cell.removeAttribute('onclick');
+                cell.style.padding = '4px';
+                cell.innerHTML = `<input class="mx-comment-input" type="text" maxlength="30" placeholder="코멘트 (예: 애슬리)" value="${(current || '').replace(/"/g, '&quot;')}" />`;
+                const input = cell.querySelector('.mx-comment-input');
+                input.focus();
+                input.select();
+
+                let done = false;
+                const commit = (save) => {
+                    if (done) return;
+                    done = true;
+                    if (save) setMxComment(leaderName, dateKey, input.value);
+                    renderMatrixView();
+                };
+                input.addEventListener('click', (e) => e.stopPropagation());
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter')   { e.preventDefault(); commit(true); }
+                    else if (e.key === 'Escape') { e.preventDefault(); commit(false); }
+                });
+                input.addEventListener('blur', () => commit(true));
+            };
+
+            // Dismiss popover on outside click / scroll / Escape
+            document.addEventListener('click', (e) => {
+                const pop = document.getElementById('mx-att-popover');
+                if (!pop || pop.classList.contains('hidden')) return;
+                if (pop.contains(e.target)) return;
+                if (e.target.closest('[onclick*="showMxAttendance"]')) return;
+                hideMxAttendance();
+            }, true);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') hideMxAttendance();
+            });
+            const _mxScroller = document.getElementById('mx-scroller');
+            if (_mxScroller) _mxScroller.addEventListener('scroll', hideMxAttendance, { passive: true });
+            window.addEventListener('scroll', hideMxAttendance, { passive: true });
+
+            // Matrix toolbar bindings
+            document.querySelectorAll('.mx-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    mxFilterLang = btn.dataset.mxFilter;
+                    document.querySelectorAll('.mx-filter-btn').forEach(b => {
+                        b.classList.remove('bg-slate-900', 'text-white');
+                        b.classList.add('text-slate-600', 'hover:bg-slate-100');
+                    });
+                    btn.classList.add('bg-slate-900', 'text-white');
+                    btn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+                    renderMatrixView();
+                });
+            });
+            const mxOnlyAbsentInput = document.getElementById('mx-only-absent');
+            if (mxOnlyAbsentInput) {
+                mxOnlyAbsentInput.addEventListener('change', (e) => {
+                    mxOnlyAbsent = e.target.checked;
+                    renderMatrixView();
+                });
+            }
+
+            // Restore last view mode (after renderMatrixView is defined)
             try {
                 const savedMode = localStorage.getItem('leaderViewMode');
                 if (savedMode) setViewMode(savedMode);
@@ -1573,12 +2169,16 @@
                     const dailyMemoKey = `${l.name}_${dayKey}`;
                     const dailyMemo = dailyMemos[dailyMemoKey] || '';
                     const memoDisplay = dailyMemo ? dailyMemo : `<span class="text-slate-300 italic">메모 없음</span>`;
+                    const isSubNeeded = l.boardStatus === '대타 필요';
+                    const teamKeyForCancel = (l.matchedTeams && l.matchedTeams[0]) || '';
+                    const cancelBtn = isSubNeeded ? `<button onclick="event.stopPropagation();cancelSubstitute('${l.name.replace(/'/g,"\\'")}', '${teamKeyForCancel}', ${activeDay})" title="대타 필요 취소" class="shrink-0 w-5 h-5 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"><i class="ph-bold ph-x text-[10px]"></i></button>` : '';
                     return `<div class="px-3 py-1.5 flex items-center gap-1.5 hover:bg-slate-50 transition-colors group border-b border-slate-50 last:border-0">
-                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold ${st.bg} ${st.text} border ${st.border} whitespace-nowrap shrink-0"><i class="${st.icon}"></i>${l.boardStatus}</span>
+                        <button onclick="event.stopPropagation();openCalendarModal('${l.name}','${l.boardStatus}')" title="일정 관리" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold ${st.bg} ${st.text} border ${st.border} whitespace-nowrap shrink-0 hover:ring-2 hover:ring-offset-1 hover:ring-slate-300 cursor-pointer transition-all"><i class="${st.icon}"></i>${l.boardStatus}</button>
                         <button onclick="openProfileModal('${l.name}')" class="text-[11px] font-extrabold text-slate-800 hover:text-brand-600 transition-colors shrink-0">${taBadge}${l.name}</button>
                         <span class="text-[10px] font-mono text-slate-400 shrink-0 cursor-pointer hover:text-brand-600 transition-colors" onclick="event.stopPropagation();copyPhone('${l.phone}')">${l.phone}</span>
                         <div class="editable-text flex-1 px-1.5 py-0.5 text-[10px] text-slate-400 line-clamp-1 rounded border border-transparent hover:border-slate-200 hover:bg-white transition-colors cursor-pointer relative min-w-0" contenteditable="true" spellcheck="false" data-memo-key="${dailyMemoKey}" onfocus="if(this.querySelector('span.italic'))this.innerHTML=''" onblur="saveDailyMemo(this)">${memoDisplay}<i class="ph ph-pencil-simple absolute right-1 top-1/2 -translate-y-1/2 text-brand-600 opacity-0 group-hover:opacity-100 text-[9px] pointer-events-none"></i></div>
                         <button onclick="openAttendanceHistory('${l.name}')" class="text-[10px] font-bold ${rateColor} whitespace-nowrap shrink-0 hover:underline">${l.rate}%</button>
+                        ${cancelBtn}
                     </div>`;
                 }
 
@@ -1592,12 +2192,16 @@
                     const dailyMemo = dailyMemos[dailyMemoKey] || '';
                     const memoDisplay = dailyMemo ? dailyMemo : `<span class="text-slate-300 italic text-[9px]">\ucf54\uba58\ud2b8 \uc785\ub825...</span>`;
                     const taMark = isTA ? `<span class="ml-0.5 px-0.5 py-0 bg-amber-400 text-white text-[7px] font-black rounded leading-none align-middle">TA</span>` : '';
+                    const isSubNeeded = l.boardStatus === '대타 필요';
+                    const teamKeyForCancel = (l.matchedTeams && l.matchedTeams[0]) || '';
+                    const cancelBtn = isSubNeeded ? `<button onclick="event.stopPropagation();cancelSubstitute('${l.name.replace(/'/g,"\\'")}', '${teamKeyForCancel}', ${activeDay})" title="대타 필요 취소" class="shrink-0 w-4 h-4 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"><i class="ph-bold ph-x text-[9px]"></i></button>` : '';
                     return `<div class="p-2 rounded-lg border border-slate-200 bg-white hover:border-brand-300 hover:shadow-sm transition-all flex flex-col gap-1.5 group">
                         <div class="flex items-center gap-1 min-w-0">
-                            <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold ${st.bg} ${st.text} border ${st.border} whitespace-nowrap shrink-0"><i class="${st.icon}"></i>${l.boardStatus}</span>
+                            <button onclick="event.stopPropagation();openCalendarModal('${l.name}','${l.boardStatus}')" title="일정 관리" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold ${st.bg} ${st.text} border ${st.border} whitespace-nowrap shrink-0 hover:ring-2 hover:ring-offset-1 hover:ring-slate-300 cursor-pointer transition-all"><i class="${st.icon}"></i>${l.boardStatus}</button>
                             <button onclick="openProfileModal('${l.name}')" class="text-[11px] font-extrabold text-slate-800 hover:text-brand-600 transition-colors truncate flex-1 text-left">${l.name}${taMark}</button>
                             <button onclick="openAttendanceHistory('${l.name}')" class="text-[9px] font-bold ${rateColor} shrink-0 hover:underline whitespace-nowrap">${l.rate}%</button>
                             <span class="text-[9px] font-mono text-slate-400 shrink-0 cursor-pointer hover:text-brand-600 transition-colors whitespace-nowrap" onclick="copyPhone('${l.phone}')">${l.phone}</span>
+                            ${cancelBtn}
                         </div>
                         <div class="editable-text px-1.5 py-1 text-[9px] text-slate-500 line-clamp-2 rounded border border-slate-100 hover:border-slate-300 hover:bg-slate-50 transition-colors cursor-text relative" contenteditable="true" spellcheck="false" data-memo-key="${dailyMemoKey}" onfocus="if(this.querySelector('span.italic'))this.innerHTML=''" onblur="saveDailyMemo(this)">${memoDisplay}<i class="ph ph-pencil-simple absolute right-1 top-1 text-brand-400 opacity-0 group-hover:opacity-100 text-[8px] pointer-events-none"></i></div>
                     </div>`;
@@ -1863,7 +2467,24 @@
                             const engHtml = buildLangColumn('영');
                             const jpnHtml = buildLangColumn('일');
 
-                            listEl.innerHTML = `
+                            if (filterLang === '영') {
+                                listEl.innerHTML = `
+                            <div class="flex h-full w-full">
+                                <div class="flex-1 overflow-y-auto hide-scrollbar bg-white">
+                                    ${engHtml || '<div class="p-6 flex flex-col items-center gap-2 text-slate-300"><i class="ph ph-mask-happy text-2xl"></i><span class="text-xs">영어 일정이 없습니다</span></div>'}
+                                </div>
+                            </div>
+                        `;
+                            } else if (filterLang === '일') {
+                                listEl.innerHTML = `
+                            <div class="flex h-full w-full">
+                                <div class="flex-1 overflow-y-auto hide-scrollbar bg-white">
+                                    ${jpnHtml || '<div class="p-6 flex flex-col items-center gap-2 text-slate-300"><i class="ph ph-flag-banner text-2xl"></i><span class="text-xs">일어 일정이 없습니다</span></div>'}
+                                </div>
+                            </div>
+                        `;
+                            } else {
+                                listEl.innerHTML = `
                             <div class="flex h-full w-full">
                                 <div class="flex-1 overflow-y-auto hide-scrollbar border-r-2 border-slate-200 bg-white">
                                     ${engHtml || '<div class="p-6 flex flex-col items-center gap-2 text-slate-300"><i class="ph ph-mask-happy text-2xl"></i><span class="text-xs">영어 일정이 없습니다</span></div>'}
@@ -1873,6 +2494,7 @@
                                 </div>
                             </div>
                         `;
+                            }
                         }
                     }
                 }
@@ -2206,14 +2828,16 @@
 
                 const selectedLv = Number(window._subTarget.lv ?? 0);
                 const teamKey = `${window._subTarget.lang} ${window._subTarget.time}`;
+                const _dayName = days[window._subTarget.dayIdx]?.dayName || '';
+                const fullTeamKeyCreate = `${window._subTarget.lang} ${_dayName} ${window._subTarget.time}`;
 
                 // Check if leader already exists globally
                 let leader = leaders.find(l => l.name === name);
                 if (!leader) {
                     leader = {
                         name, phone, lv: selectedLv, isTA: _subManualType === 'ta',
-                        teams: [teamKey],
-                        readingLevels: { [teamKey]: selectedLv }, blocks: [],
+                        teams: [fullTeamKeyCreate],
+                        readingLevels: { [fullTeamKeyCreate]: selectedLv, [teamKey]: selectedLv }, blocks: [],
                         att: 0, abs: 0, sub: 0, total: 1, done: 0, rate: 0, rateColor: 'text-slate-500'
                     };
                     leaders.push(leader);
@@ -2222,6 +2846,7 @@
                     leader.phone = phone;
                     leader.isTA = _subManualType === 'ta';
                     leader.readingLevels = leader.readingLevels || {};
+                    leader.readingLevels[fullTeamKeyCreate] = selectedLv;
                     leader.readingLevels[teamKey] = selectedLv;
                     leader.lv = selectedLv;
                 }
@@ -2238,7 +2863,7 @@
                 const targetLv = Number(window._subTarget?.lv ?? 0);
                 const teamKey = `${lang} ${time}`;
                 // 3-part team string used by board rendering (lang + dayName + time)
-                const dayName = days[dayIdx]?.label || '';
+                const dayName = days[dayIdx]?.dayName || '';
                 const fullTeamKey = `${lang} ${dayName} ${time}`;
 
                 let leader;
@@ -2256,16 +2881,16 @@
                     existing.boardStatus = status;
                     existing.lv = targetLv;
                     existing.readingLevels = { ...(existing.readingLevels || {}), [fullTeamKey]: targetLv, [teamKey]: targetLv };
+                    existing.matchedTeams = [fullTeamKey];
                 } else {
                     // Clone and add (override lv + readingLevels for this assignment)
                     const clone = {
                         ...leader, boardStatus: status,
                         lv: targetLv,
                         readingLevels: { ...(leader.readingLevels || {}), [fullTeamKey]: targetLv, [teamKey]: targetLv },
-                        matchedTeams: leader.teams ? leader.teams.filter(t => t.startsWith(lang) && t.includes(time)) : [],
+                        matchedTeams: [fullTeamKey],
                         _isSubstitute: true
                     };
-                    if (!clone.matchedTeams.length) clone.matchedTeams = [fullTeamKey];
                     if (days[dayIdx]?.leaders) days[dayIdx].leaders.push(clone);
                 }
 
@@ -2290,6 +2915,42 @@
 
                 closeSubModal();
                 // Re-render board
+                if (typeof window._renderDayContent === 'function') window._renderDayContent();
+                else location.reload();
+            };
+
+            window.cancelSubstitute = function(leaderName, fullTeamKey, dayIdx) {
+                if (!confirm(`${leaderName} 대타 일정을 취소하시겠습니까?`)) return;
+                const day = days[dayIdx];
+                if (!day || !day.leaders) return;
+
+                // Remove matching substitute entry (match by name + matchedTeams containing fullTeamKey)
+                const beforeLen = day.leaders.length;
+                day.leaders = day.leaders.filter(l => {
+                    const isSameName = l.name === leaderName;
+                    const isSub = l._isSubstitute || l.boardStatus === '대타 필요' || l.boardStatus === '대타 예정' || l.boardStatus === '대타 완료';
+                    const matchesTeam = !fullTeamKey || (l.matchedTeams || []).includes(fullTeamKey);
+                    return !(isSameName && isSub && matchesTeam);
+                });
+                const removed = beforeLen - day.leaders.length;
+
+                // Remove from log
+                if (Array.isArray(window.substituteLog)) {
+                    window.substituteLog = window.substituteLog.filter(e =>
+                        !(e.leaderName === leaderName && e.dayIdx === dayIdx)
+                    );
+                }
+
+                // Toast
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-4 py-2.5 bg-slate-800 text-white text-sm font-bold rounded-xl shadow-xl flex items-center gap-2 transition-all';
+                toast.innerHTML = removed > 0
+                    ? `<i class="ph-bold ph-trash"></i> ${leaderName} 대타 일정 취소됨`
+                    : `<i class="ph-bold ph-info"></i> 취소할 일정을 찾지 못했습니다`;
+                document.body.appendChild(toast);
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2000);
+
+                // Re-render
                 if (typeof window._renderDayContent === 'function') window._renderDayContent();
                 else location.reload();
             };
@@ -2947,8 +3608,12 @@
             });
 
             window.openCalendarModal = function (name, type) {
-                const data = leaderSchedule[name];
-                if (!data) return;
+                let data = leaderSchedule[name];
+                if (!data) {
+                    // Initialize empty schedule for newly-added leaders (e.g. substitutes)
+                    data = { '출석 완료': [], '결석': [], '대타 예정': [], '대타 완료': [], '출석 예정': [] };
+                    leaderSchedule[name] = data;
+                }
                 calCurrentName = name;
 
                 document.getElementById('cal-modal-title').textContent = `${name} — 일정 관리`;
