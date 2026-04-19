@@ -6,19 +6,89 @@
     <title>하남 지점 어드민 - 통계 및 리포트</title>
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="shared/tailwind-config.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
-    <link rel="stylesheet" href="shared/styles.css" />
+
     <style>
+        body { background-color: #f8fafc; color: #0f172a; }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
 <body class="antialiased min-h-screen pb-24">
 
-    <div id="app-header"></div>
-    <div id="app-drawer"></div>
+    <!-- Top Navigation Header -->
+    <header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <button id="hamburger-btn" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+            <div class="bg-brand-500 text-white p-1.5 rounded-lg">
+                <i class="ph-bold ph-buildings text-xl"></i>
+            </div>
+            <h1 class="text-lg font-bold text-slate-800 tracking-tight">하남 지점 어드민</h1>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg border border-transparent transition-colors">
+                <img src="https://ui-avatars.com/api/?name=매니저&background=0284c7&color=fff" alt="User" class="w-8 h-8 rounded-full">
+                <span class="text-sm font-medium hidden sm:block">지점장 옵션 <i class="ph ph-caret-down text-xs ml-1 font-bold"></i></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Side Navigation Drawer -->
+    <div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity cursor-pointer"></div>
+    <div id="nav-drawer" class="fixed top-0 left-0 h-full w-full sm:w-72 bg-white shadow-2xl z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
+            <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800">
+                <i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴
+            </h2>
+            <button id="close-drawer-btn" class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer transition">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <nav class="p-4 space-y-1">
+            <a href="home.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-calendar-blank text-lg"></i> 대시보드 캘린더 (홈)
+            </a>
+            <a href="member.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-users-three text-lg"></i> 멤버 팀
+            </a>
+            <a href="leader.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-crown text-lg"></i> 리더 팀
+            </a>
+            <a href="stats.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 bg-brand-50 text-brand-700 rounded-lg font-medium transition-colors">
+                <i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트
+            </a>
+            <a href="call.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-phone-call text-lg"></i> 신규 회신
+            </a>
+        </nav>
+    </div>
 
     <!-- MAIN CONTENT -->
     <main class="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -187,8 +257,27 @@
         </div>
     </main>
 
-    <script src="shared/utils.js"></script>
-    <script src="shared/header.js"></script>
-    <script src="shared/drawer.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DRAWER Toggles
+            const hBtn = document.getElementById('hamburger-btn');
+            const cBtn = document.getElementById('close-drawer-btn');
+            const dOverlay = document.getElementById('drawer-overlay');
+            const nDrawer = document.getElementById('nav-drawer');
+
+            function tDrawer(s) {
+                if (s) {
+                    dOverlay.classList.remove('hidden');
+                    setTimeout(() => { dOverlay.classList.remove('opacity-0'); nDrawer.classList.remove('-translate-x-full'); }, 10);
+                } else {
+                    dOverlay.classList.add('opacity-0'); nDrawer.classList.add('-translate-x-full');
+                    setTimeout(() => dOverlay.classList.add('hidden'), 300);
+                }
+            }
+            if (hBtn) hBtn.addEventListener('click', () => tDrawer(true));
+            if (cBtn) cBtn.addEventListener('click', () => tDrawer(false));
+            if (dOverlay) dOverlay.addEventListener('click', () => tDrawer(false));
+        });
+    </script>
 </body>
 </html>
