@@ -805,14 +805,14 @@
         <!-- Unified Form Section -->
         <div class="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-5 bg-white">
             <!-- Substitute Needed Toggle -->
-            <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100 mb-2">
+            <div class="flex items-center justify-between p-3 bg-fuchsia-50 rounded-xl border border-fuchsia-100 mb-2">
                 <div>
-                    <h4 class="text-xs font-bold text-red-800">아직 대타를 구하지 못했나요?</h4>
-                    <p class="text-[10px] text-red-600 font-medium">이름 없이 '대타 필요' 상태로 보드에 표시합니다</p>
+                    <h4 class="text-xs font-bold text-fuchsia-800">아직 대타를 구하지 못했나요?</h4>
+                    <p class="text-[10px] text-fuchsia-600 font-medium">이름 없이 '대타 필요' 상태로 보드에 표시합니다</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="sub-needed-toggle" class="sr-only peer" onchange="toggleSubNeeded(this)">
-                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-fuchsia-500"></div>
                 </label>
             </div>
 
@@ -848,6 +848,18 @@
                         <button id="btn-type-ta" onclick="setManualType('ta')" class="flex-1 py-2.5 text-xs font-black rounded-xl text-slate-500 border border-transparent hover:bg-slate-200/50 transition-all flex items-center justify-center gap-1.5"><i class="ph-fill ph-graduation-cap text-base"></i>조교(TA)</button>
                     </div>
                 </div>
+
+            </div>
+
+            <!-- Reading Level Selection (always active, also used for '대타 필요') -->
+            <div>
+                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2 ml-1">
+                    <i class="ph-fill ph-book-open mr-0.5 text-[10px]"></i>리딩 레벨
+                </label>
+                <div id="sub-lv-chips" class="flex flex-wrap gap-1.5">
+                    <!-- JS fills -->
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1.5 ml-1"><i class="ph ph-info mr-0.5"></i>선택한 레벨 섹션에 대타가 배정됩니다</p>
             </div>
 
             <!-- Date Selection -->
@@ -1291,7 +1303,7 @@
                     '대타 예정': { bg: 'bg-transparent', text: 'text-amber-600', border: 'border-amber-300', icon: 'ph ph-swap' },
                     '대타 완료': { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', icon: 'ph-bold ph-swap' },
                     '불참': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200', icon: 'ph-bold ph-x-circle' },
-                    '대타 필요': { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-400', icon: 'ph-bold ph-warning-circle' },
+                    '대타 필요': { bg: 'bg-fuchsia-50', text: 'text-fuchsia-700', border: 'border-fuchsia-300', icon: 'ph-bold ph-warning-circle' },
                 };
 
                 // Attendance History Modal functions
@@ -1970,12 +1982,34 @@
             // === 대타 추가 Modal Logic (Unified) ===
             // === 대타 추가 Modal Logic (Unified) ===
             window.substituteLog = []; 
-            window._subTarget = { lang: '영', time: '11시', dayIdx: 0, needed: false };
+            window._subTarget = { lang: '영', time: '11시', dayIdx: 0, needed: false, lv: 0 };
             let _subManualType = 'leader';
+
+            window.setSubLv = function(lv) {
+                window._subTarget.lv = Number(lv);
+                renderSubLvChips();
+            };
+
+            function renderSubLvChips() {
+                const container = document.getElementById('sub-lv-chips');
+                if (!container) return;
+                const lang = window._subTarget.lang || '영';
+                const lvColor = lang === '영' ? '#9B59B6' : '#007BFF';
+                const lvBg = lang === '영' ? '#f5eafa' : '#e6f0ff';
+                const levels = [0, 1, 2, 3, 4, 5];
+                container.innerHTML = levels.map(lv => {
+                    const isActive = lv === window._subTarget.lv;
+                    const activeStyle = `background:${lvColor};color:#fff;border-color:${lvColor}`;
+                    const inactiveStyle = `background:${lvBg};color:${lvColor};border-color:${lvColor}40`;
+                    return `<button type="button" onclick="setSubLv(${lv})" class="px-3 py-1.5 rounded-xl text-[11px] font-black border-2 transition-all flex items-center gap-1" style="${isActive ? activeStyle : inactiveStyle}">
+                        <i class="ph-fill ph-book-open text-[10px]"></i>LV${lv}
+                    </button>`;
+                }).join('');
+            }
 
             window.openSubModal = function (lang, time, dayIdx) {
                 try {
-                    window._subTarget = { lang, time, dayIdx, needed: false };
+                    window._subTarget = { lang, time, dayIdx, needed: false, lv: 0 };
                     const langLabel = lang === '영' ? '영어' : '일어';
                     const day = days[dayIdx];
                     document.getElementById('sub-modal-context').textContent = `${day?.label || ''} · ${langLabel} ${time} 반`;
@@ -1991,6 +2025,8 @@
 
                     // Render Date Chips
                     renderSubDateChips();
+                    // Render LV Chips
+                    renderSubLvChips();
                     // Set Time
                     setSubTime(time);
 
@@ -2121,6 +2157,12 @@
                 document.getElementById('sub-unified-name').value = leader.name;
                 document.getElementById('sub-unified-phone').value = leader.phone;
                 setManualType(leader.isTA ? 'ta' : 'leader');
+                // Pre-fill reading level from leader's profile for the target team
+                const teamKey = `${window._subTarget.lang} ${window._subTarget.time}`;
+                const preLv = (leader.readingLevels && leader.readingLevels[teamKey] != null)
+                    ? Number(leader.readingLevels[teamKey])
+                    : Number(leader.lv || 0);
+                setSubLv(Math.max(0, Math.min(5, preLv)));
                 document.getElementById('sub-suggestions').classList.add('hidden');
             };
 
@@ -2162,20 +2204,26 @@
                 if (!name || name.length < 2) { alert('정확한 성함을 입력해주세요.'); nameEl.focus(); return; }
                 if (phone.length < 12) { alert('정확한 연락처를 입력해주세요.'); phoneEl.focus(); return; }
 
+                const selectedLv = Number(window._subTarget.lv ?? 0);
+                const teamKey = `${window._subTarget.lang} ${window._subTarget.time}`;
+
                 // Check if leader already exists globally
                 let leader = leaders.find(l => l.name === name);
                 if (!leader) {
                     leader = {
-                        name, phone, lv: 0, isTA: _subManualType === 'ta',
-                        teams: [`${window._subTarget.lang} ${window._subTarget.time}`],
-                        readingLevels: {}, blocks: [],
+                        name, phone, lv: selectedLv, isTA: _subManualType === 'ta',
+                        teams: [teamKey],
+                        readingLevels: { [teamKey]: selectedLv }, blocks: [],
                         att: 0, abs: 0, sub: 0, total: 1, done: 0, rate: 0, rateColor: 'text-slate-500'
                     };
                     leaders.push(leader);
                 } else {
-                    // Update phone and type if changed
+                    // Update phone, type, and reading level for this team
                     leader.phone = phone;
                     leader.isTA = _subManualType === 'ta';
+                    leader.readingLevels = leader.readingLevels || {};
+                    leader.readingLevels[teamKey] = selectedLv;
+                    leader.lv = selectedLv;
                 }
 
                 // Assign to board
@@ -2187,9 +2235,15 @@
                 if (!window._subTarget) return;
                 const { lang, time, dayIdx } = window._subTarget;
                 
+                const targetLv = Number(window._subTarget?.lv ?? 0);
+                const teamKey = `${lang} ${time}`;
+                // 3-part team string used by board rendering (lang + dayName + time)
+                const dayName = days[dayIdx]?.label || '';
+                const fullTeamKey = `${lang} ${dayName} ${time}`;
+
                 let leader;
                 if (leaderName === '대타 필요') {
-                    leader = { name: '대타 필요', phone: '미지정', lv: 0, isTA: false, teams: [], readingLevels: {}, rate: 0, rateColor: 'text-slate-400' };
+                    leader = { name: '대타 필요', phone: '미지정', lv: targetLv, isTA: false, teams: [fullTeamKey], readingLevels: { [fullTeamKey]: targetLv, [teamKey]: targetLv }, rate: 0, rateColor: 'text-slate-400' };
                 } else {
                     leader = leaders.find(l => l.name === leaderName);
                 }
@@ -2200,14 +2254,18 @@
                 const existing = days[dayIdx]?.leaders?.find(l => l.name === leaderName && leaderName !== '대타 필요');
                 if (existing) {
                     existing.boardStatus = status;
+                    existing.lv = targetLv;
+                    existing.readingLevels = { ...(existing.readingLevels || {}), [fullTeamKey]: targetLv, [teamKey]: targetLv };
                 } else {
-                    // Clone and add
+                    // Clone and add (override lv + readingLevels for this assignment)
                     const clone = {
                         ...leader, boardStatus: status,
+                        lv: targetLv,
+                        readingLevels: { ...(leader.readingLevels || {}), [fullTeamKey]: targetLv, [teamKey]: targetLv },
                         matchedTeams: leader.teams ? leader.teams.filter(t => t.startsWith(lang) && t.includes(time)) : [],
                         _isSubstitute: true
                     };
-                    if (!clone.matchedTeams.length) clone.matchedTeams = [`${lang} ${time}`];
+                    if (!clone.matchedTeams.length) clone.matchedTeams = [fullTeamKey];
                     if (days[dayIdx]?.leaders) days[dayIdx].leaders.push(clone);
                 }
 
@@ -2222,7 +2280,8 @@
 
                 // Toast notification
                 const toast = document.createElement('div');
-                toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-4 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-xl shadow-xl flex items-center gap-2 transition-all';
+                const toastBg = status === '대타 필요' ? 'bg-fuchsia-500' : 'bg-amber-500';
+                toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-4 py-2.5 ${toastBg} text-white text-sm font-bold rounded-xl shadow-xl flex items-center gap-2 transition-all`;
                 toast.innerHTML = status === '대타 필요' 
                     ? `<i class="ph-bold ph-warning"></i> ${days[dayIdx].label} ${time} 대타 필요 상태로 설정됨`
                     : `<i class="ph-bold ph-swap"></i> ${leaderName} 대타 예정으로 추가됨`;
