@@ -7,171 +7,20 @@
     <title>하남 지점 어드민 (통합 캘린더 버전)</title>
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            900: '#0c4a6e',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Pretendard', '-apple-system', 'system-ui', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="shared/tailwind-config.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <link rel="stylesheet" href="shared/styles.css" />
 
     <style>
-        body {
-            background-color: #f8fafc;
-            color: #0f172a;
-        }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        /* CSS variables for dynamic sticky positions — set by JS on load */
+        /* member.html 전용 스타일 */
         :root { --header-h: 60px; --tabs-top: 60px; --level-nav-top: 104px; --level-header-top: 147px; }
 
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .editable-text:hover {
-            background-color: #f1f5f9;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .member-row {
-            transition: all 0.2s ease;
-        }
-
-        .member-row:hover {
-            background-color: #f8fafc;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-            z-index: 10;
-            position: relative;
-        }
-
-        .action-dropdown {
-            display: none;
-        }
-
-        .action-menu:hover .action-dropdown,
-        .action-menu:focus-within .action-dropdown {
-            display: block;
-        }
-
-        /* Table Layout Alignment Fixes */
+        /* member.html: 행 패딩 오버라이드 */
         tr.member-row>td {
-            vertical-align: top !important;
             padding-top: 4px !important;
             padding-bottom: 4px !important;
-        }
-
-        /* Notice Scrolling Animation */
-        @keyframes scroll-up {
-
-            0%,
-            25% {
-                transform: translateY(0);
-            }
-
-            33%,
-            58% {
-                transform: translateY(-50%);
-            }
-
-            66%,
-            91% {
-                transform: translateY(-100%);
-            }
-
-            100% {
-                transform: translateY(0);
-            }
-        }
-
-        .notice-scroller {
-            animation: scroll-up 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        }
-
-        /* Tooltip utilities */
-        .tooltip-container {
-            position: relative;
-        }
-
-        .tooltip-text {
-            visibility: hidden;
-            opacity: 0;
-            position: absolute;
-            bottom: calc(100% + 5px);
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #1e293b;
-            color: white;
-            text-align: left;
-            padding: 8px 12px;
-            border-radius: 6px;
-            z-index: 50;
-            transition: opacity 0.2s, visibility 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            width: max-content;
-            pointer-events: none;
-        }
-
-        .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #1e293b transparent transparent transparent;
-        }
-
-        .tooltip-container:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        /* Calendar Specific utilities */
-        .cal-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-        }
-
-        .cal-day {
-            min-height: 120px;
-            transition: background-color 0.2s;
-        }
-
-        .cal-day:hover {
-            background-color: #f8fafc;
-        }
-
-        .view-hidden {
-            display: none !important;
         }
 
         .alert-card {
@@ -182,79 +31,8 @@
 
 <body class="antialiased min-h-screen pb-24">
 
-    <!-- Top Navigation Header -->
-    <header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <button id="hamburger-btn"
-                class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
-                <i class="ph ph-list text-2xl"></i>
-            </button>
-            <div class="bg-brand-500 text-white p-1.5 rounded-lg">
-                <i class="ph-bold ph-buildings text-xl"></i>
-            </div>
-            <h1 class="text-lg font-bold text-slate-800 tracking-tight">하남 지점 어드민</h1>
-        </div>
-
-        <div class="flex items-center gap-4">
-            <button class="relative p-2 text-slate-600 hover:bg-slate-100 rounded-full flex items-center gap-2">
-                <div class="relative">
-                    <i class="ph ph-bell text-xl"></i>
-                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
-                        <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-white"></span>
-                    </span>
-                </div>
-            </button>
-            <div class="h-6 w-px bg-slate-200"></div>
-            <div
-                class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg border border-transparent transition-colors">
-                <img src="https://ui-avatars.com/api/?name=매니저&background=0284c7&color=fff" alt="User"
-                    class="w-8 h-8 rounded-full">
-                <span class="text-sm font-medium hidden sm:block">지점장 옵션 <i
-                        class="ph ph-caret-down text-xs ml-1 font-bold"></i></span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Side Navigation Drawer -->
-    <div id="drawer-overlay"
-        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity cursor-pointer">
-    </div>
-    <div id="nav-drawer"
-        class="fixed top-0 left-0 h-full w-full sm:w-72 bg-white shadow-2xl z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
-            <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800">
-                <i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴
-            </h2>
-            <button id="close-drawer-btn"
-                class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer transition">
-                <i class="ph ph-x"></i>
-            </button>
-        </div>
-        <nav class="p-4 space-y-1">
-            <a href="home.html"
-                class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-calendar-blank text-lg"></i> 대시보드 캘린더 (홈)
-            </a>
-            <a href="member.html"
-                class="nav-item w-full flex items-center gap-3 px-3 py-3 bg-brand-50 text-brand-700 rounded-lg font-medium transition-colors">
-                <i class="ph ph-users-three text-lg"></i> 멤버 팀
-            </a>
-            <a href="leader.html"
-                class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-crown text-lg"></i> 리더 팀
-            </a>
-            <a href="stats.html"
-                class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트
-            </a>
-            <a href="call.html"
-                class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-phone-call text-lg"></i> 신규 회신
-            </a>
-        </nav>
-    </div>
+    <div id="app-header"></div>
+    <div id="app-drawer"></div>
 
     <!-- TEAM ATTENDANCE VIEW (Hidden by default, triggered by drawer navigation) -->
     <div id="team-view" class="max-w-[1600px] mx-auto">
@@ -701,20 +479,14 @@
         </div>
     </div>
 
+    <script src="shared/mock-data.js"></script>
+    <script src="shared/utils.js"></script>
+    <script src="shared/header.js"></script>
+    <script src="shared/drawer.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // ─── DRAWER Toggles ───
-            const hBtn = document.getElementById('hamburger-btn');
-            const cBtn = document.getElementById('close-drawer-btn');
-            const dOverlay = document.getElementById('drawer-overlay');
-            const nDrawer = document.getElementById('nav-drawer');
-            function tDrawer(s) {
-                if (s) { dOverlay.classList.remove('hidden'); setTimeout(() => { dOverlay.classList.remove('opacity-0'); nDrawer.classList.remove('-translate-x-full'); }, 10); }
-                else { dOverlay.classList.add('opacity-0'); nDrawer.classList.add('-translate-x-full'); setTimeout(() => dOverlay.classList.add('hidden'), 300); }
-            }
-            if (hBtn) hBtn.addEventListener('click', () => tDrawer(true));
-            if (cBtn) cBtn.addEventListener('click', () => tDrawer(false));
-            if (dOverlay) dOverlay.addEventListener('click', () => tDrawer(false));
+            // Drawer는 shared/drawer.js에서 자동 초기화됨
 
             // ─── DATA GENERATION ───
             const surnames = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','전','홍','고','문','양','손','배','백','허','유','남','심','노','하','곽','성','차','주','우','구','민','나','진','지','엄','채','원','천','방','공','현'];
@@ -1775,16 +1547,7 @@
     });
 })();
 
-function copyPhone(phone) {
-    const clean = phone.replace(/[^0-9-]/g, '').trim();
-    navigator.clipboard.writeText(clean).then(() => {
-        const toast = document.createElement('div');
-        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-[9999] transition-opacity duration-300';
-        toast.innerText = clean + ' 복사됨';
-        document.body.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 1500);
-    });
-}
+// copyPhone은 shared/utils.js에서 제공됨
 
 /* ── DYNAMIC STICKY POSITIONS ── */
 (function fixStickyPositions(){

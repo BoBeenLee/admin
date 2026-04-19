@@ -5,21 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>하남 지점 어드민 - 통합 회신 관리</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-    theme: { extend: {
-        colors: { brand:{50:'#f0f9ff',100:'#e0f2fe',500:'#0ea5e9',600:'#0284c7',900:'#0c4a6e'} },
-        fontFamily: { sans:['Pretendard','-apple-system','system-ui','sans-serif'] }
-    }}
-}
-</script>
+<script src="shared/tailwind-config.js"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css"/>
+<link rel="stylesheet" href="shared/styles.css" />
 <style>
-body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
-.glass-panel{background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(226,232,240,0.8);}
-.hide-scrollbar::-webkit-scrollbar{display:none;}
-.hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
+body{letter-spacing:-0.02em;}
 
 /* ── COLLAPSIBLE PANEL ── */
 .board-panel{overflow:hidden;max-height:0;transition:max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);position:relative;}
@@ -67,10 +58,6 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 .time-box { font-size: 10px; color: #94a3b8; font-family: monospace; display: block; line-height: 1.3; }
 .pill-src { padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; border: 1px solid transparent; }
 
-/* ── TOAST ── */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0f172a;color:white;padding:10px 22px;border-radius:12px;font-size:13px;font-weight:600;z-index:300;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;}
-.toast.show{opacity:1;}
-
 /* ── PERIOD BTNS ── */
 .period-btn{padding:6px 16px;border-radius:8px;font-size:12px;font-weight:700;transition:all .15s;cursor:pointer;border:none;}
 .period-btn.active{background:#0f172a;color:white;}
@@ -79,7 +66,7 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 </head>
 <body class="antialiased min-h-screen pb-20">
 
-<!-- Header -->
+<!-- Header (call.html 전용 — 벨 대신 "신규 회신 관리" 표시) -->
 <header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
   <div class="flex items-center gap-4">
     <button id="hamburger-btn" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"><i class="ph ph-list text-2xl"></i></button>
@@ -92,21 +79,7 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
   </div>
 </header>
 
-<!-- Drawer -->
-<div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity"></div>
-<div id="nav-drawer" class="fixed top-0 left-0 h-full w-full sm:w-72 bg-white shadow-2xl z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col">
-  <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-    <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800"><i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴</h2>
-    <button id="close-drawer-btn" class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer"><i class="ph ph-x"></i></button>
-  </div>
-  <nav class="p-4 space-y-1">
-    <a href="home.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-calendar-blank text-lg"></i> 대시보드 캘린더 (홈)</a>
-    <a href="member.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-users-three text-lg"></i> 멤버 팀</a>
-    <a href="leader.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-crown text-lg"></i> 리더 팀</a>
-    <a href="stats.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트</a>
-    <a href="call.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 bg-brand-50 text-brand-700 rounded-lg font-medium transition-colors"><i class="ph ph-phone-call text-lg"></i> 신규 회신</a>
-  </nav>
-</div>
+<div id="app-drawer"></div>
 
 <main class="max-w-[1550px] mx-auto p-4 lg:p-6 space-y-6">
 
@@ -246,7 +219,8 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
   </div>
 </main>
 
-<div class="toast" id="toast"></div>
+<script src="shared/utils.js"></script>
+<script src="shared/drawer.js"></script>
 
 <script>
 const EMP_KEY = 'hanam_emp_names_v3';
@@ -264,7 +238,7 @@ let callLogs = {};
 let visitData = {};
 let currentPeriod = 'day';
 
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+function toast(msg){ showToast(msg); }
 function fmtDT(d){ if(!d) return '-'; const date=new Date(d); return `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`; }
 function maskPhone(p){ return p.replace(/(\d{3})-(\d{4})-(\d{4})/, "$1-****-$3"); }
 function togglePanel(id, iconId){
@@ -367,10 +341,7 @@ function scheduleVisit(id){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const drawer = document.getElementById('nav-drawer'), overlay = document.getElementById('drawer-overlay');
-  document.getElementById('hamburger-btn').onclick = () => { overlay.classList.remove('hidden'); setTimeout(()=> {overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full');}, 10); };
-  const close = () => { overlay.classList.add('opacity-0'); drawer.classList.add('-translate-x-full'); setTimeout(()=>overlay.classList.add('hidden'), 300); };
-  overlay.onclick = close; document.getElementById('close-drawer-btn').onclick = close;
+  // Drawer는 shared/drawer.js에서 자동 초기화됨
   document.querySelectorAll('.period-btn').forEach(btn=>{ btn.onclick = () => { document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); currentPeriod = btn.dataset.period; renderList(); if(document.getElementById('board-panel').classList.contains('open')) renderBoard(); }; });
   
   // Initial Data: Pre-populate with 15 varied samples
