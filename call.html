@@ -40,15 +40,15 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 
 /* ── APPLICANT TABLE ── */
 .app-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
-.app-table th { background: #f8fafc; padding: 12px 10px; font-size: 11px; font-weight: 800; text-align: left; color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; white-space: nowrap; }
-.app-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.app-table th { background: #f8fafc; padding: 8px 10px; font-size: 11px; font-weight: 800; text-align: left; color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; white-space: nowrap; }
+.app-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
 .app-table tr:hover td { background-color: #fbfcfe; }
 
 .id-text { font-family: monospace; font-weight: 800; color: #94a3b8; font-size: 10px; }
 .name-text { font-size: 14px; font-weight: 900; color: #1e293b; }
 .team-pill { display: inline-flex; items-center; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 800; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
-.memo-input { width: 100%; height: 28px; font-size: 11px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0 8px; outline: none; transition: border-color 0.2s; }
+.memo-input { width: 100%; height: 24px; font-size: 11px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0 8px; outline: none; transition: border-color 0.2s; }
 .memo-input:focus { border-color: #0ea5e9; }
 
 .alpha-grid-compact { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; width: 154px; }
@@ -57,8 +57,11 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 .alpha-btn-compact:hover:not(.used) { background: #e2e8f0; }
 
 .btn-quick { font-size: 10px; font-weight: 800; padding: 4px 6px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #64748b; transition: all 0.15s; white-space: nowrap; text-align: center; }
-.btn-quick:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
-.btn-primary { background: #0f172a; color: white; border-color: #0f172a; }
+.alpha-btn-compact:active { background-color: #0ea5e9 !important; color: white !important; transform: translateY(1px); }
+.btn-quick:active { transform: translateY(1px); }
+.time-chip { font-size: 8px; font-weight: 800; padding: 1px 4px; border-radius: 4px; background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; cursor: pointer; transition: all 0.1s; }
+.time-chip:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.time-chip:active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
 
 .status-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 800; border: 1px solid transparent; }
 .tag-amber { background: #fffbeb; border-color: #fde68a; color: #b45309; }
@@ -75,6 +78,24 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 .period-btn{padding:6px 16px;border-radius:8px;font-size:12px;font-weight:700;transition:all .15s;cursor:pointer;border:none;}
 .period-btn.active{background:#0f172a;color:white;}
 .period-btn:not(.active){background:white;color:#64748b;border:1px solid #e2e8f0;}
+
+/* ── PICKER MODAL ── */
+#picker-modal { transition: opacity 0.2s; visibility: hidden; opacity: 0; }
+#picker-modal.show { visibility: visible; opacity: 1; }
+.picker-container { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 440px; display: flex; overflow: hidden; }
+.picker-left { flex: 1; padding: 20px; border-right: 1px solid #f1f5f9; }
+.picker-right { width: 140px; border-left: 1px solid #f1f5f9; background: #fafafa; }
+.time-list-scroller { height: 320px; overflow-y: auto; padding: 10px; }
+.time-list-item { padding: 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-align: center; color: #64748b; cursor: pointer; margin-bottom: 4px; transition: all 0.1s; }
+.time-list-item:hover { background: #f1f5f9; color: #0f172a; }
+.time-list-item.selected { background: #0ea5e9; color: white; }
+.picker-btn { flex: 1; padding: 10px; font-size: 12px; font-weight: 800; border-radius: 10px; transition: all 0.15s; }
+
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.mini-cal-day { aspect-ratio: 1; display: flex; items-center; justify-content: center; font-size: 11px; font-weight: 700; cursor: pointer; border-radius: 6px; }
+.mini-cal-day:hover:not(.empty) { background: #f1f5f9; }
+.mini-cal-day.selected { background: #0ea5e9; color: white; }
+.mini-cal-day.today { color: #0ea5e9; text-decoration: underline; }
 </style>
 </head>
 <body class="antialiased min-h-screen pb-20">
@@ -189,6 +210,51 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
     </div>
   </div>
 
+  <!-- HISTORY Section (Repositioned to Top Area) -->
+  <section class="max-w-[1600px] mx-auto mb-6">
+    <div class="bg-slate-50/80 p-4 rounded-2xl border border-slate-100 shadow-sm backdrop-blur-sm">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-white rounded-lg text-slate-400 border border-slate-200">
+            <i class="ph ph-archive text-xl"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-black text-slate-700 tracking-tight flex items-center gap-2 uppercase">
+              HISTORY <span class="bg-brand-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">Processed</span>
+            </h2>
+            <p class="text-[10px] text-slate-400 font-medium">예약 확정, 전화상 안함, 최후 통첩 자동 분류</p>
+          </div>
+        </div>
+        <button onclick="toggleHistory()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
+          <span id="history-toggle-text">히스토리 보기</span>
+          <i id="history-chevron" class="ph ph-caret-down transition-transform"></i>
+        </button>
+      </div>
+
+      <div id="history-panel" class="hidden opacity-0 transition-all duration-300 transform translate-y-4 mt-4">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50 text-[10px] text-slate-400 uppercase tracking-widest font-black border-b border-slate-100">
+              <tr>
+                <th class="px-4 py-3">ID / 성함</th>
+                <th class="px-4 py-3">최종 결과 / 코멘트</th>
+                <th class="px-4 py-3">예약 일정</th>
+                <th class="px-4 py-3 text-center">동작</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody" class="divide-y divide-slate-100 text-[11px] text-slate-600">
+              <!-- History items injected here -->
+            </tbody>
+          </table>
+          <div id="history-empty" class="hidden p-8 text-center text-slate-400">
+            <i class="ph ph-mask-happy text-2xl mb-2 opacity-20"></i>
+            <p class="text-[11px] font-medium">히스토리가 비어 있습니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ② DATA BOARD (Keep & Toggle) -->
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
     <button onclick="togglePanel('board-panel', 'board-icon')" class="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition border-b border-slate-100">
@@ -200,21 +266,127 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
     <div class="board-panel" id="board-panel">
       <div class="p-5 space-y-6">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100"><div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">총 지원자</div><div class="text-2xl font-black text-slate-800" id="b-total">0</div></div>
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100"><div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">총 회신율</div><div class="text-2xl font-black text-emerald-600" id="b-rate">0%</div></div>
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100"><div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">예약 성공률</div><div class="text-2xl font-black text-brand-600" id="b-success">0%</div></div>
-          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100"><div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">성공 평균 회신 수</div><div class="flex items-baseline gap-1"><span class="text-2xl font-black text-blue-600" id="b-avg">-</span><span class="text-[10px] text-slate-400">회</span></div></div>
+          <div onclick="showStatDetail('total')" class="bg-slate-50 rounded-xl p-4 border border-slate-100 cursor-pointer hover:bg-white hover:shadow-md hover:border-brand-200 transition-all group">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-brand-500 transition-colors">총 지원자</div>
+            <div class="text-2xl font-black text-slate-800" id="b-total">0</div>
+          </div>
+          <div onclick="showStatDetail('replied')" class="bg-slate-50 rounded-xl p-4 border border-slate-100 cursor-pointer hover:bg-white hover:shadow-md hover:border-emerald-200 transition-all group">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-emerald-600 transition-colors">총 회신율</div>
+            <div class="text-2xl font-black text-emerald-600" id="b-rate">0%</div>
+          </div>
+          <div onclick="showStatDetail('success')" class="bg-slate-50 rounded-xl p-4 border border-slate-100 cursor-pointer hover:bg-white hover:shadow-md hover:border-brand-200 transition-all group">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-brand-600 transition-colors">예약 성공률</div>
+            <div class="text-2xl font-black text-brand-600" id="b-success">0%</div>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 transition-all grayscale opacity-70">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">성공 평균 회신 수</div>
+            <div class="flex items-baseline gap-1"><span class="text-2xl font-black text-blue-600" id="b-avg">-</span><span class="text-[10px] text-slate-400">회</span></div>
+          </div>
         </div>
+        
+        <!-- Slot 1: Summary Stats Detail -->
+        <div id="stat-detail-slot-1" class="hidden overflow-hidden transition-all duration-300">
+          <div class="bg-white rounded-2xl border-2 border-brand-100 shadow-xl overflow-hidden my-4 animate-in slide-in-from-top-4">
+            <div class="px-4 py-2.5 bg-brand-50 border-b border-brand-100 flex items-center justify-between">
+              <span id="stat-detail-title-1" class="text-[11px] font-black text-brand-700 uppercase tracking-widest">상세 데이터</span>
+              <button onclick="closeStatDetail(1)" class="text-brand-400 hover:text-brand-600 transition-colors"><i class="ph-bold ph-x text-sm"></i></button>
+            </div>
+            <div id="stat-detail-list-1" class="max-h-[300px] overflow-y-auto divide-y divide-slate-100 scrollbar-thin scrollbar-thumb-slate-200"></div>
+          </div>
+        </div>
+        
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-6">
-          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-            <div class="flex items-center justify-between mb-4"><span class="text-xs font-bold text-slate-600">시간대별 실시간 현황</span><div class="flex gap-3 text-[9px] font-bold"><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-brand-500"></span>지원</span><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-emerald-500"></span>회신</span><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-500"></span>성공</span></div></div>
-            <svg id="line-chart-svg"></svg><div id="line-chart-labels" class="flex justify-between mt-3"></div>
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold text-slate-600">시간대별 실시간 현황</span>
+              <div class="flex gap-3 text-[9px] font-bold">
+                <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-brand-500"></span>지원</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-emerald-500"></span>회신</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-500"></span>성공</span>
+              </div>
+            </div>
+            <div class="flex-1 min-h-[100px]">
+              <svg id="line-chart-svg"></svg>
+              <div id="line-chart-labels" class="flex justify-between mt-3 text-[8px] text-slate-400 font-mono"></div>
+            </div>
+            
+            <!-- Hourly Insight Cards -->
+            <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-200/60">
+              <div onclick="showStatDetail('peak')" class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-amber-200 transition-all">
+                <div class="absolute right-[-10px] top-[-10px] opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.08] transition-all">
+                  <i class="ph ph-trend-up text-6xl"></i>
+                </div>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 group-hover:text-amber-600 transition-colors">
+                  <i class="ph-fill ph-fire text-amber-500"></i> 지원 집중 시간대
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span id="insight-peak-hour" class="text-xl font-black text-slate-800">-시</span>
+                  <span id="insight-peak-pct" class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">0%</span>
+                </div>
+                <p class="text-[9px] text-slate-400 mt-1 font-medium italic">가장 지원자가 많이 몰리는 골든 타임입니다.</p>
+              </div>
+              
+              <div onclick="showStatDetail('efficiency')" class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-blue-200 transition-all">
+                <div class="absolute right-[-10px] top-[-10px] opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.08] transition-all">
+                  <i class="ph ph-lightning text-6xl"></i>
+                </div>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 group-hover:text-blue-600 transition-colors">
+                  <i class="ph-fill ph-clock text-blue-500"></i> 회신 효율 분석
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span id="insight-avg-reply" class="text-xl font-black text-slate-800">-분</span>
+                  <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full shadow-none border-none">Success <span id="insight-success-rate">0</span>%</span>
+                </div>
+                <p class="text-[9px] text-slate-400 mt-1 font-medium italic">지원 후 첫 회신까지 평균 소요 시간입니다.</p>
+              </div>
+            </div>
+            
+            <!-- Slot 2: Insight Detail -->
+            <div id="stat-detail-slot-2" class="hidden overflow-hidden transition-all duration-300">
+              <div class="bg-white rounded-2xl border-2 border-brand-100 shadow-xl overflow-hidden mt-4 animate-in slide-in-from-top-4">
+                <div class="px-4 py-2.5 bg-brand-50 border-b border-brand-100 flex items-center justify-between">
+                  <span id="stat-detail-title-2" class="text-[11px] font-black text-brand-700 uppercase tracking-widest">인사이트 상세 데이터</span>
+                  <button onclick="closeStatDetail(2)" class="text-brand-400 hover:text-brand-600 transition-colors"><i class="ph-bold ph-x text-sm"></i></button>
+                </div>
+                <div id="stat-detail-list-2" class="max-h-[300px] overflow-y-auto divide-y divide-slate-100 scrollbar-thin scrollbar-thumb-slate-200"></div>
+              </div>
+            </div>
           </div>
           <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100"><span class="text-xs font-bold text-slate-600 mb-4 block">유입 경로 현황</span><div id="b-source-wrap" class="space-y-2"></div></div>
         </div>
         <div class="pt-4 border-t border-slate-100">
-          <span class="text-xs font-bold text-slate-500 mb-3 block flex items-center gap-2"><i class="ph-fill ph-user-circle"></i> 직원별 개인 회신율 / 성함 수정</span>
-          <div id="b-emp-grid" class="flex flex-wrap gap-1.5"></div>
+          <span class="text-xs font-bold text-slate-500 mb-3 block flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="ph-fill ph-user-circle"></i> 직원별 개인 회신율 / 성함 수정</span>
+          </span>
+          <div id="b-emp-grid" class="flex flex-wrap gap-1.5 mb-6"></div>
+          
+          <!-- Archived Columns (Side-by-Side) -->
+          <div class="mt-4 pt-6 border-t-2 border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left: 전화상 안함 -->
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-black text-slate-500 uppercase flex items-center gap-2">
+                  <i class="ph-fill ph-phone-slash text-slate-400"></i> 전화상 안함 내역
+                </span>
+                <span id="nocall-count" class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shadow-sm">0명</span>
+              </div>
+              <div id="nocall-chart" class="space-y-2"></div>
+              <div id="nocall-empty" class="hidden p-8 text-center text-slate-300 text-[11px] italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">내역이 없습니다.</div>
+            </div>
+
+            <!-- Right: 최후 통첩 -->
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-black text-slate-500 uppercase flex items-center gap-2">
+                  <i class="ph-fill ph-warning text-amber-500"></i> 최후 통첩 내역
+                </span>
+                <span id="ultimatum-count" class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shadow-sm">0명</span>
+              </div>
+              <div id="ultimatum-chart" class="space-y-2"></div>
+              <div id="ultimatum-empty" class="hidden p-8 text-center text-slate-300 text-[11px] italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">내역이 없습니다.</div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -226,15 +398,15 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
       <table class="app-table">
         <thead>
           <tr>
-            <th class="w-[140px] pl-6">ID / Name / Team</th>
-            <th class="w-[200px]">Memo & Comment</th>
-            <th class="w-[170px]">Responders (A-P)</th>
-            <th class="w-[140px]">Contact</th>
-            <th class="w-[120px]">Result Selection</th>
-            <th class="w-[130px]">Quick Action</th>
-            <th class="w-[160px]">Schedule / SMS</th>
-            <th class="w-[140px]">Timestamps</th>
-            <th class="pr-6">Ad Details</th>
+            <th class="w-[80px] pl-6">ID</th>
+            <th class="w-[120px]">NAME</th>
+            <th class="w-[200px]">코멘트</th>
+            <th class="w-[140px]">전화번호</th>
+            <th class="w-[170px]">회신자</th>
+            <th class="w-[140px]">결과</th>
+            <th class="w-[160px]">예약 일정</th>
+            <th class="w-[140px]">지원시간</th>
+            <th class="pr-6">동기</th>
           </tr>
         </thead>
         <tbody id="app-list"></tbody>
@@ -247,6 +419,35 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 </main>
 
 <div class="toast" id="toast"></div>
+
+<!-- Picker Modal -->
+<div id="picker-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center">
+  <div class="picker-container transform transition-all scale-95 duration-200" id="picker-content">
+    <div class="picker-left flex flex-col h-full">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="picker-month-year" class="font-black text-slate-800 text-sm">2026.04</h3>
+        <div class="flex gap-2 text-slate-400">
+          <button onclick="changePickerMonth(-1)"><i class="ph ph-caret-left hover:text-slate-600"></i></button>
+          <button onclick="changePickerMonth(1)"><i class="ph ph-caret-right hover:text-slate-600"></i></button>
+        </div>
+      </div>
+      <div class="grid grid-cols-7 gap-2 mb-2 text-[9px] font-black text-slate-300 uppercase tracking-widest text-center">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div id="mini-cal-grid" class="mini-cal-grid mb-6"></div>
+      <div class="mt-auto flex gap-2">
+        <button onclick="closePicker()" class="picker-btn border border-slate-200 text-slate-400 hover:bg-slate-50">취소</button>
+        <button onclick="confirmPicker()" class="picker-btn bg-brand-500 text-white shadow-lg shadow-brand-500/30">일정 확정</button>
+      </div>
+    </div>
+    <div class="picker-right flex flex-col">
+      <div class="p-3 border-b border-slate-100 text-[10px] font-black text-slate-400 text-center uppercase tracking-widest bg-white">Select Time</div>
+      <div class="time-list-scroller hide-scrollbar" id="time-list-scroller"></div>
+    </div>
+  </div>
+</div>
+
+
 
 <script>
 const EMP_KEY = 'hanam_emp_names_v3';
@@ -264,6 +465,11 @@ let callLogs = {};
 let visitData = {};
 let currentPeriod = 'day';
 
+const TIME_KEY = 'hanam_quick_times_v1';
+let quickTimes = JSON.parse(localStorage.getItem(TIME_KEY)) || ['오전 11시', '오후 12시', '오후 1시', '오후 3시', '오후 5시', '오후 7시', '오후 8시 30분'];
+function saveTimes() { localStorage.setItem(TIME_KEY, JSON.stringify(quickTimes)); }
+
+
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
 function fmtDT(d){ if(!d) return '-'; const date=new Date(d); return `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`; }
 function maskPhone(p){ return p.replace(/(\d{3})-(\d{4})-(\d{4})/, "$1-****-$3"); }
@@ -279,28 +485,334 @@ function renderList() {
   const container = document.getElementById('app-list');
   const empty = document.getElementById('empty-state');
   const fa = filtered();
-  if (fa.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
-  empty.classList.add('hidden');
-  container.innerHTML = '';
-  fa.forEach((a) => {
-    const logs = callLogs[a.id] || [];
+  
+  // 3-way Split: Active, History (Scheduled), Archived (Non-call/Ultimatum)
+  const activeList = fa.filter(a => !visitData[a.id]?.scheduled && !a.comment?.includes('전화상 안함') && !a.comment?.includes('최후 통첩'));
+  const historyList = fa.filter(a => visitData[a.id]?.scheduled);
+  const archivedList = fa.filter(a => !visitData[a.id]?.scheduled && (a.comment?.includes('전화상 안함') || a.comment?.includes('최후 통첩')));
+
+  if (activeList.length === 0) { 
+    container.innerHTML = ''; 
+    empty.classList.remove('hidden'); 
+  } else {
+    empty.classList.add('hidden');
+    container.innerHTML = '';
+    activeList.forEach((a) => {
+      const logs = callLogs[a.id] || [];
+      const vd = visitData[a.id];
+      const hasVisit = vd?.scheduled;
+      const tr = document.createElement('tr');
+      
+      // 회신 기록이 있을 경우 행 전체 배경을 초록색으로 변경 (채도 강화)
+      if (logs.length > 0) {
+        tr.classList.add('bg-emerald-100/70');
+      }
+      
+      tr.innerHTML = `
+        <td class="pl-6"><div class="id-text">#${a.id.slice(-7)}</div></td>
+        <td><div class="flex items-center gap-1.5"><span class="name-text">${a.name}</span><button onclick="editName('${a.id}')" class="text-slate-300 hover:text-brand-500 transition-colors"><i class="ph ph-pencil-simple-line"></i></button></div></td>
+        <td>
+          <div class="mb-1 flex items-center gap-2">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Total Result</span>
+            <span class="bg-brand-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm">
+                ${logs.length > 0 ? `${logs[logs.length-1].key}${logs.length}` : '0'}
+            </span>
+          </div>
+          <div class="flex gap-1 mb-1"><input type="text" class="memo-input" placeholder="메모 입력" id="memo-${a.id}" value="${a.comment||''}"><button onclick="saveMemo('${a.id}')" class="btn-quick bg-slate-800 text-white border-slate-800 px-2 py-0.5">저장</button></div>
+        </td>
+        <td>
+          <div class="font-bold text-[12px] text-slate-700 font-mono">${a.revealed ? a.phone : maskPhone(a.phone)}</div>
+        </td>
+        <td><div class="alpha-grid-compact">${employees.map(emp => { return `<div class="alpha-btn-compact active:bg-slate-300" onclick="toggleCall('${a.id}','${emp.key}')">${emp.key}</div>`; }).join('')}</div></td>
+        <td>
+          <div class="mb-1">
+            <select class="memo-input text-[10px]" onchange="if(this.value) setResult('${a.id}', this.value); this.value='';">
+              <option value="">[전화상 안함 결과]</option>
+              <option value="없는 번호">없는 번호</option>
+              <option value="타 지역 거주">타 지역 거주</option>
+              <option value="잘못누름/관심없음/바로끊음">잘못/무관심/바로끊음</option>
+              <option value="직접 컨택 희망 (고민)">직접 컨택 희망 (고민)</option>
+              <option value="당분간 참여 어려움">당분간 참여 어려움</option>
+              <option value="미성년자">미성년자</option>
+              <option value="기존 멤버">기존 멤버</option>
+              <option value="나이 (80대 이상)">나이 (80대 이상)</option>
+              <option value="기타(사유입력)">기타 - 사유입력</option>
+            </select>
+          </div>
+
+          <div class="flex gap-1">
+            <button onclick="setResult('${a.id}', '추후 최후 통첩')" class="btn-quick flex-1 text-orange-600 border-orange-200 bg-orange-50/50 py-1 font-bold text-[8px]">추후 최후</button>
+            <button onclick="setResult('${a.id}', '최후 통첩')" class="btn-quick flex-1 text-red-600 border-red-200 bg-red-50/50 py-1 font-bold text-[8px]">최후 통첩</button>
+          </div>
+        </td>
+        <td>
+          <div onclick="openPicker('${a.id}')" class="cursor-pointer bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 mb-1.5 text-[11px] font-mono text-slate-700 flex items-center justify-between hover:border-brand-300 transition-colors">
+            <span>${hasVisit ? vd.datetime.split('T')[0] : new Date().toISOString().split('T')[0]}</span>
+            <i class="ph ph-calendar-blank text-slate-400"></i>
+          </div>
+          <div class="flex gap-1">
+            <button onclick="openPicker('${a.id}')" class="btn-quick btn-primary flex-1 py-1 text-[8px]">달력</button>
+            <button onclick="toast('문자 발송')" class="btn-quick flex-1 py-1 text-[8px]">문자</button>
+            <button onclick="toast('달력/문자 통합 실행')" class="btn-quick flex-1 py-1 text-[8px] bg-brand-50 text-brand-700 border-brand-100">달력/문자</button>
+          </div>
+        </td>
+        <td>
+          <span class="time-box font-bold text-slate-600 text-[9px]">${fmtDT(a.time)}</span>
+          <span class="time-box mt-0.5 text-[9px] text-brand-600 font-bold">${logs.length > 0 ? fmtDT(logs[logs.length-1].time) : '-'}</span>
+        </td>
+        <td class="pr-6">
+          <div class="flex flex-col gap-1">
+            <div class="pill-src border ${a.sourceCls} self-start" style="padding:0 4px; font-size:8px;">${a.sourceLabel}</div>
+            <div class="text-[10px] text-slate-500 leading-tight line-clamp-2">${a.details}</div>
+          </div>
+        </td>`;
+      container.appendChild(tr);
+    });
+  }
+  
+  renderHistory(historyList);
+  renderArchivedList(archivedList);
+}
+
+function renderHistory(list) {
+  const tbody = document.getElementById('history-tbody');
+  const empty = document.getElementById('history-empty');
+  tbody.innerHTML = '';
+  
+  if (list.length === 0) {
+    empty.classList.remove('hidden');
+    return;
+  } else {
+    empty.classList.add('hidden');
+  }
+
+  list.forEach(a => {
     const vd = visitData[a.id];
-    const hasVisit = vd?.scheduled;
-    const sTag = hasVisit ? 'tag-emerald' : (logs.length > 0 ? 'tag-amber' : 'tag-neutral');
-    const sText = hasVisit ? '예약완료' : (logs.length > 0 ? '회신중' : '미회신');
+    const isScheduled = !!vd?.scheduled;
+    const isUltimatum = a.comment?.includes('최후 통첩');
+    const logs = callLogs[a.id] || [];
     const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50 transition-colors';
     tr.innerHTML = `
-      <td class="pl-6"><div class="id-text">#${a.id.slice(-7)}</div><div class="name-text">${a.name}</div><div class="team-pill mt-1 uppercase">${a.team}</div></td>
-      <td><div class="text-[10px] text-slate-400 font-bold mb-1">${a.slot}</div><div class="flex gap-1 mb-1.5"><input type="text" class="memo-input" placeholder="메모 입력" id="memo-${a.id}" value="${a.comment||''}"><button onclick="saveMemo('${a.id}')" class="btn-quick bg-slate-800 text-white border-slate-800 px-2 py-1">저장</button></div><button class="btn-quick w-full text-slate-400">성함 수정</button></td>
-      <td><div class="alpha-grid-compact">${employees.map(emp => { const used = logs.some(l => l.key === emp.key); return `<div class="alpha-btn-compact ${used?'used':''}" onclick="toggleCall('${a.id}','${emp.key}')">${emp.key}</div>`; }).join('')}</div></td>
-      <td><div class="font-bold text-[13px] text-slate-700 font-mono mb-1">${maskPhone(a.phone)}</div><button class="btn-quick w-full text-brand-600 border-brand-100 bg-brand-50" onclick="toast('번호 확인 권한이 없습니다')">번호 확인</button></td>
-      <td><div class="mb-1.5"><span class="status-tag ${sTag}">${sText}</span></div><select class="memo-input" style="height:28px" onchange="toast('상태 업데이트')"><option>결과 선택</option><option>상담 성공</option><option>부재중</option><option>거절</option></select></td>
-      <td><div class="flex flex-col gap-1"><button class="btn-quick text-red-500 border-red-100 bg-red-50/20">안할래요!</button><button class="btn-quick text-orange-600">최후통첩</button><button class="btn-quick text-purple-600">스텝권유</button></div></td>
-      <td><input type="datetime-local" class="memo-input mb-1.5" id="dt-${a.id}" value="${hasVisit ? vd.datetime : ''}"><div class="flex gap-1"><button onclick="scheduleVisit('${a.id}')" class="btn-quick btn-primary flex-1 py-1.5">달력</button><button class="btn-quick flex-1">문자발송</button></div></td>
-      <td><span class="time-box font-bold text-slate-600">${fmtDT(a.time)}</span><span class="time-box mt-1">${fmtDT(a.updatedAt)}</span><div class="pill-src mt-2 border ${a.sourceCls}">${a.sourceLabel}</div></td>
-      <td class="pr-6"><div class="text-[11px] text-slate-500 leading-snug line-clamp-2">${a.details}</div></td>`;
-    container.appendChild(tr);
+      <td class="px-4 py-3">
+        <div class="font-bold text-slate-800">${a.name}</div>
+        <div class="text-[9px] text-slate-400 font-mono">${a.id}</div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="status-tag tag-emerald">예약완료</span>
+          <span class="text-[9px] font-black text-slate-400 uppercase ml-2">${logs.length > 0 ? `${logs[logs.length-1].key}${logs.length}` : '0회차'}</span>
+        </div>
+        <div class="text-[11px] text-slate-500 max-w-sm truncate" title="${a.comment}">${a.comment || '-'}</div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="text-[10px] font-bold text-brand-600">
+          ${isScheduled ? `<i class="ph ph-calendar-check mr-1"></i>${vd.datetime.replace('T',' ')}` : '-'}
+        </div>
+      </td>
+      <td class="px-4 py-3 text-center">
+        <button onclick="restoreApplicant('${a.id}')" class="p-1.5 text-slate-400 hover:text-brand-500 transition-colors" title="목록으로 복원">
+          <i class="ph-bold ph-arrow-u-up-left text-base"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
   });
+}
+
+// ── 전화상 안함 / 최후 통첩 결과별 색상 설정 ──
+const REASON_CONFIG = [
+  { key: '없는 번호',                    color: '#64748b', bg: '#f1f5f9', text: '#475569' },
+  { key: '타 지역 거주',                   color: '#0ea5e9', bg: '#e0f2fe', text: '#0369a1' },
+  { key: '잘못누름/관심없음/바로끝음', color: '#a855f7', bg: '#f3e8ff', text: '#7e22ce' },
+  { key: '직접 콜탁 희망 (\uace0\ubbfc)',   color: '#f59e0b', bg: '#fffbeb', text: '#b45309' },
+  { key: '당분간 참여 어려움',         color: '#f97316', bg: '#fff7ed', text: '#c2410c' },
+  { key: '미성년자',                    color: '#ec4899', bg: '#fdf2f8', text: '#be185d' },
+  { key: '기존 멤버',                    color: '#10b981', bg: '#ecfdf5', text: '#065f46' },
+  { key: '나이 (80\ub300 \uc774\uc0c1)',          color: '#6366f1', bg: '#eef2ff', text: '#4338ca' },
+  { key: '기타',                           color: '#94a3b8', bg: '#f8fafc', text: '#64748b' },
+  // 최후 통첩 전용
+  { key: '최후 통첩',                    color: '#ef4444', bg: '#fef2f2', text: '#b91c1c' },
+  { key: '추후 최후 통첩',               color: '#f97316', bg: '#fff7ed', text: '#c2410c' },
+];
+
+function getReasonConfig(key) {
+  return REASON_CONFIG.find(r => r.key === key) || REASON_CONFIG[REASON_CONFIG.length - 3]; // 기타
+}
+
+function renderArchivedList(list) {
+  const noCallList     = list.filter(a => a.comment?.includes('전화상 안함'));
+  const ultimatumList  = list.filter(a => !a.comment?.includes('전화상 안함') && a.comment?.includes('최후 통첩'));
+  const total = list.length;
+
+  // ── 전화상 안함 Bar Chart ──
+  const noCallCount = document.getElementById('nocall-count');
+  const noCallChart = document.getElementById('nocall-chart');
+  const noCallEmpty = document.getElementById('nocall-empty');
+  noCallCount.textContent = `${noCallList.length}명`;
+  noCallChart.innerHTML = '';
+
+  if (noCallList.length === 0) {
+    noCallEmpty.classList.remove('hidden');
+  } else {
+    noCallEmpty.classList.add('hidden');
+
+    const NO_CALL_REASONS = ['없는 번호', '타 지역 거주', '잘못누름/관심없음/바로끝음', '직접 콜탁 희망 (고민)', '당분간 참여 어려움', '미성년자', '기존 멤버', '나이 (80대 이상)'];
+    const groups = {};
+    noCallList.forEach(a => {
+      let reason = '기타';
+      for (const lbl of NO_CALL_REASONS) { if (a.comment?.includes(lbl)) { reason = lbl; break; } }
+      if (!groups[reason]) groups[reason] = [];
+      groups[reason].push(a);
+    });
+
+    const maxCount = Math.max(...Object.values(groups).map(p => p.length), 1);
+    Object.entries(groups).sort((a,b) => b[1].length - a[1].length).forEach(([reason, people]) => {
+      const cfg = getReasonConfig(reason);
+      const pct = Math.round(people.length / noCallList.length * 100);
+      const rowId = 'nc_' + reason.replace(/[^a-z0-9]/gi,'_');
+      const nameList = people.map(p => {
+        const logs = callLogs[p.id] || [];
+        const cleanComment = (p.comment||'').replace(/\| ?전화상 안함/g,'').replace(/\| ?추후 최후 통첩/g,'').replace(/\| ?최후 통첩/g,'').trim().replace(/^\s*\|\s*/, '').trim();
+        return `
+        <div class="px-3 py-1.5 hover:bg-white transition-colors group">
+          <div class="flex items-center gap-3">
+            <div class="w-20 flex-shrink-0">
+              <div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div>
+              <div class="text-[9px] text-slate-400 font-mono tracking-tighter">${p.phone || '-'}</div>
+            </div>
+            <div class="w-32 flex-shrink-0 overflow-hidden">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[8px] font-black border ${p.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full scale-90 origin-left">${p.sourceLabel||'-'}</span>
+                <span class="text-[8px] text-slate-400 whitespace-nowrap">${fmtDT(p.time).split(' ')[1]}</span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0 text-[9px] text-slate-500 truncate italic">
+              ${cleanComment || ''}
+            </div>
+            <button onclick="restoreApplicant('${p.id}')" class="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-brand-500 transition-all scale-75" title="복원">
+              <i class="ph-bold ph-arrow-u-up-left"></i>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div class="rounded-lg overflow-hidden mb-1" style="border:1px solid ${cfg.color}15">
+          <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-white/80 transition-all border-b border-white/50" style="background:${cfg.bg}80">
+            <span class="text-[10px] font-black min-w-[120px]" style="color:${cfg.text}">${reason}</span>
+            <div class="flex-1 h-1.5 rounded-full bg-white/60 overflow-hidden shadow-inner">
+              <div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${cfg.color}"></div>
+            </div>
+            <span class="text-[10px] font-black ml-2" style="color:${cfg.color}">${people.length}</span>
+            <i class="ph ph-caret-down text-[10px] ml-1 opacity-40"></i>
+          </button>
+          <div class="hidden bg-slate-50/50 divide-y divide-slate-100/50">${nameList}</div>
+        </div>`;
+      noCallChart.appendChild(div);
+    });
+  }
+
+  // ── 최후 통첩 Bar Chart ──
+  const ultiCount = document.getElementById('ultimatum-count');
+  const ultiChart = document.getElementById('ultimatum-chart');
+  const ultiEmpty = document.getElementById('ultimatum-empty');
+  ultiCount.textContent = `${ultimatumList.length}명`;
+  ultiChart.innerHTML = '';
+
+  if (ultimatumList.length === 0) {
+    ultiEmpty.classList.remove('hidden');
+  } else {
+    ultiEmpty.classList.add('hidden');
+    const ULTI_REASONS = ['최후 통첩', '추후 최후 통첩'];
+    const groups = {};
+    ultimatumList.forEach(a => {
+      const reason = a.comment?.includes('추후 최후 통첩') ? '추후 최후 통첩' : '최후 통첩';
+      if (!groups[reason]) groups[reason] = [];
+      groups[reason].push(a);
+    });
+
+    Object.entries(groups).forEach(([reason, people]) => {
+      const cfg = getReasonConfig(reason);
+      const pct = Math.round(people.length / ultimatumList.length * 100);
+      const nameList = people.map(p => {
+        const logs = callLogs[p.id] || [];
+        const cleanComment = (p.comment||'').replace(/\| ?전화상 안함/g,'').replace(/\| ?추후 최후 통첩/g,'').replace(/\| ?최후 통첩/g,'').trim().replace(/^\s*\|\s*/, '').trim();
+        return `
+        <div class="px-3 py-1.5 hover:bg-white transition-colors group">
+          <div class="flex items-center gap-3">
+            <div class="w-20 flex-shrink-0">
+              <div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div>
+              <div class="text-[9px] text-slate-400 font-mono tracking-tighter">${p.phone || '-'}</div>
+            </div>
+            <div class="w-32 flex-shrink-0 overflow-hidden">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[8px] font-black border ${p.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full scale-90 origin-left">${p.sourceLabel||'-'}</span>
+                <span class="text-[8px] text-slate-400 whitespace-nowrap">${fmtDT(p.time).split(' ')[1]}</span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0 text-[9px] text-slate-500 truncate italic">
+              ${cleanComment || ''}
+            </div>
+            <button onclick="restoreApplicant('${p.id}')" class="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-brand-500 transition-all scale-75" title="복원">
+              <i class="ph-bold ph-arrow-u-up-left"></i>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div class="rounded-lg overflow-hidden mb-1" style="border:1px solid ${cfg.color}15">
+          <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-white/80 transition-all border-b border-white/50" style="background:${cfg.bg}80">
+            <span class="text-[10px] font-black min-w-[120px]" style="color:${cfg.text}">${reason}</span>
+            <div class="flex-1 h-1.5 rounded-full bg-white/60 overflow-hidden shadow-inner">
+              <div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${cfg.color}"></div>
+            </div>
+            <span class="text-[10px] font-black ml-2" style="color:${cfg.color}">${people.length}</span>
+            <i class="ph ph-caret-down text-[10px] ml-1 opacity-40"></i>
+          </button>
+          <div class="hidden bg-slate-50/50 divide-y divide-slate-100/50">${nameList}</div>
+        </div>`;
+      ultiChart.appendChild(div);
+    });
+  }
+}
+
+function restoreApplicant(id) {
+  const a = applicants.find(x=>x.id===id);
+  if(a) {
+    delete visitData[id];
+    // Remove History-triggering keywords
+    a.comment = a.comment.replace(/전화상 안함|추후 최후 통첩|최후 통첩/g, '').replace(/ \| \s*$/, '').trim();
+    if(a.comment.startsWith('|')) a.comment = a.comment.substring(1).trim();
+    a.updatedAt = new Date();
+    toast('✅ 지원자가 메인 목록으로 복원되었습니다');
+    renderList();
+    if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+  }
+}
+
+function toggleHistory() {
+  const panel = document.getElementById('history-panel');
+  const text = document.getElementById('history-toggle-text');
+  const chevron = document.getElementById('history-chevron');
+  if (panel.classList.contains('hidden')) {
+    panel.classList.remove('hidden');
+    setTimeout(() => {
+      panel.classList.remove('opacity-0', 'translate-y-4');
+    }, 10);
+    text.textContent = '히스토리 접기';
+    chevron.style.transform = 'rotate(180deg)';
+  } else {
+    panel.classList.add('opacity-0', 'translate-y-4');
+    setTimeout(() => {
+      panel.classList.add('hidden');
+    }, 300);
+    text.textContent = '히스토리 보기';
+    chevron.style.transform = 'rotate(0deg)';
+  }
 }
 
 function renderBoard(){
@@ -312,13 +824,67 @@ function renderBoard(){
   document.getElementById('b-rate').textContent = (total>0?Math.round(replied/total*100):0) + '%';
   document.getElementById('b-success').textContent = (replied>0?Math.round(visited/replied*100):0) + '%';
   const hours = Array.from({length:14}, (_,i)=>i+9);
-  const hourApp={}; hours.forEach(h=>hourApp[h]=0);
-  fa.forEach(a=>{ const h=new Date(a.time).getHours(); if(hourApp[h]!==undefined) hourApp[h]++; });
+  const hourApp={}; const hourRep={}; const hourSuc={};
+  hours.forEach(h=>{ hourApp[h]=0; hourRep[h]=0; hourSuc[h]=0; });
+  
+  let totalReplyTime = 0;
+  let replyCount = 0;
+  let successes = 0;
+
+  fa.forEach(a=>{ 
+    const h=new Date(a.time).getHours(); 
+    if(hourApp[h]!==undefined) hourApp[h]++; 
+
+    const logs = callLogs[a.id] || [];
+    if(logs.length > 0) {
+      if(hourRep[h]!==undefined) hourRep[h]++;
+      const firstReply = new Date(logs[0].time);
+      const applicationTime = new Date(a.time);
+      const diffMin = Math.max(0, (firstReply - applicationTime) / (1000 * 60));
+      totalReplyTime += diffMin;
+      replyCount++;
+    }
+
+    if(visitData[a.id]?.scheduled) {
+      successes++;
+      if(hourSuc[h]!==undefined) hourSuc[h]++;
+    }
+  });
+
   const svg = document.getElementById('line-chart-svg');
   const W=480, H=100, pad=10;
   const max = Math.max(1, ...Object.values(hourApp));
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.innerHTML = `<polyline points="${hours.map((h,i)=>`${pad+i*((W-2*pad)/(hours.length-1))},${H-pad-(hourApp[h]/max)*(H-2*pad)}`).join(' ')}" fill="none" stroke="#0ea5e9" stroke-width="2" />`;
+  
+  const getPts = (data) => hours.map((h,i)=>`${pad+i*((W-2*pad)/(hours.length-1))},${H-pad-(data[h]/max)*(H-2*pad)}`).join(' ');
+  svg.innerHTML = `
+    <polyline points="${getPts(hourApp)}" fill="none" stroke="#0ea5e9" stroke-width="2" />
+    <polyline points="${getPts(hourRep)}" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="2 2" />
+    <polyline points="${getPts(hourSuc)}" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="2 2" />
+  `;
+  
+  const labelWrap = document.getElementById('line-chart-labels');
+  labelWrap.innerHTML = hours.filter((_,i)=>i%2===0).map(h=>`<span>${h}H</span>`).join('');
+
+  // Peak Hour & Distribution
+  let peakH = hours[0];
+  let maxV = 0;
+  hours.forEach(h => { if(hourApp[h] > maxV) { maxV = hourApp[h]; peakH = h; } });
+  
+  document.getElementById('insight-peak-hour').textContent = `${peakH}시`;
+  document.getElementById('insight-peak-pct').textContent = `${total > 0 ? Math.round((maxV/total)*100) : 0}%`;
+  
+  // Reply Efficiency
+  const avgReply = replyCount > 0 ? Math.round(totalReplyTime / replyCount) : '-';
+  document.getElementById('insight-avg-reply').textContent = `${avgReply}분`;
+  document.getElementById('insight-success-rate').textContent = Math.round((successes / (total || 1)) * 100);
+
+  // Store current chart metadata for detail filtering
+  window._lastPeakHour = peakH;
+  window._lastSuccesses = fa.filter(a => visitData[a.id]?.scheduled);
+  window._lastReplied = fa.filter(a => (callLogs[a.id]||[]).length > 0);
+  window._lastTotal = fa;
+
   const srcWrap = document.getElementById('b-source-wrap'); srcWrap.innerHTML = '';
   SOURCES.forEach(s => {
     const count = fa.filter(a=>a.source===s.id).length; if(count === 0) return;
@@ -345,11 +911,73 @@ function filtered(){
 
 function toggleCall(id, key){
   if(!callLogs[id]) callLogs[id]=[];
-  const exist = callLogs[id].findIndex(l=>l.key===key);
-  if(exist!==-1) callLogs[id].splice(exist,1);
-  else callLogs[id].push({key, time:new Date()});
-  const a = applicants.find(x=>x.id===id); a.updatedAt = new Date();
-  renderList(); if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+  const a = applicants.find(x=>x.id===id);
+  
+  // 누적 횟수를 올리기 위해 클릭 시마다 로그를 추가합니다 (Toggle 기능 제거)
+  callLogs[id].push({key, time:new Date()});
+  a.revealed = true; // 알파벳 클릭 시 번호 노출
+  a.updatedAt = new Date();
+  
+  renderList(); 
+  if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+}
+
+function editName(id) {
+  const a = applicants.find(x=>x.id===id);
+  if(!a) return;
+  const newName = prompt('수정할 성함을 입력하세요:', a.name);
+  if(newName && newName.trim() !== "") {
+    a.name = newName.trim();
+    a.updatedAt = new Date();
+    toast('✅ 성함이 수정되었습니다');
+    renderList();
+  }
+}
+
+function setResult(id, label) {
+  const a = applicants.find(x=>x.id===id);
+  if(!a) return;
+  
+  let finalResult = label;
+  if(label === '기타(사유입력)') {
+    const reason = prompt('사유를 입력해주세요:');
+    if(!reason) return;
+    finalResult = `기타: ${reason}`;
+  }
+  
+  a.comment = (a.comment ? a.comment + ' | ' : '') + finalResult;
+  a.updatedAt = new Date();
+  
+  // 전화상 안함 or 최후 통첩 → 데이터 보드 자동 열기
+  const isArchive = finalResult.includes('전화상 안함') || label === '없는 번호' || label === '타 지역 거주' || 
+    label === '잘못누름/관심없음/바로끊음' || label === '직접 컨택 희망 (고민)' || 
+    label === '당분간 참여 어려움' || label === '미성년자' || label === '기존 멤버' || 
+    label === '나이 (80대 이상)' || label.startsWith('기타') ||
+    finalResult.includes('최후 통첩') || finalResult.includes('추후 최후 통첩');
+  
+  // '전화상 안함' 결과 선택시 comment에 '전화상 안함' 태그 추가
+  const noCallLabels = ['없는 번호','타 지역 거주','잘못누름/관심없음/바로끊음','직접 컨택 희망 (고민)','당분간 참여 어려움','미성년자','기존 멤버','나이 (80대 이상)'];
+  if(noCallLabels.includes(label) || label.startsWith('기타')) {
+    // tag as 전화상 안함 so filtering works
+    if(!a.comment.includes('전화상 안함')) a.comment += ' | 전화상 안함';
+  }
+  
+  toast(`✔️ 결과 반영: ${finalResult}`);
+  renderList();
+  
+  if(isArchive) {
+    const boardPanel = document.getElementById('board-panel');
+    if(!boardPanel.classList.contains('open')) {
+      togglePanel('board-panel', 'board-icon');
+    }
+    renderBoard();
+  }
+}
+
+
+function revealPhone(id) {
+  const a = applicants.find(x=>x.id===id);
+  if(a) { a.revealed = true; renderList(); }
 }
 
 function saveMemo(id){
@@ -359,11 +987,213 @@ function saveMemo(id){
 }
 
 function scheduleVisit(id){
-  const v = document.getElementById(`dt-${id}`).value;
-  if(!v){ toast('❗ 일시를 입력하세요'); return; }
-  visitData[id] = {datetime: v, scheduled:true};
-  const a = applicants.find(x=>x.id===id); a.updatedAt = new Date();
-  toast('📅 예약 완료'); renderList(); if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+  openPicker(id);
+}
+
+let currentSelectingId = null;
+let pickerDate = new Date();
+let selectedPickerDate = null;
+let selectedPickerTime = "12:00";
+
+function openPicker(id) {
+  currentSelectingId = id;
+  const a = applicants.find(x=>x.id===id);
+  const existing = visitData[id];
+  selectedPickerDate = existing ? new Date(existing.datetime) : new Date();
+  pickerDate = new Date(selectedPickerDate);
+  selectedPickerTime = existing ? existing.datetime.split('T')[1].substring(0,5) : "12:00";
+  
+  const modal = document.getElementById('picker-modal');
+  modal.classList.add('show');
+  setTimeout(()=>document.getElementById('picker-content').classList.remove('scale-95'), 10);
+  
+  renderPicker();
+}
+
+function closePicker() {
+  document.getElementById('picker-content').classList.add('scale-95');
+  const modal = document.getElementById('picker-modal');
+  setTimeout(()=> { modal.classList.remove('show'); currentSelectingId = null; }, 200);
+}
+
+function changePickerMonth(v) {
+  pickerDate.setMonth(pickerDate.getMonth() + v);
+  renderPicker();
+}
+
+function renderPicker() {
+  const monthLabel = document.getElementById('picker-month-year');
+  monthLabel.textContent = `${pickerDate.getFullYear()}.${String(pickerDate.getMonth()+1).padStart(2,'0')}`;
+  
+  const grid = document.getElementById('mini-cal-grid');
+  grid.innerHTML = '';
+  
+  const first = new Date(pickerDate.getFullYear(), pickerDate.getMonth(), 1).getDay();
+  const daysInMonth = new Date(pickerDate.getFullYear(), pickerDate.getMonth() + 1, 0).getDate();
+  const today = new Date();
+
+  for(let i=0; i<first; i++) {
+    const empty = document.createElement('div'); empty.className = 'mini-cal-day empty';
+    grid.appendChild(empty);
+  }
+
+  for(let d=1; d<=daysInMonth; d++) {
+    const day = document.createElement('div');
+    day.className = 'mini-cal-day';
+    day.textContent = d;
+    
+    const dStr = `${pickerDate.getFullYear()}-${String(pickerDate.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const selStr = selectedPickerDate ? `${selectedPickerDate.getFullYear()}-${String(selectedPickerDate.getMonth()+1).padStart(2,'0')}-${String(selectedPickerDate.getDate()).padStart(2,'0')}` : '';
+    
+    if(dStr === selStr) day.classList.add('selected');
+    if(dStr === `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`) day.classList.add('today');
+    
+    day.onclick = () => {
+      selectedPickerDate = new Date(pickerDate.getFullYear(), pickerDate.getMonth(), d);
+      renderPicker();
+    };
+    grid.appendChild(day);
+  }
+
+  // Time list
+  const timeScroller = document.getElementById('time-list-scroller');
+  timeScroller.innerHTML = '';
+  for(let i=9; i<=22; i++) {
+    ["00", "30"].forEach(m => {
+      if(i===22 && m==="30") return;
+      const t = `${String(i).padStart(2,'0')}:${m}`;
+      const item = document.createElement('div');
+      item.className = 'time-list-item' + (selectedPickerTime === t ? ' selected' : '');
+      item.textContent = t;
+      item.onclick = () => {
+        selectedPickerTime = t;
+        renderPicker();
+      };
+      timeScroller.appendChild(item);
+      if(selectedPickerTime === t && timeScroller.dataset.init !== 'done') {
+        setTimeout(()=>item.scrollIntoView({block:'center'}), 10);
+      }
+    });
+  }
+}
+
+function confirmPicker() {
+  if(!selectedPickerDate) { toast('❗ 날짜를 선택하세요'); return; }
+  const dateStr = `${selectedPickerDate.getFullYear()}-${String(selectedPickerDate.getMonth()+1).padStart(2,'0')}-${String(selectedPickerDate.getDate()).padStart(2,'0')}`;
+  const finalDT = `${dateStr}T${selectedPickerTime}`;
+  
+  visitData[currentSelectingId] = {datetime: finalDT, scheduled: true};
+  const a = applicants.find(x=>x.id===currentSelectingId); a.updatedAt = new Date();
+  
+  toast(`📅 ${dateStr} ${selectedPickerTime} 예약 완료`);
+  renderList();
+  if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+  closePicker();
+}
+
+function parseTimeStr(s) {
+  let [ampm, time] = s.split(' ');
+  let [h, m] = time.replace('시', ':').replace('분', '').split(':');
+  let hour = parseInt(h);
+  if (ampm === '오후' && hour < 12) hour += 12;
+  if (ampm === '오전' && hour === 12) hour = 0;
+  return `${String(hour).padStart(2,'0')}:${(m||'00').padStart(2,'0')}`;
+}
+
+function setQuickTime(id, timeStr) {
+  const a = applicants.find(x=>x.id===id);
+  const existing = visitData[id];
+  const date = existing ? existing.datetime.split('T')[0] : new Date().toISOString().split('T')[0];
+  const time = parseTimeStr(timeStr);
+  visitData[id] = {datetime: `${date}T${time}`, scheduled: true, label: timeStr};
+  a.updatedAt = new Date();
+  toast(`📅 ${timeStr} 예약 완료`);
+  renderList();
+  if(document.getElementById('board-panel').classList.contains('open')) renderBoard();
+}
+
+let _activeStatType = null;
+
+function showStatDetail(type) {
+  const isSummary = ['total', 'replied', 'success'].includes(type);
+  const slotIdx = isSummary ? 1 : 2;
+  const otherIdx = isSummary ? 2 : 1;
+  
+  const panel = document.getElementById(`stat-detail-slot-${slotIdx}`);
+  
+  // Toggle logic
+  if (_activeStatType === type && !panel.classList.contains('hidden')) {
+    closeStatDetail(slotIdx);
+    _activeStatType = null;
+    return;
+  }
+  
+  closeStatDetail(otherIdx); // Close the other one to save space
+  
+  const title = document.getElementById(`stat-detail-title-${slotIdx}`);
+  const list = document.getElementById(`stat-detail-list-${slotIdx}`);
+  
+  _activeStatType = type;
+  
+  let filtered = [];
+  let titleText = '';
+
+  if (type === 'total') {
+    filtered = window._lastTotal || [];
+    titleText = '총 지원자 명단';
+  } else if (type === 'replied') {
+    filtered = window._lastReplied || [];
+    titleText = '회신 완료 명단';
+  } else if (type === 'success') {
+    filtered = window._lastSuccesses || [];
+    titleText = '예약 성공자 명단';
+  } else if (type === 'peak') {
+    const h = window._lastPeakHour;
+    filtered = (window._lastTotal || []).filter(a => new Date(a.time).getHours() === h);
+    titleText = `${h}시 지원 집중 명단`;
+  } else if (type === 'efficiency') {
+    filtered = window._lastReplied || [];
+    titleText = '회신 효율 분석 대상 명단';
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="p-8 text-center text-slate-300 text-[11px] italic">해당되는 내역이 없습니다.</div>`;
+  } else {
+    list.innerHTML = filtered.map(p => {
+      const cleanComment = (p.comment||'').replace(/\| ?전화상 안함/g,'').replace(/\| ?추후 최후 통첩/g,'').replace(/\| ?최후 통첩/g,'').trim().replace(/^\s*\|\s*/, '').trim();
+      return `
+        <div class="px-3 py-1.5 hover:bg-slate-50 transition-colors group border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-3">
+            <div class="w-16 flex-shrink-0">
+              <div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div>
+              <div class="text-[8px] text-slate-400 font-mono tracking-tighter">${p.phone ? p.phone.slice(-4) : '****'}</div>
+            </div>
+            <div class="w-32 flex-shrink-0 overflow-hidden">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[8px] font-black border ${p.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full scale-90 origin-left">${p.sourceLabel||'-'}</span>
+                <span class="text-[8px] text-slate-400 whitespace-nowrap">${fmtDT(p.time).split(' ')[1]}</span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0 text-[10px] text-slate-500 truncate italic">
+              ${cleanComment || ''}
+            </div>
+            ${visitData[p.id]?.scheduled ? `<span class="text-[8px] font-black text-brand-600 bg-brand-200/20 px-1.5 py-0.5 rounded-full border border-brand-100">Success</span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  title.textContent = titleText;
+  panel.classList.remove('hidden');
+}
+
+function closeStatDetail(idx) {
+  const panel = document.getElementById(`stat-detail-slot-${idx || 1}`);
+  if(panel) {
+    panel.classList.add('hidden');
+    if (idx === 1 && _activeStatType && ['total', 'replied', 'success'].includes(_activeStatType)) _activeStatType = null;
+    if (idx === 2 && _activeStatType && ['peak', 'efficiency'].includes(_activeStatType)) _activeStatType = null;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -392,25 +1222,43 @@ document.addEventListener('DOMContentLoaded', () => {
         source: src.id,
         sourceLabel: src.label,
         sourceCls: src.cls,
-        time: isToday ? new Date() : new Date(Date.now() - (i*3600000*8)), // spread over hours/days
+        time: isToday ? new Date() : new Date(Date.now() - (i*3600000*2)), // More recent (within 1-2 days)
         updatedAt: new Date(),
         details: i%3===0 ? '[하남점] 영어 무료 레벨테스트 신청' : '[하남점] 인스타 프로모션 유입건',
-        comment: i%4===0 ? '상담 대기 중' : ''
+        comment: ''
       };
+      
+      // 예시 데이터 분배 로직 (전화상 안함 / 최후 통첩 등)
+      if (i === 1) { 
+        app.comment = '없는 번호 | 전화상 안함'; 
+      } else if (i === 2) {
+        app.comment = '미성년자 | 전화상 안함';
+      } else if (i === 3) {
+        app.comment = '잘못누름/관심없음/바로끊음 | 전화상 안함';
+      } else if (i === 4) {
+        app.comment = '최후 통첩';
+      } else if (i === 7) {
+        app.comment = '추후 최후 통첩';
+      } else if (i % 4 === 0) {
+        app.comment = '상담 대기 중';
+      }
       
       // Add fake logs for some
       if (i % 2 === 0) {
         callLogs[id] = [{key: STAFF[i % STAFF.length], time: new Date()}];
       }
       // Add fake visits for some
-      if (i % 5 === 0) {
-        visitData[id] = {datetime: '2026-04-12T19:00', scheduled: true};
+      if (i % 5 === 0 && !app.comment.includes('전화상 안함') && !app.comment.includes('최후 통첩')) {
+        // Use a recent date for fake visit too
+        const visitDateStr = new Date().toISOString().split('T')[0];
+        visitData[id] = {datetime: `${visitDateStr}T19:00`, scheduled: true};
       }
       
       applicants.push(app);
     }
     applicants.sort((a,b) => b.time - a.time);
   };
+
 
   populateInitial();
   renderList();
