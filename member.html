@@ -253,6 +253,9 @@
                 class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
                 <i class="ph ph-phone-call text-lg"></i> 신규 회신
             </a>
+            <a href="branchstatus.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-building-office text-lg"></i> Branch Status
+            </a>
         </nav>
     </div>
 
@@ -318,32 +321,34 @@
             <!-- Action Needed / Alerts Section (CHECK) -->
             <div id="check-section"
                 class="bg-amber-50 rounded-xl shadow-sm border border-amber-200 overflow-hidden mb-4">
-                <div class="px-4 py-3 border-b border-amber-200 bg-amber-100/50 flex justify-between items-center">
+                <button onclick="toggleCheckSection()" class="w-full px-4 py-3 border-b border-amber-200 bg-amber-100/50 flex justify-between items-center cursor-pointer hover:bg-amber-100/80 transition-colors">
                     <h3 class="text-sm font-bold text-amber-800 flex items-center gap-2">
                         <i class="ph-fill ph-warning-circle text-lg"></i> 주의 알림 (CHECK)
-                    </h3>
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center bg-white/50 rounded-lg p-0.5 gap-0.5 border border-amber-200">
-                            <button id="alert-view-btn-list" onclick="setAlertViewMode('list')" title="리스트 보기"
-                                class="w-7 h-7 rounded-md flex items-center justify-center transition-all bg-white shadow-sm text-amber-600">
-                                <i class="ph-bold ph-list-bullets text-sm"></i>
-                            </button>
-                            <button id="alert-view-btn-card" onclick="setAlertViewMode('card')" title="카드 보기"
-                                class="w-7 h-7 rounded-md flex items-center justify-center transition-all text-amber-400 hover:text-amber-600">
-                                <i class="ph-bold ph-squares-four text-sm"></i>
-                            </button>
-                        </div>
-                        <select id="inner-alert-filter" class="px-2 py-1 bg-white border border-amber-300 rounded text-xs font-medium text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none cursor-pointer">
-                            <option value="all">전체 유형</option>
-                            <option value="0">첫 스터디 미체크</option>
-                            <option value="1">만료 D-7</option>
-                            <option value="2">첫 스터디 체크</option>
-                            <option value="3">결제 확인</option>
-                            <option value="4">홀딩 복귀</option>
-                        </select>
                         <span id="check-count"
                             class="px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs font-bold shadow-inner border border-amber-300">5명</span>
+                    </h3>
+                    <i class="ph ph-caret-down text-amber-400 text-sm transition-transform" id="check-collapse-icon"></i>
+                </button>
+                <div id="check-content-wrap" style="max-height:2000px;overflow:hidden;transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1);">
+                <div class="px-4 py-2 border-b border-amber-200 bg-amber-50 flex items-center gap-3">
+                    <div class="flex items-center bg-white/50 rounded-lg p-0.5 gap-0.5 border border-amber-200">
+                        <button id="alert-view-btn-list" onclick="setAlertViewMode('list')" title="리스트 보기"
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-all bg-white shadow-sm text-amber-600">
+                            <i class="ph-bold ph-list-bullets text-sm"></i>
+                        </button>
+                        <button id="alert-view-btn-card" onclick="setAlertViewMode('card')" title="카드 보기"
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-all text-amber-400 hover:text-amber-600">
+                            <i class="ph-bold ph-squares-four text-sm"></i>
+                        </button>
                     </div>
+                    <select id="inner-alert-filter" class="px-2 py-1 bg-white border border-amber-300 rounded text-xs font-medium text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none cursor-pointer">
+                        <option value="all">전체 유형</option>
+                        <option value="0">첫 스터디 미체크</option>
+                        <option value="1">만료 D-7</option>
+                        <option value="2">첫 스터디 체크</option>
+                        <option value="3">결제 확인</option>
+                        <option value="4">홀딩 복귀</option>
+                    </select>
                 </div>
                 <div id="alert-list-container" class="divide-y divide-amber-100">
                     <!-- Alert Item 1 -->
@@ -430,6 +435,7 @@
                 <!-- Card Grid View for Alerts -->
                 <div id="alert-card-container" class="hidden p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 </div>
+                </div><!-- end check-content-wrap -->
             </div>
 
             <!-- 검색 및 필터 바 -->
@@ -919,6 +925,20 @@
             let currentViewMode = 'table';
             let currentAlertViewMode = 'list';
 
+            let _checkCollapsed = false;
+            window.toggleCheckSection = function() {
+                _checkCollapsed = !_checkCollapsed;
+                const wrap = document.getElementById('check-content-wrap');
+                const icon = document.getElementById('check-collapse-icon');
+                if (_checkCollapsed) {
+                    wrap.style.maxHeight = '0';
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    wrap.style.maxHeight = '2000px';
+                    icon.style.transform = '';
+                }
+            };
+
             window.setAlertViewMode = function(mode) {
                 currentAlertViewMode = mode;
                 const vList = document.getElementById('alert-list-container');
@@ -1044,17 +1064,16 @@
 
             // ─── BUILD MEMBER ROW HTML ───
             function buildRowHtml(m, rowNum) {
-                const levelBadgesHtml = m.teamBadges.map(tb => {
-                    const cls = tb.isJapanese ? 'background:#e6f0ff;color:#007BFF;border-color:#007BFF' : 'background:#f5eafa;color:#9B59B6;border-color:#9B59B6';
+                const levelTeamHtml = m.teamBadges.map(tb => {
+                    const isJp = tb.isJapanese;
+                    const dotColor = isJp ? '#007BFF' : '#9B59B6';
+                    const bgColor = isJp ? '#e6f0ff' : '#f5eafa';
+                    const txtColor = isJp ? '#007BFF' : '#9B59B6';
+                    const borderColor = isJp ? '#007BFF' : '#9B59B6';
                     const match = tb.label.match(/(.*)\((.*)\)/);
                     const lvl = match ? match[2] : '';
-                    return `<span class="px-1.5 py-0.5 text-[10px] rounded font-bold border whitespace-nowrap" style="${cls}"><i class="ph-fill ph-book-open mr-0.5 text-[8px]"></i>LV${lvl}</span>`;
-                }).join('');
-                const teamBadgesHtml = m.teamBadges.map(tb => {
-                    const cls = tb.isJapanese ? 'color:#007BFF;background:#e6f0ff;border-color:#007BFF' : 'color:#9B59B6;background:#f5eafa;border-color:#9B59B6';
-                    const match = tb.label.match(/(.*)\((.*)\)/);
                     const tm = match ? match[1] : tb.label;
-                    return `<span class="px-1.5 py-0.5 text-[10px] rounded font-bold border whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity" style="${cls}" onclick="navigateToTeam('${tm}')" title="${tm} 탭으로 이동">${tm}</span>`;
+                    return `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer hover:shadow-sm transition-all" style="background:${bgColor};color:${txtColor};border-left:3px solid ${dotColor};" onclick="navigateToTeam('${tm}')" title="${tm} 탭으로 이동"><span style="font-weight:900;">LV${lvl}</span><span style="color:${txtColor};opacity:0.4;">·</span><span>${tm}</span></span>`;
                 }).join('');
                 const ms = m.membership;
                 const blocksHtml = m.blocks.map(b =>
@@ -1089,21 +1108,13 @@
                         <div class="font-mono text-[11px] text-slate-500 mt-1"><span class="cursor-pointer hover:text-brand-600 active:scale-95 transition-all" onclick="event.stopPropagation();copyPhone('${m.phone}')">${m.phone}</span> (${m.age}세)</div>
                     </td>
                     <td class="px-2 py-1.5">
-                        <div class="flex flex-wrap gap-1">${levelBadgesHtml}</div>
-                    </td>
-                    <td class="px-2 py-1.5">
-                        <div class="flex flex-wrap gap-1">${teamBadgesHtml}</div>
+                        <div class="flex flex-wrap gap-1.5">${levelTeamHtml}</div>
                     </td>
                     <td class="px-2 py-1.5">
                         <div class="flex flex-col gap-0.5">
                             <div class="flex items-center gap-1.5">
                                 <span class="px-1.5 py-0.5 ${ms.colorRow} text-[10px] font-bold rounded border">${ms.name}</span>
                                 <span class="text-xs font-bold text-slate-700">${m.remaining} <span class="text-[10px] text-slate-400 font-normal">/ ${ms.total}회</span></span>
-                            </div>
-                            <div class="flex items-center gap-2 text-[9.5px] text-slate-500 font-medium whitespace-nowrap mt-1">
-                                <span><i class="ph-fill ph-play-circle text-brand-500"></i> 시작: ${m.startDate}</span>
-                                <span class="text-slate-300">|</span>
-                                <span><i class="ph ph-calendar-blank text-orange-500"></i> 만료: ${m.expDate} <span class="text-slate-400">(주 ${m.perWeek}회)</span></span>
                             </div>
                         </div>
                     </td>
@@ -1142,15 +1153,22 @@
                             <span class="hidden xl:inline text-[9px] font-mono text-slate-400 cursor-pointer hover:text-brand-600 truncate" onclick="copyPhone('${m.phone}')">${m.phone}</span>
                             <span class="px-1 py-0.5 ${ms.colorRow} text-[8.5px] font-bold rounded border whitespace-nowrap">${ms.name}</span>
                         </div>
-                        <span class="shrink-0 px-1 py-0.5 rounded text-[8.5px] font-bold ${levelCls.bg} text-white shadow-sm">LV ${m.level}</span>
                     </div>
+                    <div class="flex flex-wrap gap-1 mb-1.5">${m.teamBadges.map(tb => {
+                        const isJp = tb.isJapanese;
+                        const dotColor = isJp ? '#007BFF' : '#9B59B6';
+                        const bgColor = isJp ? '#e6f0ff' : '#f5eafa';
+                        const txtColor = isJp ? '#007BFF' : '#9B59B6';
+                        const match = tb.label.match(/(.*)\((.*)\)/);
+                        const lvl = match ? match[2] : '';
+                        const tm = match ? match[1] : tb.label;
+                        return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold whitespace-nowrap" style="background:${bgColor};color:${txtColor};border-left:2px solid ${dotColor};"><span style="font-weight:900;">LV${lvl}</span><span style="opacity:0.4;">·</span>${tm}</span>`;
+                    }).join('')}</div>
 
                     <div class="flex items-center justify-between mb-1.5">
                         <div class="flex items-center gap-1 text-[9px] text-slate-500 font-medium">
                             <span class="font-bold text-slate-700 text-[10px]">${m.remaining}</span>
                             <span class="text-slate-400">/ ${ms.total}회</span>
-                            <span class="text-slate-300 ml-0.5">|</span>
-                            <span>${m.expDate}</span>
                         </div>
                         <span class="text-[10px] font-black ${m.attRate >= 80 ? 'text-emerald-600' : m.attRate < 50 ? 'text-purple-600' : 'text-slate-600'} cursor-pointer hover:underline" onclick="openMemberAttendanceHistory('${m.name}')">${m.attRate}%</span>
                     </div>
@@ -1377,8 +1395,7 @@
                                                 </div>
                                             </th>
                                             <th class="px-2 py-1 font-medium min-w-[140px]">회원 정보</th>
-                                            <th class="px-2 py-1 font-medium min-w-[160px]">멤버 레벨 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal text-slate-400"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
-                                            <th class="px-2 py-1 font-medium min-w-[160px]">참여 팀 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal text-slate-400"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
+                                            <th class="px-2 py-1 font-medium min-w-[200px]">레벨 / 팀 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal text-slate-400"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
                                             <th class="px-2 py-1 font-medium min-w-[160px]">멤버십 현황</th>
                                             <th class="px-2 py-1 font-medium min-w-[180px]">메모 (Click-to-Edit)</th>
                                             <th class="px-2 py-1 font-medium text-center w-40">최근 출석률</th>
