@@ -35,6 +35,16 @@
         body {
             background-color: #f8fafc;
             color: #0f172a;
+            font-feature-settings: "ss01", "ss02";
+        }
+        h1, h2, h3, h4 { text-wrap: balance; word-break: keep-all; }
+        p { text-wrap: pretty; word-break: keep-all; }
+        .num, time, .font-mono { font-variant-numeric: tabular-nums; }
+        @media (prefers-reduced-motion: reduce) {
+            .notice-scroller { animation: none; }
+            .member-row { transition: none; }
+            .member-row:hover { transform: none; }
+            * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
         }
 
         .glass-panel {
