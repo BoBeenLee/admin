@@ -1,0 +1,2901 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>하남 지점 어드민 - 통합 회신 관리</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    theme: { extend: {
+        colors: { brand:{50:'#f0f9ff',100:'#e0f2fe',500:'#0ea5e9',600:'#0284c7',900:'#0c4a6e'} },
+        fontFamily: { sans:['Pretendard','-apple-system','system-ui','sans-serif'] }
+    }}
+}
+</script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css"/>
+<style>
+body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;font-feature-settings:"ss01","ss02";}
+h1,h2,h3,h4{text-wrap:balance;word-break:keep-all;}
+p{text-wrap:pretty;word-break:keep-all;}
+.num,time,.font-mono{font-variant-numeric:tabular-nums;}
+@media (prefers-reduced-motion:reduce){
+    *{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
+}
+.glass-panel{background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(226,232,240,0.8);}
+.hide-scrollbar::-webkit-scrollbar{display:none;}
+.hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
+
+/* ── COLLAPSIBLE PANEL ── */
+.board-panel{overflow:hidden;max-height:0;transition:max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);position:relative;}
+.board-panel.open{max-height:3000px;overflow-y:auto;}
+
+/* ── MAIN TABS ── */
+.main-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 14px 12px; font-size: 13px; font-weight: 700; color: #94a3b8; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s; position: relative; }
+.main-tab:hover { color: #475569; background: rgba(255,255,255,0.6); }
+.main-tab.active { color: #0284c7; border-bottom-color: #0ea5e9; background: white; }
+.main-tab .tab-badge { font-size: 9px; font-weight: 800; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 99px; padding: 0 5px; }
+.main-tab.active .tab-badge { background: #0ea5e9; color: white; }
+.main-tab:not(.active) .tab-badge { background: #f1f5f9; color: #94a3b8; }
+.main-tab-panel { animation: tabFadeIn 0.25s ease; }
+.main-tab-panel.hidden { display: none; }
+@keyframes tabFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── CALENDAR ── */
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cal-day { min-height: 120px; transition: background-color 0.2s; position: relative; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; background: white; }
+.cal-day:hover { background-color: #f8fafc; }
+.cal-event-item { font-size: 9px; font-weight: 600; padding: 2px 4px; border-radius: 4px; margin-bottom: 2px; }
+
+/* ── DATA BOARD ── */
+#line-chart-svg{width:100%;height:100px;overflow:visible;}
+.stats-key-card{width:72px;display:flex;flex-direction:column;align-items:center;padding:8px 4px;border-radius:10px;border:1px solid #e2e8f0;background:white;}
+.stats-key-badge{width:14px;height:14px;border-radius:3px;font-size:8px;font-weight:900;background:#1e293b;color:white;display:flex;align-items:center;justify-content:center;}
+.emp-name-edit{font-size:9px;font-weight:800;color:#64748b;cursor:default;padding:1px 2px;border-radius:3px;transition:background 0.15s;}
+.emp-name-edit:hover{background:#f1f5f9;cursor:text;}
+.emp-name-edit[contenteditable=true]:focus{outline:none;background:#e0f2fe;border-radius:3px;color:#0284c7;box-shadow:0 0 0 2px rgba(14,165,233,0.2);}
+
+/* ── APPLICANT TABLE ── */
+.app-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
+.app-table th { background: #f8fafc; padding: 8px 10px; font-size: 11px; font-weight: 800; text-align: left; color: #64748b; border-bottom: 2px solid #e2e8f0; white-space: nowrap; letter-spacing: 0.02em; }
+.app-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.app-table tr:hover td { background-color: #fbfcfe; }
+
+.id-text { font-family: monospace; font-weight: 800; color: #94a3b8; font-size: 10px; }
+.name-text { font-size: 14px; font-weight: 900; color: #1e293b; }
+.team-pill { display: inline-flex; items-center; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 800; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+.memo-input { width: 100%; height: 24px; font-size: 11px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0 8px; outline: none; transition: border-color 0.2s; }
+.memo-input:focus { border-color: #0ea5e9; }
+
+.alpha-grid-compact { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; width: 154px; }
+.alpha-btn-compact { width: 17px; height: 17px; display: flex; items-center; justify-content: center; font-size: 10px; font-weight: 900; background: #f1f5f9; border-radius: 3px; color: #94a3b8; cursor: pointer; border: 1px solid transparent; transition: all 0.1s; }
+.alpha-btn-compact.used { background: #1e293b; color: white; }
+.alpha-btn-compact:hover:not(.used) { background: #e2e8f0; }
+
+.btn-quick { font-size: 10px; font-weight: 800; padding: 4px 6px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #64748b; transition: all 0.15s; white-space: nowrap; text-align: center; }
+.alpha-btn-compact:active { background-color: #0ea5e9 !important; color: white !important; transform: translateY(1px); }
+.btn-quick:active { transform: translateY(1px); }
+.time-chip { font-size: 8px; font-weight: 800; padding: 1px 4px; border-radius: 4px; background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; cursor: pointer; transition: all 0.1s; }
+.time-chip:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.time-chip:active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+
+.status-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 800; border: 1px solid transparent; }
+.tag-amber { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+.tag-emerald { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+
+.time-box { font-size: 10px; color: #94a3b8; font-family: monospace; display: block; line-height: 1.3; }
+.pill-src { padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; border: 1px solid transparent; }
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0f172a;color:white;padding:10px 22px;border-radius:12px;font-size:13px;font-weight:600;z-index:300;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* ── PERIOD BTNS ── */
+.period-btn{padding:6px 16px;border-radius:8px;font-size:12px;font-weight:700;transition:all .15s;cursor:pointer;border:none;}
+.period-btn.active{background:#0f172a;color:white;}
+.period-btn:not(.active){background:white;color:#64748b;border:1px solid #e2e8f0;}
+
+/* ── PICKER MODAL ── */
+#picker-modal { transition: opacity 0.2s; visibility: hidden; opacity: 0; }
+#picker-modal.show { visibility: visible; opacity: 1; }
+.picker-container { background: white; border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.04); width: 460px; display: flex; overflow: hidden; }
+.picker-left { flex: 1; padding: 24px; background: white; }
+.picker-right { width: 150px; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-left: 1px solid #e2e8f0; }
+.time-list-scroller { height: 320px; overflow-y: auto; padding: 12px; }
+.time-list-item { padding: 10px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; text-align: center; color: #64748b; cursor: pointer; margin-bottom: 4px; transition: all 0.15s; border: 1px solid transparent; }
+.time-list-item:hover { background: white; color: #0f172a; border-color: #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.time-list-item.selected { background: #0ea5e9; color: white; border-color: #0ea5e9; box-shadow: 0 4px 12px rgba(14,165,233,0.3); }
+.picker-btn { flex: 1; padding: 12px; font-size: 12px; font-weight: 800; border-radius: 12px; transition: all 0.2s; cursor: pointer; }
+
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.mini-cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; border-radius: 10px; transition: all 0.15s; border: 1.5px solid transparent; }
+.mini-cal-day:hover:not(.empty) { background: #f0f9ff; border-color: #bae6fd; }
+.mini-cal-day.selected { background: #0ea5e9; color: white; border-color: #0ea5e9; box-shadow: 0 4px 12px rgba(14,165,233,0.3); transform: scale(1.05); }
+.mini-cal-day.today { color: #0ea5e9; font-weight: 900; position: relative; }
+.mini-cal-day.today::after { content: ''; position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: #0ea5e9; }
+
+.picker-lang-btn { border-color: #e2e8f0; color: #94a3b8; background: white; cursor: pointer; }
+.picker-lang-btn:hover { border-color: #cbd5e1; color: #64748b; background: #f8fafc; }
+.picker-lang-btn.active[data-lang="영어"] { border-color: #9B59B6; color: #9B59B6; background: #f5f0ff; }
+.picker-lang-btn.active[data-lang="일본어"] { border-color: #007BFF; color: #007BFF; background: #eff6ff; }
+.picker-lang-btn.active[data-lang="둘 다"] { border-color: #0f172a; color: #0f172a; background: #f1f5f9; }
+
+/* ── INPUT MODAL (이름/사유 수정) ── */
+#input-modal { transition: opacity 0.15s; visibility: hidden; opacity: 0; pointer-events: none; }
+#input-modal.show { visibility: visible; opacity: 1; pointer-events: auto; }
+#input-modal .modal-box { transform: scale(0.95) translateY(8px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+#input-modal.show .modal-box { transform: scale(1) translateY(0); }
+.input-modal-field { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 14px; font-size: 15px; font-weight: 700; color: #0f172a; outline: none; transition: border-color 0.2s, box-shadow 0.2s; background: #f8fafc; }
+.input-modal-field:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14,165,233,0.1); background: white; }
+.input-modal-field::placeholder { color: #cbd5e1; font-weight: 500; }
+
+/* ── DUPLICATE MODAL ── */
+#dup-modal { transition: opacity 0.15s; visibility: hidden; opacity: 0; pointer-events: none; }
+#dup-modal.show { visibility: visible; opacity: 1; pointer-events: auto; }
+#dup-modal .dup-box { transform: scale(0.95) translateY(8px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+#dup-modal.show .dup-box { transform: scale(1) translateY(0); }
+.dup-badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 99px; font-size: 9px; font-weight: 800; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; cursor: pointer; transition: all 0.15s; }
+.dup-badge:hover { background: #fee2e2; border-color: #f87171; box-shadow: 0 2px 8px rgba(220,38,38,0.15); }
+
+/* ── NEW APPLICANT MODAL ── */
+.new-app-src-btn { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; border-radius: 10px; font-size: 11px; font-weight: 700; border: 1.5px solid #e2e8f0; color: #64748b; background: white; cursor: pointer; transition: all 0.15s; }
+.new-app-src-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+.new-app-src-btn.active { border-color: #0ea5e9; color: #0ea5e9; background: #f0f9ff; box-shadow: 0 2px 8px rgba(14,165,233,0.12); }
+.new-app-sched-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 10px; border-radius: 12px; font-size: 12px; font-weight: 800; border: 2px solid #e2e8f0; color: #94a3b8; background: white; cursor: pointer; transition: all 0.15s; }
+.new-app-sched-btn:hover { border-color: #cbd5e1; color: #64748b; }
+.new-app-sched-btn.active[data-sched="pending"] { border-color: #f59e0b; color: #f59e0b; background: #fffbeb; }
+.new-app-sched-btn.active[data-sched="scheduled"] { border-color: #0ea5e9; color: #0ea5e9; background: #f0f9ff; }
+
+.nacal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 10px; transition: all 0.12s; color: #334155; border: 1.5px solid transparent; }
+.nacal-day:hover:not(.empty):not(.past) { background: #f0f9ff; border-color: #bae6fd; }
+.nacal-day.selected { background: #0ea5e9; color: white; border-color: #0ea5e9; box-shadow: 0 3px 10px rgba(14,165,233,0.25); font-weight: 800; }
+.nacal-day.today { color: #0ea5e9; font-weight: 900; }
+.nacal-day.past { color: #e2e8f0; cursor: default; }
+.nacal-day.sun { color: #f87171; }
+.nacal-day.sat { color: #60a5fa; }
+.nacal-day.selected.sun, .nacal-day.selected.sat { color: white; }
+
+.na-time-chip { padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; border: 1.5px solid #e2e8f0; color: #64748b; background: white; cursor: pointer; transition: all 0.12s; }
+.na-time-chip:hover { border-color: #cbd5e1; background: #f8fafc; }
+.na-time-chip.active { border-color: #0ea5e9; color: #0ea5e9; background: #f0f9ff; box-shadow: 0 2px 8px rgba(14,165,233,0.12); font-weight: 800; }
+
+/* ── RANGE PICKER ── */
+.range-preset-btn { padding: 7px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #64748b; text-align: left; transition: all 0.1s; border: none; background: transparent; cursor: pointer; }
+.range-preset-btn:hover { background: white; color: #0f172a; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.range-preset-btn.active { background: #0ea5e9; color: white; box-shadow: 0 2px 8px rgba(14,165,233,0.25); }
+.rcal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.rcal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 8px; transition: all 0.1s; color: #334155; position: relative; }
+.rcal-day:hover:not(.empty):not(.disabled) { background: #f0f9ff; }
+.rcal-day.today { font-weight: 900; color: #0ea5e9; }
+.rcal-day.disabled { color: #e2e8f0; pointer-events: none; }
+.rcal-day.in-range { background: #e0f2fe; border-radius: 0; }
+.rcal-day.range-start { background: #0ea5e9; color: white; border-radius: 8px 0 0 8px; font-weight: 800; }
+.rcal-day.range-end { background: #0ea5e9; color: white; border-radius: 0 8px 8px 0; font-weight: 800; }
+.rcal-day.range-start.range-end { border-radius: 8px; }
+.rcal-day.in-range:first-child, .rcal-day.in-range.row-start { border-radius: 8px 0 0 8px; }
+.rcal-day.in-range:last-child, .rcal-day.in-range.row-end { border-radius: 0 8px 8px 0; }
+</style>
+</head>
+<body class="antialiased min-h-screen pb-20">
+
+<!-- Header -->
+<header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-4">
+    <button id="hamburger-btn" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"><i class="ph ph-list text-2xl"></i></button>
+    <div class="bg-brand-500 text-white p-1.5 rounded-lg"><i class="ph-bold ph-buildings text-xl"></i></div>
+    <h1 class="text-lg font-bold text-slate-800 tracking-tight">하남 지점 어드민</h1>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="text-sm font-bold text-slate-500 mr-2">신규 회신 관리</span>
+    <img src="https://ui-avatars.com/api/?name=매니저&background=0284c7&color=fff" alt="User" class="w-8 h-8 rounded-full border border-slate-200">
+  </div>
+</header>
+
+<!-- Drawer -->
+<div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity"></div>
+<div id="nav-drawer" class="fixed top-0 left-0 h-full w-full sm:w-72 bg-white shadow-2xl z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col">
+  <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+    <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800"><i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴</h2>
+    <button id="close-drawer-btn" class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer"><i class="ph ph-x"></i></button>
+  </div>
+  <nav class="p-4 space-y-1">
+    <a href="home-reviewed.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-calendar-blank text-lg"></i> 대시보드 캘린더 (홈)</a>
+    <a href="member-reviewed.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-users-three text-lg"></i> 멤버 팀</a>
+    <a href="leader-reviewed.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-crown text-lg"></i> 리더 팀</a>
+    <a href="stats-reviewed.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트</a>
+    <a href="call-reviewed.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 bg-brand-50 text-brand-700 rounded-lg font-medium transition-colors"><i class="ph ph-phone-call text-lg"></i> 신규 회신</a>
+    <a href="branchstatus-reviewed.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-building-office text-lg"></i> Branch Status</a>
+  </nav>
+</div>
+
+<main class="max-w-[1550px] mx-auto p-4 lg:p-6 space-y-6">
+
+  <!-- PAGE HEADER -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+      REPLY MANAGEMENT
+      <span class="text-sm font-semibold text-brand-600 bg-brand-50 px-2 py-1 rounded-md border border-brand-100">신규 지원자 통합 관리</span>
+    </h2>
+    <div class="flex items-center gap-2">
+      <div class="relative">
+        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input type="text" id="global-search" placeholder="이름 또는 전화번호 검색" class="w-56 pl-9 pr-8 py-2 text-[12px] font-bold border border-slate-200 rounded-xl bg-white text-slate-700 outline-none focus:border-brand-500 focus:shadow-sm focus:shadow-brand-500/10 transition-all placeholder:text-slate-300" oninput="onGlobalSearch()">
+        <button onclick="clearGlobalSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors hidden" id="global-search-clear">
+          <i class="ph-bold ph-x text-xs"></i>
+        </button>
+      </div>
+      <button id="add-sample-btn" class="px-3 py-2 bg-brand-500 text-white text-xs font-bold rounded-xl border border-brand-600 hover:bg-brand-600 transition flex items-center gap-1 shadow-sm shadow-brand-500/20">
+        <i class="ph-bold ph-plus"></i> 신규 지원자 추가
+      </button>
+    </div>
+  </div>
+
+  <!-- Global Search Results -->
+  <div id="global-search-panel" class="hidden bg-white rounded-2xl border border-brand-200 shadow-lg overflow-hidden">
+    <div class="px-5 py-3 bg-brand-50/50 border-b border-brand-100 flex items-center justify-between">
+      <span class="text-[11px] font-black text-brand-700 flex items-center gap-2"><i class="ph-bold ph-magnifying-glass"></i> 검색 결과 <span id="global-search-total" class="bg-brand-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span></span>
+      <button onclick="clearGlobalSearch()" class="text-brand-400 hover:text-brand-600 transition-colors"><i class="ph-bold ph-x text-sm"></i></button>
+    </div>
+    <div id="global-search-results" class="max-h-[400px] overflow-y-auto divide-y divide-slate-100"></div>
+  </div>
+
+  <!-- UNIFIED TAB CARD -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <!-- Tab Navigation -->
+    <div class="flex border-b border-slate-200 bg-slate-50/50 relative">
+      <button onclick="switchMainTab('calendar')" class="main-tab active" data-tab="calendar">
+        <i class="ph-fill ph-calendar text-base"></i>
+        <span>캘린더</span>
+        <span id="tab-badge-cal" class="tab-badge hidden">0</span>
+      </button>
+      <button onclick="switchMainTab('history')" class="main-tab" data-tab="history">
+        <i class="ph-fill ph-archive text-base"></i>
+        <span>예약 히스토리</span>
+        <span id="tab-badge-history" class="tab-badge hidden">0</span>
+      </button>
+      <button onclick="switchMainTab('board')" class="main-tab" data-tab="board">
+        <i class="ph-fill ph-chart-line text-base"></i>
+        <span>데이터 보드</span>
+        <span id="tab-badge-board" class="tab-badge hidden">0</span>
+      </button>
+      <button onclick="toggleTabCard()" class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-all" title="접기/펼치기">
+        <i class="ph-bold ph-caret-up text-xs transition-transform" id="tab-collapse-icon"></i>
+      </button>
+    </div>
+    <div id="tab-content-wrap">
+
+    <!-- Tab: Calendar -->
+    <div class="main-tab-panel" id="tab-panel-calendar">
+      <!-- Full Calendar UI from home.html -->
+      <div class="bg-white flex flex-col">
+        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+          <div class="flex items-center gap-4">
+            <h2 class="text-lg font-bold text-slate-800">2026년 4월</h2>
+            <div class="flex gap-1 text-slate-400">
+              <i class="ph ph-caret-left cursor-pointer hover:text-slate-600"></i>
+              <i class="ph ph-caret-right cursor-pointer hover:text-slate-600"></i>
+            </div>
+            <button class="px-3 py-1 bg-slate-100 text-slate-600 text-[11px] font-bold rounded-md hover:bg-slate-200">오늘</button>
+          </div>
+          <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button class="px-3 py-1 bg-white shadow-sm rounded text-[11px] font-bold text-slate-800">월간</button>
+            <button class="px-3 py-1 text-slate-500 hover:text-slate-700 text-[11px] font-bold rounded">주간</button>
+          </div>
+        </div>
+        <div class="cal-grid bg-slate-100 border-b border-slate-200 font-black text-[10px] text-slate-400 uppercase tracking-widest">
+          <div class="py-2.5 text-center text-red-300">Sun</div><div class="py-2.5 text-center">Mon</div><div class="py-2.5 text-center">Tue</div>
+          <div class="py-2.5 text-center">Wed</div><div class="py-2.5 text-center">Thu</div><div class="py-2.5 text-center">Fri</div><div class="py-2.5 text-center text-brand-300">Sat</div>
+        </div>
+        <div class="cal-grid bg-slate-200 gap-[1px]" id="calendar-grid">
+          <div class="cal-day p-2"><span class="absolute top-2 right-1.5 text-[10px] text-slate-300">29</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-1.5 text-[10px] text-slate-300">30</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-1.5 text-[10px] text-slate-300">31</span></div>
+          <div class="cal-day p-2 border-t-2 border-brand-400 bg-brand-50/20">
+            <span class="absolute top-2 right-2 text-xs font-bold text-brand-600 bg-brand-100 rounded-full w-5 h-5 flex items-center justify-center">1</span>
+            <div class="mt-7 flex flex-col space-y-1">
+              <div class="cal-event-item bg-blue-100 text-blue-700 border border-blue-200 shadow-sm truncate">7pm 김서현 010-1111-2222</div>
+              <div class="cal-event-item bg-blue-100 text-blue-700 border border-blue-200 shadow-sm truncate">7pm 정짜요 010-2222-3333</div>
+            </div>
+          </div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">2</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">3</span><div class="mt-7"><div class="cal-event-item bg-orange-100 text-orange-700 border border-orange-200 truncate">리더 간담회 회식</div></div></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-blue-500">4</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-red-500">5</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">6</span><div class="mt-7"><div class="cal-event-item bg-emerald-100 text-emerald-700 border border-emerald-200 truncate">3pm 상담 2건</div></div></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">7</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">8</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">9</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-800">10</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-blue-500">11</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">12</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">13</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">14</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">15</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">16</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">17</span></div>
+          <div class="cal-day p-2"><span class="absolute top-2 right-2 text-xs font-medium text-slate-400">18</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: History -->
+    <div class="main-tab-panel hidden" id="tab-panel-history">
+      <!-- Period + Filter Bar -->
+      <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div class="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200 flex-shrink-0">
+          <button class="period-btn history-period-btn active" data-hperiod="1w">1주</button>
+          <button class="period-btn history-period-btn" data-hperiod="2w">2주</button>
+          <button class="period-btn history-period-btn" data-hperiod="3w">3주</button>
+          <button class="period-btn history-period-btn" data-hperiod="1m">1달</button>
+          <button class="period-btn history-period-btn" data-hperiod="all">전체</button>
+          <button class="period-btn history-period-btn" data-hperiod="custom">직접 선택</button>
+        </div>
+        <div id="history-custom-range" class="hidden flex items-center gap-1.5 flex-shrink-0 relative">
+          <button onclick="toggleRangePicker()" id="range-display-btn" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-600 hover:border-brand-300 transition-all shadow-sm">
+            <i class="ph ph-calendar-blank text-brand-500"></i>
+            <span id="range-display-from">시작일</span>
+            <span class="text-slate-300">—</span>
+            <span id="range-display-to">종료일</span>
+            <i class="ph ph-caret-down text-slate-300 text-[9px]"></i>
+          </button>
+          <!-- Custom Range Picker Dropdown -->
+          <div id="range-picker-dropdown" class="hidden absolute top-full left-0 mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden" style="width:540px;">
+            <div class="flex">
+              <!-- Left: Quick Presets -->
+              <div class="w-[130px] bg-slate-50 border-r border-slate-100 p-3 flex flex-col gap-1">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 px-1">빠른 선택</span>
+                <button onclick="setRangePreset(0)" class="range-preset-btn">오늘</button>
+                <button onclick="setRangePreset(3)" class="range-preset-btn">최근 3일</button>
+                <button onclick="setRangePreset(7)" class="range-preset-btn">최근 1주</button>
+                <button onclick="setRangePreset(14)" class="range-preset-btn">최근 2주</button>
+                <button onclick="setRangePreset(30)" class="range-preset-btn">최근 1달</button>
+                <button onclick="setRangePreset(90)" class="range-preset-btn">최근 3달</button>
+              </div>
+              <!-- Right: Dual Calendar -->
+              <div class="flex-1 p-4">
+                <div class="flex gap-4">
+                  <div class="flex-1" id="range-cal-left"></div>
+                  <div class="flex-1" id="range-cal-right"></div>
+                </div>
+                <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                  <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                    <span id="range-selected-label" class="font-bold">날짜를 선택하세요</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <button onclick="closeRangePicker()" class="px-3 py-1.5 text-[11px] font-bold border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition-all">취소</button>
+                    <button onclick="confirmRangePicker()" class="px-4 py-1.5 text-[11px] font-black bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all shadow-sm shadow-brand-500/20">적용</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-1 flex-wrap">
+          <select id="history-filter-result" class="text-[11px] font-bold border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 outline-none">
+            <option value="all">전체 결과</option>
+            <option value="scheduled">예약 확정 (전체)</option>
+            <option value="scheduled-eng">예약 확정 (영어)</option>
+            <option value="scheduled-jpn">예약 확정 (일본어)</option>
+            <option value="scheduled-nolang">예약 확정 (언어 미정)</option>
+            <option value="nocall">전화상 안함</option>
+            <option value="ultimatum">최후 통첩</option>
+          </select>
+          <select id="history-filter-source" class="text-[11px] font-bold border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 outline-none">
+            <option value="all">전체 경로</option>
+            <option value="kakao">카카오</option>
+            <option value="naver">네이버</option>
+            <option value="insta">인스타</option>
+            <option value="sns">SNS광고</option>
+            <option value="referral">지인소개</option>
+          </select>
+          <input id="history-filter-search" type="text" placeholder="이름 검색" class="text-[11px] font-bold border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 outline-none w-24 placeholder:text-slate-300">
+          <span id="history-result-count" class="text-[10px] font-black text-slate-400 ml-auto">0명</span>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-slate-50 text-[10px] text-slate-400 uppercase tracking-widest font-black border-b border-slate-100">
+            <tr>
+              <th class="px-4 py-3">성함</th>
+              <th class="px-4 py-3">전화번호</th>
+              <th class="px-4 py-3">결과</th>
+              <th class="px-4 py-3">코멘트</th>
+              <th class="px-4 py-3">유입 경로 / 동기</th>
+              <th class="px-4 py-3">예약 일정</th>
+              <th class="px-4 py-3 text-center">동작</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody" class="divide-y divide-slate-100 text-[11px] text-slate-600">
+          </tbody>
+        </table>
+        <div id="history-empty" class="hidden p-8 text-center text-slate-400">
+          <i class="ph ph-mask-happy text-2xl mb-2 opacity-20"></i>
+          <p class="text-[11px] font-medium">히스토리가 비어 있습니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Data Board -->
+    <div class="main-tab-panel hidden" id="tab-panel-board">
+      <!-- Board Period Selector -->
+      <div class="px-5 pt-4 pb-2 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+        <div class="flex items-center gap-1 p-1 bg-white rounded-xl border border-slate-200">
+          <button class="period-btn board-period-btn active" data-bperiod="1w">1주</button>
+          <button class="period-btn board-period-btn" data-bperiod="2w">2주</button>
+          <button class="period-btn board-period-btn" data-bperiod="3w">3주</button>
+          <button class="period-btn board-period-btn" data-bperiod="1m">1달</button>
+          <button class="period-btn board-period-btn" data-bperiod="all">전체</button>
+          <button class="period-btn board-period-btn" data-bperiod="custom">직접 선택</button>
+        </div>
+        <div id="board-custom-range" class="hidden flex items-center gap-1.5 flex-shrink-0 relative">
+          <button onclick="toggleBoardRangePicker()" id="board-range-display-btn" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-600 hover:border-brand-300 transition-all shadow-sm">
+            <i class="ph ph-calendar-blank text-purple-500"></i>
+            <span id="board-range-display-from" class="text-slate-400">시작일</span>
+            <span class="text-slate-300">—</span>
+            <span id="board-range-display-to" class="text-slate-400">종료일</span>
+            <i class="ph ph-caret-down text-slate-300 text-[9px]"></i>
+          </button>
+          <div id="board-range-picker-dropdown" class="hidden absolute top-full left-0 mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden" style="width:540px;">
+            <div class="flex">
+              <div class="w-[130px] bg-slate-50 border-r border-slate-100 p-3 flex flex-col gap-1">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 px-1">빠른 선택</span>
+                <button onclick="setBoardRangePreset(0)" class="range-preset-btn board-range-preset">오늘</button>
+                <button onclick="setBoardRangePreset(3)" class="range-preset-btn board-range-preset">최근 3일</button>
+                <button onclick="setBoardRangePreset(7)" class="range-preset-btn board-range-preset">최근 1주</button>
+                <button onclick="setBoardRangePreset(14)" class="range-preset-btn board-range-preset">최근 2주</button>
+                <button onclick="setBoardRangePreset(30)" class="range-preset-btn board-range-preset">최근 1달</button>
+                <button onclick="setBoardRangePreset(90)" class="range-preset-btn board-range-preset">최근 3달</button>
+              </div>
+              <div class="flex-1 p-4">
+                <div class="flex gap-4">
+                  <div class="flex-1" id="board-range-cal-left"></div>
+                  <div class="flex-1" id="board-range-cal-right"></div>
+                </div>
+                <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                  <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                    <span id="board-range-selected-label" class="font-bold">날짜를 선택하세요</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <button onclick="closeBoardRangePicker()" class="px-3 py-1.5 text-[11px] font-bold border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 transition-all">취소</button>
+                    <button onclick="confirmBoardRangePicker()" class="px-4 py-1.5 text-[11px] font-black bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all shadow-sm shadow-brand-500/20">적용</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span id="board-period-label" class="text-[10px] font-bold text-slate-400"></span>
+      </div>
+      <div class="p-5 space-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div onclick="showStatDetail('total')" class="bg-slate-50 rounded-xl p-4 border border-slate-100 cursor-pointer hover:bg-white hover:shadow-md hover:border-brand-200 transition-all group">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-brand-500 transition-colors">총 지원자</div>
+            <div class="text-2xl font-black text-slate-800" id="b-total">0</div>
+          </div>
+          <div onclick="showStatDetail('replied')" class="bg-slate-50 rounded-xl p-4 border border-slate-100 cursor-pointer hover:bg-white hover:shadow-md hover:border-emerald-200 transition-all group">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-emerald-600 transition-colors">총 회신율</div>
+            <div class="text-2xl font-black text-emerald-600" id="b-rate">0%</div>
+          </div>
+          <div onclick="showStatDetail('success')" class="bg-slate-50 rounded-xl p-4 border border-slate-100 cursor-pointer hover:bg-white hover:shadow-md hover:border-brand-200 transition-all group">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-brand-600 transition-colors">예약 성공률</div>
+            <div class="text-2xl font-black text-brand-600" id="b-success">0%</div>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 transition-all grayscale opacity-70">
+            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">성공 평균 회신 수</div>
+            <div class="flex items-baseline gap-1"><span class="text-2xl font-black text-blue-600" id="b-avg">-</span><span class="text-[10px] text-slate-400">회</span></div>
+          </div>
+        </div>
+        
+        <!-- Slot 1: Summary Stats Detail -->
+        <div id="stat-detail-slot-1" class="hidden overflow-hidden transition-all duration-300">
+          <div class="bg-white rounded-2xl border-2 border-brand-100 shadow-xl overflow-hidden my-4 animate-in slide-in-from-top-4">
+            <div class="px-4 py-2.5 bg-brand-50 border-b border-brand-100 flex items-center justify-between">
+              <span id="stat-detail-title-1" class="text-[11px] font-black text-brand-700 uppercase tracking-widest">상세 데이터</span>
+              <button onclick="closeStatDetail(1)" class="text-brand-400 hover:text-brand-600 transition-colors"><i class="ph-bold ph-x text-sm"></i></button>
+            </div>
+            <div id="stat-detail-list-1" class="max-h-[300px] overflow-y-auto divide-y divide-slate-100 scrollbar-thin scrollbar-thumb-slate-200"></div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-6">
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-bold text-slate-600">시간대별 실시간 현황</span>
+              <div class="flex gap-3 text-[9px] font-bold">
+                <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-brand-500"></span>지원</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-emerald-500"></span>회신</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-500"></span>성공</span>
+              </div>
+            </div>
+            <div class="flex-1 min-h-[100px]">
+              <svg id="line-chart-svg"></svg>
+              <div id="line-chart-labels" class="flex justify-between mt-3 text-[8px] text-slate-400 font-mono"></div>
+            </div>
+            
+            <!-- Hourly Insight Cards -->
+            <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-200/60">
+              <div onclick="showStatDetail('peak')" class="p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                <div class="text-[10px] font-black text-slate-500 tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <i class="ph-fill ph-fire text-amber-500"></i> 지원 집중 시간대
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span id="insight-peak-hour" class="text-xl font-black text-slate-800">-시</span>
+                  <span id="insight-peak-pct" class="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-100">0%</span>
+                </div>
+                <p class="text-[9px] text-slate-500 mt-1 font-medium">가장 지원자가 많이 몰리는 골든 타임입니다.</p>
+              </div>
+
+              <div onclick="showStatDetail('efficiency')" class="p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                <div class="text-[10px] font-black text-slate-500 tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <i class="ph-fill ph-clock text-blue-500"></i> 회신 효율 분석
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span id="insight-avg-reply" class="text-xl font-black text-slate-800">-분</span>
+                  <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-100"><span id="insight-success-rate">0</span>% 성공</span>
+                </div>
+                <p class="text-[9px] text-slate-500 mt-1 font-medium">지원 후 첫 회신까지 평균 소요 시간입니다.</p>
+              </div>
+            </div>
+            
+            <!-- Slot 2: Insight Detail -->
+            <div id="stat-detail-slot-2" class="hidden overflow-hidden transition-all duration-300">
+              <div class="bg-white rounded-2xl border-2 border-brand-100 shadow-xl overflow-hidden mt-4 animate-in slide-in-from-top-4">
+                <div class="px-4 py-2.5 bg-brand-50 border-b border-brand-100 flex items-center justify-between">
+                  <span id="stat-detail-title-2" class="text-[11px] font-black text-brand-700 uppercase tracking-widest">인사이트 상세 데이터</span>
+                  <button onclick="closeStatDetail(2)" class="text-brand-400 hover:text-brand-600 transition-colors"><i class="ph-bold ph-x text-sm"></i></button>
+                </div>
+                <div id="stat-detail-list-2" class="max-h-[300px] overflow-y-auto divide-y divide-slate-100 scrollbar-thin scrollbar-thumb-slate-200"></div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">유입 경로 분석</span>
+              <select id="b-source-sort" class="text-[10px] font-bold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-600 outline-none cursor-pointer hover:border-brand-300 transition-colors">
+                <option value="count-desc">지원자 많은순</option>
+                <option value="count-asc">지원자 적은순</option>
+                <option value="rate-desc">성공률 높은순</option>
+                <option value="rate-asc">성공률 낮은순</option>
+                <option value="default">기본 순서</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs font-bold text-slate-600 mb-3 block">유입 경로 현황</span>
+                <div id="b-source-wrap" class="space-y-2"></div>
+              </div>
+              <div class="sm:border-l sm:border-slate-200/60 sm:pl-4">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5"><i class="ph-fill ph-target text-emerald-500"></i> 회신 성공률</span>
+                  <span id="b-source-success-overall" class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100" title="회신 기록(통화 로그)이 1건 이상 남은 지원자 비율">0%</span>
+                </div>
+                <div id="b-source-success-wrap" class="space-y-2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pt-4 border-t border-slate-100">
+          <span class="text-xs font-bold text-slate-500 mb-3 block flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="ph-fill ph-user-circle"></i> 직원별 개인 회신율 / 성함 수정</span>
+          </span>
+          <div id="b-emp-grid" class="flex flex-wrap gap-1.5 mb-6"></div>
+          
+          <!-- Archived Columns (Side-by-Side) -->
+          <div class="mt-4 pt-6 border-t-2 border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left: 전화상 안함 -->
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-black text-slate-500 uppercase flex items-center gap-2">
+                  <i class="ph-fill ph-phone-slash text-slate-400"></i> 전화상 안함 내역
+                </span>
+                <span id="nocall-count" class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shadow-sm">0명</span>
+              </div>
+              <div id="nocall-chart" class="space-y-2"></div>
+              <div id="nocall-empty" class="hidden p-8 text-center text-slate-300 text-[11px] italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">내역이 없습니다.</div>
+            </div>
+
+            <!-- Right: 최후 통첩 -->
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-black text-slate-500 uppercase flex items-center gap-2">
+                  <i class="ph-fill ph-warning text-amber-500"></i> 최후 통첩 내역
+                </span>
+                <span id="ultimatum-count" class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shadow-sm">0명</span>
+              </div>
+              <div id="ultimatum-chart" class="space-y-2"></div>
+              <div id="ultimatum-empty" class="hidden p-8 text-center text-slate-300 text-[11px] italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">내역이 없습니다.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    </div><!-- end tab-content-wrap -->
+  </div><!-- end unified tab card -->
+
+  <!-- ③ NEW APPLICANT TABLE (Integrated Below) -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="app-table">
+        <thead>
+          <tr>
+            <th class="w-[80px] pl-6">ID</th>
+            <th class="w-[120px]">NAME</th>
+            <th class="w-[200px]">코멘트</th>
+            <th class="w-[140px]">전화번호</th>
+            <th class="w-[170px]">회신자</th>
+            <th class="w-[140px]">결과</th>
+            <th class="w-[160px]">예약 일정</th>
+            <th class="w-[140px]">지원시간</th>
+            <th class="pr-6">동기</th>
+          </tr>
+        </thead>
+        <tbody id="app-list"></tbody>
+      </table>
+    </div>
+    <div id="empty-state" class="p-24 text-center hidden">
+      <p class="text-slate-400 font-bold tracking-normal">조회 기간 내 지원자가 없습니다.</p>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- Picker Modal -->
+<div id="picker-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center">
+  <div class="picker-container transform transition-all scale-95 duration-200" id="picker-content">
+    <div class="picker-left flex flex-col h-full">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 id="picker-month-year" class="font-black text-slate-800 text-lg tracking-tight">2026.04</h3>
+          <p id="picker-applicant-name" class="text-[11px] text-brand-600 font-bold mt-0.5"></p>
+        </div>
+        <div class="flex gap-1">
+          <button onclick="changePickerMonth(-1)" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all"><i class="ph ph-caret-left"></i></button>
+          <button onclick="changePickerMonth(1)" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all"><i class="ph ph-caret-right"></i></button>
+        </div>
+      </div>
+      <div class="grid grid-cols-7 gap-3 mb-3 text-[9px] font-black text-slate-300 uppercase tracking-widest text-center">
+        <span class="text-red-300">Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span class="text-blue-300">Sat</span>
+      </div>
+      <div id="mini-cal-grid" class="mini-cal-grid mb-4"></div>
+      <!-- 언어 선택 -->
+      <div class="mb-4 pt-3 border-t border-slate-100">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">상담 희망 언어</div>
+        <div class="flex gap-2" id="picker-lang-wrap">
+          <button type="button" onclick="selectPickerLang('영어')" class="picker-lang-btn flex-1 py-2 rounded-xl text-[12px] font-bold border-2 transition-all text-center" data-lang="영어">
+            <span class="text-base">🇺🇸</span> 영어
+          </button>
+          <button type="button" onclick="selectPickerLang('일본어')" class="picker-lang-btn flex-1 py-2 rounded-xl text-[12px] font-bold border-2 transition-all text-center" data-lang="일본어">
+            <span class="text-base">🇯🇵</span> 일본어
+          </button>
+          <button type="button" onclick="selectPickerLang('둘 다')" class="picker-lang-btn flex-1 py-2 rounded-xl text-[12px] font-bold border-2 transition-all text-center" data-lang="둘 다">
+            <span class="text-base">🌐</span> 둘 다
+          </button>
+        </div>
+      </div>
+      <div class="mt-auto flex gap-3 pt-4 border-t border-slate-100">
+        <button onclick="closePicker()" class="picker-btn border border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300">취소</button>
+        <button onclick="confirmPicker()" class="picker-btn bg-brand-500 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 hover:shadow-brand-500/30">
+          <i class="ph-bold ph-check mr-1"></i>일정 확정
+        </button>
+      </div>
+    </div>
+    <div class="picker-right flex flex-col">
+      <div class="p-3 border-b border-slate-200/80 text-[10px] font-black text-slate-500 text-center uppercase tracking-widest flex items-center justify-center gap-1.5">
+        <i class="ph ph-clock text-brand-500"></i> 시간 선택
+      </div>
+      <div class="time-list-scroller hide-scrollbar" id="time-list-scroller"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Input Modal (이름 수정 / 기타 사유 입력) -->
+<div id="input-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center">
+  <div class="modal-box bg-white rounded-2xl shadow-2xl w-[360px] overflow-hidden">
+    <div class="px-6 pt-6 pb-4">
+      <div class="flex items-center gap-3 mb-1">
+        <div id="input-modal-icon" class="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center text-brand-500">
+          <i class="ph-bold ph-pencil-simple text-lg"></i>
+        </div>
+        <div>
+          <h3 id="input-modal-title" class="font-black text-slate-800 text-sm"></h3>
+          <p id="input-modal-desc" class="text-[11px] text-slate-400 font-medium"></p>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 pb-4">
+      <input type="text" id="input-modal-field" class="input-modal-field" placeholder="">
+    </div>
+    <div class="px-6 pb-6 flex gap-3">
+      <button onclick="closeInputModal()" class="flex-1 py-3 text-sm font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all">취소</button>
+      <button onclick="confirmInputModal()" class="flex-1 py-3 text-sm font-bold rounded-xl bg-brand-500 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 transition-all">
+        <i class="ph-bold ph-check mr-1"></i>확인
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Duplicate Modal -->
+<div id="dup-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center" onclick="if(event.target===this)closeDupModal()">
+  <div class="dup-box bg-white rounded-2xl shadow-2xl w-[480px] max-h-[80vh] overflow-hidden flex flex-col">
+    <div class="px-5 pt-5 pb-3 border-b border-slate-100">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center">
+          <i class="ph-bold ph-copy text-lg text-red-500"></i>
+        </div>
+        <div>
+          <h3 class="font-black text-slate-800 text-sm">중복 지원자 관리</h3>
+          <p id="dup-modal-phone" class="text-[11px] text-slate-400 font-mono font-bold"></p>
+        </div>
+        <button onclick="closeDupModal()" class="ml-auto text-slate-300 hover:text-slate-500 transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+      </div>
+    </div>
+    <div id="dup-modal-list" class="flex-1 overflow-y-auto divide-y divide-slate-100"></div>
+    <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-1.5 cursor-pointer select-none">
+          <input type="checkbox" id="dup-select-all" onchange="toggleDupSelectAll()" class="w-3.5 h-3.5 rounded accent-red-500 cursor-pointer">
+          <span class="text-[10px] font-bold text-slate-400">전체 선택</span>
+        </label>
+        <span id="dup-modal-count" class="text-[10px] font-bold text-slate-400"></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="deleteSelectedDups()" id="dup-delete-selected-btn" class="hidden px-3 py-1.5 text-[11px] font-black rounded-xl bg-red-500 text-white hover:bg-red-600 transition-all shadow-sm shadow-red-500/20 flex items-center gap-1">
+          <i class="ph-bold ph-trash text-[10px]"></i> <span id="dup-delete-count">0</span>건 삭제
+        </button>
+        <button onclick="closeDupModal()" class="px-4 py-1.5 text-[11px] font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-white transition-all">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Applicant Modal -->
+<div id="new-app-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center" style="transition:opacity 0.15s;visibility:hidden;opacity:0;pointer-events:none;" onclick="if(event.target===this)closeNewAppModal()">
+  <div class="bg-white rounded-2xl shadow-2xl w-[420px] overflow-hidden" style="transform:scale(0.95) translateY(8px);transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);" id="new-app-box">
+    <!-- Header -->
+    <div class="px-6 pt-5 pb-3 border-b border-slate-100">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center">
+          <i class="ph-bold ph-user-plus text-lg text-brand-500"></i>
+        </div>
+        <div>
+          <h3 class="font-black text-slate-800 text-sm">신규 지원자 추가</h3>
+          <p class="text-[10px] text-slate-400 font-medium">오프라인·전화 등 직접 유입 지원자 등록</p>
+        </div>
+        <button onclick="closeNewAppModal()" class="ml-auto text-slate-300 hover:text-slate-500 transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+      </div>
+    </div>
+    <!-- Form -->
+    <div class="px-6 py-4 space-y-4">
+      <!-- 성함 -->
+      <div>
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">성함 <span class="text-red-400">*</span></label>
+        <input type="text" id="new-app-name" class="input-modal-field" placeholder="지원자 이름 입력">
+      </div>
+      <!-- 연락처 -->
+      <div>
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">연락처 <span class="text-red-400">*</span></label>
+        <input type="tel" id="new-app-phone" class="input-modal-field" placeholder="010-0000-0000" oninput="formatPhoneInput(this)" maxlength="13">
+      </div>
+      <!-- 지원 동기 -->
+      <div>
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">지원 동기</label>
+        <div id="new-app-source-grid" class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="selectNewAppSource(this,'phone')" class="new-app-src-btn" data-src="phone"><i class="ph ph-phone text-sm"></i> 전화문의</button>
+          <button type="button" onclick="selectNewAppSource(this,'walkin')" class="new-app-src-btn" data-src="walkin"><i class="ph ph-storefront text-sm"></i> 워크인</button>
+          <button type="button" onclick="selectNewAppSource(this,'naver')" class="new-app-src-btn" data-src="naver"><i class="ph ph-magnifying-glass text-sm"></i> 네이버</button>
+          <button type="button" onclick="selectNewAppSource(this,'kakao')" class="new-app-src-btn" data-src="kakao"><i class="ph ph-chat-circle text-sm"></i> 카카오</button>
+          <button type="button" onclick="selectNewAppSource(this,'insta')" class="new-app-src-btn" data-src="insta"><i class="ph ph-instagram-logo text-sm"></i> 인스타</button>
+          <button type="button" onclick="selectNewAppSource(this,'referral')" class="new-app-src-btn" data-src="referral"><i class="ph ph-users text-sm"></i> 지인소개</button>
+          <button type="button" onclick="selectNewAppSource(this,'sns')" class="new-app-src-btn" data-src="sns"><i class="ph ph-megaphone text-sm"></i> SNS광고</button>
+          <button type="button" onclick="selectNewAppSource(this,'blog')" class="new-app-src-btn" data-src="blog"><i class="ph ph-article text-sm"></i> 블로그</button>
+          <button type="button" onclick="selectNewAppSource(this,'other')" class="new-app-src-btn" data-src="other"><i class="ph ph-dots-three text-sm"></i> 기타</button>
+        </div>
+        <div id="new-app-other-reason" class="hidden mt-2">
+          <input type="text" id="new-app-other-text" class="w-full text-[12px] font-bold border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-600 outline-none focus:border-brand-500 transition-colors" placeholder="기타 경로를 입력하세요">
+        </div>
+      </div>
+      <!-- 상담 일정 -->
+      <div>
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">상담 일정</label>
+        <div class="flex gap-2" id="new-app-schedule-toggle">
+          <button type="button" onclick="setNewAppSchedule('pending')" class="new-app-sched-btn active" data-sched="pending">
+            <i class="ph ph-clock text-sm"></i> 상담 미정
+          </button>
+          <button type="button" onclick="setNewAppSchedule('scheduled')" class="new-app-sched-btn" data-sched="scheduled">
+            <i class="ph ph-calendar-check text-sm"></i> 상담 일정
+          </button>
+        </div>
+        <!-- 일정 입력 영역 (상담 일정 선택 시 표시) -->
+        <div id="new-app-schedule-form" class="hidden mt-3 rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+          <div class="flex">
+            <!-- Left: Calendar + Language -->
+            <div class="flex-1 p-4 space-y-3">
+              <div class="flex items-center justify-between mb-1">
+                <button type="button" onclick="moveNewAppCalMonth(-1)" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"><i class="ph-bold ph-caret-left text-xs"></i></button>
+                <span id="new-app-cal-title" class="text-[13px] font-black text-slate-700"></span>
+                <button type="button" onclick="moveNewAppCalMonth(1)" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"><i class="ph-bold ph-caret-right text-xs"></i></button>
+              </div>
+              <div class="grid grid-cols-7 gap-0.5 mb-1">
+                <span class="text-[9px] font-black text-red-300 text-center py-1">일</span>
+                <span class="text-[9px] font-black text-slate-300 text-center py-1">월</span>
+                <span class="text-[9px] font-black text-slate-300 text-center py-1">화</span>
+                <span class="text-[9px] font-black text-slate-300 text-center py-1">수</span>
+                <span class="text-[9px] font-black text-slate-300 text-center py-1">목</span>
+                <span class="text-[9px] font-black text-slate-300 text-center py-1">금</span>
+                <span class="text-[9px] font-black text-blue-300 text-center py-1">토</span>
+              </div>
+              <div id="new-app-cal-grid" class="grid grid-cols-7 gap-0.5"></div>
+              <input type="hidden" id="new-app-date">
+              <!-- Language -->
+              <div class="pt-3 border-t border-slate-100">
+                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">희망 언어</div>
+                <div class="flex gap-2">
+                  <button type="button" onclick="selectNewAppLang('영어')" class="picker-lang-btn flex-1 py-1.5 rounded-lg text-[11px] font-bold border-2 transition-all text-center" data-lang="영어"><span class="text-sm">🇺🇸</span> 영어</button>
+                  <button type="button" onclick="selectNewAppLang('일본어')" class="picker-lang-btn flex-1 py-1.5 rounded-lg text-[11px] font-bold border-2 transition-all text-center" data-lang="일본어"><span class="text-sm">🇯🇵</span> 일본어</button>
+                  <button type="button" onclick="selectNewAppLang('둘 다')" class="picker-lang-btn flex-1 py-1.5 rounded-lg text-[11px] font-bold border-2 transition-all text-center" data-lang="둘 다"><span class="text-sm">🌐</span> 둘 다</button>
+                </div>
+              </div>
+            </div>
+            <!-- Right: Time List (same as picker-right) -->
+            <div class="w-[130px] bg-gradient-to-b from-slate-50 to-slate-100/50 border-l border-slate-200 flex flex-col">
+              <div class="p-2.5 border-b border-slate-200/80 text-[10px] font-black text-slate-500 text-center uppercase tracking-widest flex items-center justify-center gap-1">
+                <i class="ph ph-clock text-brand-500"></i> 시간
+              </div>
+              <div id="new-app-time-scroller" class="flex-1 overflow-y-auto p-2 hide-scrollbar" style="max-height:260px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div class="px-6 pb-5 flex gap-3">
+      <button onclick="closeNewAppModal()" class="flex-1 py-3 text-sm font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all">취소</button>
+      <button onclick="submitNewApp()" class="flex-1 py-3 text-sm font-bold rounded-xl bg-brand-500 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600 transition-all">
+        <i class="ph-bold ph-plus mr-1"></i>추가
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const EMP_KEY = 'hanam_emp_names_v3';
+const SOURCES = [
+  {id:'kakao', label:'카카오', cls:'border-amber-100 bg-amber-50 text-amber-700', color:'#FBBF24'},
+  {id:'naver', label:'네이버', cls:'border-emerald-100 bg-emerald-50 text-emerald-700', color:'#22C55E'},
+  {id:'insta', label:'인스타', cls:'border-purple-100 bg-purple-50 text-purple-700', color:'#D946EF'},
+  {id:'sns', label:'SNS광고', cls:'border-blue-100 bg-blue-50 text-blue-700', color:'#3B82F6'},
+  {id:'referral', label:'지인소개', cls:'border-slate-200 bg-slate-50 text-slate-700', color:'#94A3B8'}
+];
+
+let employees = JSON.parse(localStorage.getItem(EMP_KEY)) || Array.from({length:16}, (_,i)=>({key:String.fromCharCode(65+i), name:`직원${i+1}`}));
+let applicants = [];
+let callLogs = {};
+let visitData = {};
+let currentPeriod = '1w';
+let historyPeriod = '1w';
+let historyCustomFrom = null;
+let historyCustomTo = null;
+let boardPeriod = '1w';
+let boardCustomFrom = null;
+let boardCustomTo = null;
+
+const TIME_KEY = 'hanam_quick_times_v1';
+let quickTimes = JSON.parse(localStorage.getItem(TIME_KEY)) || ['오전 11시', '오후 12시', '오후 1시', '오후 3시', '오후 5시', '오후 7시', '오후 8시 30분'];
+function saveTimes() { localStorage.setItem(TIME_KEY, JSON.stringify(quickTimes)); }
+
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+function fmtDT(d){ if(!d) return '-'; const date=new Date(d); return `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`; }
+function fmtMin(m){ if(m==='-'||m==null) return '-'; m=Math.round(m); if(m<60) return `${m}분`; const h=Math.floor(m/60); const r=m%60; return r>0?`${h}시간 ${r}분`:`${h}시간`; }
+function maskPhone(p){ return p.replace(/(\d{3})-(\d{4})-(\d{4})/, "$1-****-$3"); }
+function togglePanel(id, iconId){
+  const p = document.getElementById(id);
+  const ic = document.getElementById(iconId);
+  const isOpen = p.classList.toggle('open');
+  ic.style.transform = isOpen ? 'rotate(180deg)' : '';
+  if(isOpen && id==='board-panel') renderBoard();
+}
+
+function renderList() {
+  const container = document.getElementById('app-list');
+  const empty = document.getElementById('empty-state');
+  const fa = filtered();
+  
+  // Split: Active vs Archived
+  const activeList = fa.filter(a => !visitData[a.id]?.scheduled && !a.comment?.includes('전화상 안함') && !a.comment?.includes('최후 통첩'));
+  const archivedList = fa.filter(a => !visitData[a.id]?.scheduled && (a.comment?.includes('전화상 안함') || a.comment?.includes('최후 통첩')));
+
+  if (activeList.length === 0) { 
+    container.innerHTML = ''; 
+    empty.classList.remove('hidden'); 
+  } else {
+    empty.classList.add('hidden');
+    container.innerHTML = '';
+    activeList.forEach((a) => {
+      const logs = callLogs[a.id] || [];
+      const vd = visitData[a.id];
+      const hasVisit = vd?.scheduled;
+      const tr = document.createElement('tr');
+      
+      // 회신 기록이 있을 경우 행 전체 배경을 초록색으로 변경 (채도 강화)
+      if (logs.length > 0) {
+        tr.classList.add('bg-emerald-100/70');
+      }
+      
+      tr.innerHTML = `
+        <td class="pl-6">
+          <div class="id-text">#${a.id.slice(-7)}</div>
+          ${getDupCount(a.phone) >= 2 ? `<span class="dup-badge mt-1" onclick="event.stopPropagation();openDupModal('${a.phone}')"><i class="ph-bold ph-copy text-[8px]"></i>중복 ${getDupCount(a.phone)}</span>` : ''}
+        </td>
+        <td><div class="flex items-center gap-1.5"><span class="name-text">${a.name}</span><button onclick="editName('${a.id}')" class="text-slate-300 hover:text-brand-500 transition-colors"><i class="ph ph-pencil-simple-line"></i></button></div></td>
+        <td>
+          <div class="mb-1 flex items-center gap-2">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Total Result</span>
+            <span class="bg-brand-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm">
+                ${logs.length > 0 ? `${logs[logs.length-1].key}${logs.length}` : '0'}
+            </span>
+          </div>
+          <div class="flex gap-1 mb-1"><input type="text" class="memo-input" placeholder="메모 입력" id="memo-${a.id}" value="${a.memo||''}"><button onclick="saveMemo('${a.id}')" class="btn-quick bg-slate-800 text-white border-slate-800 px-2 py-0.5">저장</button></div>
+        </td>
+        <td>
+          <div class="font-bold text-[12px] text-slate-700 font-mono">${a.revealed ? a.phone : maskPhone(a.phone)}</div>
+        </td>
+        <td><div class="alpha-grid-compact">${employees.map(emp => { return `<div class="alpha-btn-compact active:bg-slate-300" onclick="toggleCall('${a.id}','${emp.key}')">${emp.key}</div>`; }).join('')}</div></td>
+        <td>
+          <div class="mb-1">
+            <select class="memo-input text-[10px]" onchange="if(this.value) setResult('${a.id}', this.value); this.value='';">
+              <option value="">[전화상 안함 결과]</option>
+              <option value="없는 번호">없는 번호</option>
+              <option value="타 지역 거주">타 지역 거주</option>
+              <option value="잘못누름/관심없음/바로끊음">잘못/무관심/바로끊음</option>
+              <option value="직접 컨택 희망 (고민)">직접 컨택 희망 (고민)</option>
+              <option value="당분간 참여 어려움">당분간 참여 어려움</option>
+              <option value="미성년자">미성년자</option>
+              <option value="기존 멤버">기존 멤버</option>
+              <option value="나이 (80대 이상)">나이 (80대 이상)</option>
+              <option value="기타(사유입력)">기타 - 사유입력</option>
+            </select>
+          </div>
+
+          <div class="flex gap-1">
+            <button onclick="setResult('${a.id}', '최후 통첩')" class="btn-quick flex-1 text-red-600 border-red-200 bg-red-50/50 py-1 font-bold text-[8px]">최후 통첩</button>
+          </div>
+        </td>
+        <td>
+          <div onclick="openPicker('${a.id}')" class="cursor-pointer bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 mb-1.5 text-[11px] font-mono text-slate-700 flex items-center justify-between hover:border-brand-300 transition-colors">
+            <span>${hasVisit ? vd.datetime.split('T')[0] : new Date().toISOString().split('T')[0]}</span>
+            <i class="ph ph-calendar-blank text-slate-400"></i>
+          </div>
+          <div class="flex gap-1">
+            <button onclick="openPicker('${a.id}')" class="btn-quick btn-primary flex-1 py-1 text-[8px]">달력</button>
+            <button onclick="toast('문자 발송')" class="btn-quick flex-1 py-1 text-[8px]">문자</button>
+            <button onclick="toast('달력/문자 통합 실행')" class="btn-quick flex-1 py-1 text-[8px] bg-brand-50 text-brand-700 border-brand-100">달력/문자</button>
+          </div>
+        </td>
+        <td>
+          <span class="time-box font-bold text-slate-600 text-[9px]">${fmtDT(a.time)}</span>
+          <span class="time-box mt-0.5 text-[9px] text-brand-600 font-bold">${logs.length > 0 ? fmtDT(logs[logs.length-1].time) : '-'}</span>
+        </td>
+        <td class="pr-6">
+          <div class="flex flex-col gap-1">
+            <div class="pill-src border ${a.sourceCls} self-start" style="padding:0 4px; font-size:8px;">${a.sourceLabel}</div>
+            <div class="text-[10px] text-slate-500 leading-tight line-clamp-2">${a.details}</div>
+          </div>
+        </td>`;
+      container.appendChild(tr);
+    });
+  }
+  
+  renderHistoryFiltered();
+  renderArchivedList(archivedList);
+  updateTabBadges();
+}
+
+function renderHistoryFiltered() {
+  const list = filteredHistory();
+  const tbody = document.getElementById('history-tbody');
+  const empty = document.getElementById('history-empty');
+  const countEl = document.getElementById('history-result-count');
+  tbody.innerHTML = '';
+
+  const displayList = list;
+
+  if (countEl) countEl.textContent = `${displayList.length}명`;
+
+  if (displayList.length === 0) {
+    empty.classList.remove('hidden');
+    return;
+  } else {
+    empty.classList.add('hidden');
+  }
+
+  displayList.forEach(a => {
+    const vd = visitData[a.id];
+    const isScheduled = !!vd?.scheduled;
+    const isNocall = a.comment?.includes('전화상 안함');
+    const isUltimatum = a.comment?.includes('최후 통첩');
+    const logs = callLogs[a.id] || [];
+    // Result tag
+    let resultTag = '';
+    if (isScheduled) resultTag = '<span class="status-tag tag-emerald">예약확정</span>';
+    else if (isUltimatum) resultTag = '<span class="status-tag" style="background:#fff7ed;border-color:#fed7aa;color:#c2410c;">최후 통첩</span>';
+    else if (isNocall) resultTag = '<span class="status-tag" style="background:#f1f5f9;border-color:#e2e8f0;color:#64748b;">전화상 안함</span>';
+
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50 transition-colors';
+    tr.innerHTML = `
+      <td class="px-4 py-3">
+        <div class="font-bold text-slate-800">${a.name}</div>
+        <div class="text-[9px] text-slate-400 font-mono">#${a.id.slice(-7)}</div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="font-bold text-[12px] text-slate-700 font-mono">${a.phone}</div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="flex items-center gap-2">
+          ${resultTag}
+          <span class="text-[9px] font-black text-slate-400">${logs.length > 0 ? `${logs[logs.length-1].key}${logs.length}` : ''}</span>
+        </div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="text-[11px] text-slate-500 max-w-[200px] truncate" title="${a.memo||''}">${a.memo || '-'}</div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="flex flex-col gap-1">
+          <span class="pill-src border ${a.sourceCls} self-start" style="padding:0 4px;font-size:9px;">${a.sourceLabel}</span>
+          <div class="text-[9px] text-slate-400 leading-tight line-clamp-1">${a.details || ''}</div>
+        </div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="text-[10px] font-bold text-brand-600">
+          ${isScheduled ? `<i class="ph ph-calendar-check mr-1"></i>${vd.datetime.replace('T',' ')}` : '-'}
+        </div>
+        ${vd?.lang ? `<span class="text-[9px] font-bold mt-0.5 inline-block px-1.5 py-0.5 rounded ${vd.lang==='영어'?'bg-purple-50 text-purple-600 border border-purple-200':vd.lang==='일본어'?'bg-blue-50 text-blue-600 border border-blue-200':'bg-slate-100 text-slate-600 border border-slate-200'}">${vd.lang}</span>` : ''}
+      </td>
+      <td class="px-4 py-3 text-center">
+        <button onclick="restoreApplicant('${a.id}')" class="p-1.5 text-slate-400 hover:text-brand-500 transition-colors" title="목록으로 복원">
+          <i class="ph-bold ph-arrow-u-up-left text-base"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── 전화상 안함 / 최후 통첩 결과별 색상 설정 ──
+const REASON_CONFIG = [
+  { key: '없는 번호',                    color: '#64748b', bg: '#f1f5f9', text: '#475569' },
+  { key: '타 지역 거주',                   color: '#0ea5e9', bg: '#e0f2fe', text: '#0369a1' },
+  { key: '잘못누름/관심없음/바로끝음', color: '#a855f7', bg: '#f3e8ff', text: '#7e22ce' },
+  { key: '직접 콜탁 희망 (\uace0\ubbfc)',   color: '#f59e0b', bg: '#fffbeb', text: '#b45309' },
+  { key: '당분간 참여 어려움',         color: '#f97316', bg: '#fff7ed', text: '#c2410c' },
+  { key: '미성년자',                    color: '#ec4899', bg: '#fdf2f8', text: '#be185d' },
+  { key: '기존 멤버',                    color: '#10b981', bg: '#ecfdf5', text: '#065f46' },
+  { key: '나이 (80\ub300 \uc774\uc0c1)',          color: '#6366f1', bg: '#eef2ff', text: '#4338ca' },
+  { key: '기타',                           color: '#94a3b8', bg: '#f8fafc', text: '#64748b' },
+  // 최후 통첩 전용
+  { key: '최후 통첩',                    color: '#ef4444', bg: '#fef2f2', text: '#b91c1c' },
+];
+
+function getReasonConfig(key) {
+  return REASON_CONFIG.find(r => r.key === key) || REASON_CONFIG[REASON_CONFIG.length - 3]; // 기타
+}
+
+function renderArchivedList(list) {
+  const noCallList     = list.filter(a => a.comment?.includes('전화상 안함'));
+  const ultimatumList  = list.filter(a => !a.comment?.includes('전화상 안함') && a.comment?.includes('최후 통첩'));
+  const total = list.length;
+
+  // ── 전화상 안함 Bar Chart ──
+  const noCallCount = document.getElementById('nocall-count');
+  const noCallChart = document.getElementById('nocall-chart');
+  const noCallEmpty = document.getElementById('nocall-empty');
+  noCallCount.textContent = `${noCallList.length}명`;
+  noCallChart.innerHTML = '';
+
+  if (noCallList.length === 0) {
+    noCallEmpty.classList.remove('hidden');
+  } else {
+    noCallEmpty.classList.add('hidden');
+
+    const NO_CALL_REASONS = ['없는 번호', '타 지역 거주', '잘못누름/관심없음/바로끝음', '직접 콜탁 희망 (고민)', '당분간 참여 어려움', '미성년자', '기존 멤버', '나이 (80대 이상)'];
+    const groups = {};
+    noCallList.forEach(a => {
+      let reason = '기타';
+      for (const lbl of NO_CALL_REASONS) { if (a.comment?.includes(lbl)) { reason = lbl; break; } }
+      if (!groups[reason]) groups[reason] = [];
+      groups[reason].push(a);
+    });
+
+    const maxCount = Math.max(...Object.values(groups).map(p => p.length), 1);
+    Object.entries(groups).sort((a,b) => b[1].length - a[1].length).forEach(([reason, people]) => {
+      const cfg = getReasonConfig(reason);
+      const pct = Math.round(people.length / noCallList.length * 100);
+      const rowId = 'nc_' + reason.replace(/[^a-z0-9]/gi,'_');
+      const nameList = people.map(p => {
+        const logs = callLogs[p.id] || [];
+        return `
+        <div class="px-3 py-1.5 hover:bg-white transition-colors group">
+          <div class="flex items-center gap-3">
+            <div class="w-20 flex-shrink-0">
+              <div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div>
+              <div class="text-[9px] text-slate-400 font-mono tracking-tighter">${p.phone || '-'}</div>
+            </div>
+            <div class="w-32 flex-shrink-0 overflow-hidden">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[8px] font-black border ${p.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full scale-90 origin-left">${p.sourceLabel||'-'}</span>
+                <span class="text-[8px] text-slate-400 whitespace-nowrap">${fmtDT(p.time).split(' ')[1]}</span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0 text-[9px] text-slate-500 truncate italic">
+              ${p.memo || ''}
+            </div>
+            <button onclick="restoreApplicant('${p.id}')" class="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-brand-500 transition-all scale-75" title="복원">
+              <i class="ph-bold ph-arrow-u-up-left"></i>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div class="rounded-lg overflow-hidden mb-1" style="border:1px solid ${cfg.color}15">
+          <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-white/80 transition-all border-b border-white/50" style="background:${cfg.bg}80">
+            <span class="text-[10px] font-black min-w-[120px]" style="color:${cfg.text}">${reason}</span>
+            <div class="flex-1 h-1.5 rounded-full bg-white/60 overflow-hidden shadow-inner">
+              <div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${cfg.color}"></div>
+            </div>
+            <span class="text-[10px] font-black ml-2" style="color:${cfg.color}">${people.length}</span>
+            <i class="ph ph-caret-down text-[10px] ml-1 opacity-40"></i>
+          </button>
+          <div class="hidden bg-slate-50/50 divide-y divide-slate-100/50">${nameList}</div>
+        </div>`;
+      noCallChart.appendChild(div);
+    });
+  }
+
+  // ── 최후 통첩 Bar Chart ──
+  const ultiCount = document.getElementById('ultimatum-count');
+  const ultiChart = document.getElementById('ultimatum-chart');
+  const ultiEmpty = document.getElementById('ultimatum-empty');
+  ultiCount.textContent = `${ultimatumList.length}명`;
+  ultiChart.innerHTML = '';
+
+  if (ultimatumList.length === 0) {
+    ultiEmpty.classList.remove('hidden');
+  } else {
+    ultiEmpty.classList.add('hidden');
+    const ULTI_REASONS = ['최후 통첩'];
+    const groups = {};
+    ultimatumList.forEach(a => {
+      const reason = '최후 통첩';
+      if (!groups[reason]) groups[reason] = [];
+      groups[reason].push(a);
+    });
+
+    Object.entries(groups).forEach(([reason, people]) => {
+      const cfg = getReasonConfig(reason);
+      const pct = Math.round(people.length / ultimatumList.length * 100);
+      const nameList = people.map(p => {
+        const logs = callLogs[p.id] || [];
+        return `
+        <div class="px-3 py-1.5 hover:bg-white transition-colors group">
+          <div class="flex items-center gap-3">
+            <div class="w-20 flex-shrink-0">
+              <div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div>
+              <div class="text-[9px] text-slate-400 font-mono tracking-tighter">${p.phone || '-'}</div>
+            </div>
+            <div class="w-32 flex-shrink-0 overflow-hidden">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[8px] font-black border ${p.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full scale-90 origin-left">${p.sourceLabel||'-'}</span>
+                <span class="text-[8px] text-slate-400 whitespace-nowrap">${fmtDT(p.time).split(' ')[1]}</span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0 text-[9px] text-slate-500 truncate italic">
+              ${p.memo || ''}
+            </div>
+            <button onclick="restoreApplicant('${p.id}')" class="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-brand-500 transition-all scale-75" title="복원">
+              <i class="ph-bold ph-arrow-u-up-left"></i>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <div class="rounded-lg overflow-hidden mb-1" style="border:1px solid ${cfg.color}15">
+          <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-white/80 transition-all border-b border-white/50" style="background:${cfg.bg}80">
+            <span class="text-[10px] font-black min-w-[120px]" style="color:${cfg.text}">${reason}</span>
+            <div class="flex-1 h-1.5 rounded-full bg-white/60 overflow-hidden shadow-inner">
+              <div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${cfg.color}"></div>
+            </div>
+            <span class="text-[10px] font-black ml-2" style="color:${cfg.color}">${people.length}</span>
+            <i class="ph ph-caret-down text-[10px] ml-1 opacity-40"></i>
+          </button>
+          <div class="hidden bg-slate-50/50 divide-y divide-slate-100/50">${nameList}</div>
+        </div>`;
+      ultiChart.appendChild(div);
+    });
+  }
+}
+
+function restoreApplicant(id) {
+  const a = applicants.find(x=>x.id===id);
+  if(a) {
+    delete visitData[id];
+    // Remove History-triggering keywords
+    a.comment = a.comment.replace(/전화상 안함|최후 통첩/g, '').replace(/ \| \s*$/, '').trim();
+    if(a.comment.startsWith('|')) a.comment = a.comment.substring(1).trim();
+    a.updatedAt = new Date();
+    toast('✅ 지원자가 메인 목록으로 복원되었습니다');
+    renderList();
+    if(_activeMainTab==='board') renderBoard();
+  }
+}
+
+function toggleHistory() {
+  // Legacy — now handled by togglePanel('history-panel', 'history-icon')
+  togglePanel('history-panel', 'history-icon');
+}
+
+function startEmpEdit(el) {
+  el.contentEditable = true;
+  el.focus();
+  // Select all text
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  el.onblur = () => finishEmpEdit(el);
+  el.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } if (e.key === 'Escape') { el.blur(); } };
+}
+
+function finishEmpEdit(el) {
+  el.contentEditable = false;
+  const key = el.dataset.empKey;
+  const newName = el.textContent.trim();
+  if (!newName) { el.textContent = employees.find(e => e.key === key)?.name || key; return; }
+  const emp = employees.find(e => e.key === key);
+  if (emp && emp.name !== newName) {
+    emp.name = newName;
+    localStorage.setItem(EMP_KEY, JSON.stringify(employees));
+    toast(`${key} → ${newName} 저장`);
+  }
+}
+
+function renderBoard(){
+  const fa = filtered();
+  const total = fa.length;
+  const replied = fa.filter(a=>(callLogs[a.id]||[]).length>0).length;
+  const visited = fa.filter(a=>visitData[a.id]?.scheduled).length;
+  document.getElementById('b-total').textContent = total;
+  document.getElementById('b-rate').textContent = (total>0?Math.round(replied/total*100):0) + '%';
+  document.getElementById('b-success').textContent = (replied>0?Math.round(visited/replied*100):0) + '%';
+  const hours = Array.from({length:14}, (_,i)=>i+9);
+  const hourApp={}; const hourRep={}; const hourSuc={};
+  hours.forEach(h=>{ hourApp[h]=0; hourRep[h]=0; hourSuc[h]=0; });
+  
+  let totalReplyTime = 0;
+  let replyCount = 0;
+  let successes = 0;
+
+  fa.forEach(a=>{ 
+    const h=new Date(a.time).getHours(); 
+    if(hourApp[h]!==undefined) hourApp[h]++; 
+
+    const logs = callLogs[a.id] || [];
+    if(logs.length > 0) {
+      if(hourRep[h]!==undefined) hourRep[h]++;
+      const firstReply = new Date(logs[0].time);
+      const applicationTime = new Date(a.time);
+      const diffMin = Math.max(0, (firstReply - applicationTime) / (1000 * 60));
+      totalReplyTime += diffMin;
+      replyCount++;
+    }
+
+    if(visitData[a.id]?.scheduled) {
+      successes++;
+      if(hourSuc[h]!==undefined) hourSuc[h]++;
+    }
+  });
+
+  const svg = document.getElementById('line-chart-svg');
+  const W=480, H=100, pad=10;
+  const max = Math.max(1, ...Object.values(hourApp));
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  
+  const getX = (i) => pad+i*((W-2*pad)/(hours.length-1));
+  const getY = (v) => H-pad-(v/max)*(H-2*pad);
+  const getPts = (data) => hours.map((h,i)=>`${getX(i)},${getY(data[h])}`).join(' ');
+
+  // Lines
+  let svgContent = `
+    <polyline points="${getPts(hourApp)}" fill="none" stroke="#0ea5e9" stroke-width="2" />
+    <polyline points="${getPts(hourRep)}" fill="none" stroke="#10b981" stroke-width="1.5" stroke-dasharray="2 2" />
+    <polyline points="${getPts(hourSuc)}" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="2 2" />
+  `;
+  // Data points + labels
+  hours.forEach((h,i) => {
+    const x = getX(i);
+    if (hourApp[h] > 0) {
+      svgContent += `<circle cx="${x}" cy="${getY(hourApp[h])}" r="3" fill="#0ea5e9"/>`;
+      svgContent += `<text x="${x}" y="${getY(hourApp[h])-6}" text-anchor="middle" font-size="8" font-weight="800" fill="#0ea5e9">${hourApp[h]}</text>`;
+    }
+    if (hourRep[h] > 0) {
+      svgContent += `<circle cx="${x}" cy="${getY(hourRep[h])}" r="2.5" fill="#10b981"/>`;
+      svgContent += `<text x="${x+10}" y="${getY(hourRep[h])+3}" text-anchor="start" font-size="7" font-weight="800" fill="#10b981">${hourRep[h]}</text>`;
+    }
+    if (hourSuc[h] > 0) {
+      svgContent += `<circle cx="${x}" cy="${getY(hourSuc[h])}" r="2.5" fill="#f59e0b"/>`;
+      svgContent += `<text x="${x-10}" y="${getY(hourSuc[h])+3}" text-anchor="end" font-size="7" font-weight="800" fill="#f59e0b">${hourSuc[h]}</text>`;
+    }
+  });
+  svg.innerHTML = svgContent;
+  
+  const labelWrap = document.getElementById('line-chart-labels');
+  labelWrap.innerHTML = hours.filter((_,i)=>i%2===0).map(h=>`<span>${h}H</span>`).join('');
+
+  // Peak Hour & Distribution
+  let peakH = hours[0];
+  let maxV = 0;
+  hours.forEach(h => { if(hourApp[h] > maxV) { maxV = hourApp[h]; peakH = h; } });
+  
+  document.getElementById('insight-peak-hour').textContent = `${peakH}시`;
+  document.getElementById('insight-peak-pct').textContent = `${total > 0 ? Math.round((maxV/total)*100) : 0}%`;
+  
+  // Reply Efficiency
+  const avgReply = replyCount > 0 ? Math.round(totalReplyTime / replyCount) : '-';
+  document.getElementById('insight-avg-reply').textContent = fmtMin(avgReply);
+  document.getElementById('insight-success-rate').textContent = Math.round((successes / (total || 1)) * 100);
+
+  // Store current chart metadata for detail filtering
+  window._lastPeakHour = peakH;
+  window._lastSuccesses = fa.filter(a => visitData[a.id]?.scheduled);
+  window._lastReplied = fa.filter(a => (callLogs[a.id]||[]).length > 0);
+  window._lastTotal = fa;
+
+  // ── 유입 경로 분석: 두 패널 공통 데이터/정렬 ──
+  // 정렬 기준은 select 값에 따라 결정 (지원자/성공률, 오름/내림). 두 패널이 동일 순서로 렌더링되어 비교 용이.
+  const sortSel = document.getElementById('b-source-sort');
+  const sortVal = (sortSel?.value) || 'count-desc';
+  const sourceRows = SOURCES.map((s, idx) => {
+    const apps = fa.filter(a => a.source === s.id);
+    const cnt = apps.length;
+    const rep = apps.filter(a => (callLogs[a.id] || []).length > 0).length;
+    const rate = cnt > 0 ? Math.round((rep / cnt) * 100) : 0;
+    const sharePct = total > 0 ? Math.round(cnt / total * 100) : 0;
+    return { s, cnt, rep, rate, sharePct, defaultIdx: idx };
+  }).filter(r => r.cnt > 0);
+
+  switch (sortVal) {
+    case 'count-asc':  sourceRows.sort((a,b) => a.cnt - b.cnt); break;
+    case 'rate-desc':  sourceRows.sort((a,b) => b.rate - a.rate || b.cnt - a.cnt); break;
+    case 'rate-asc':   sourceRows.sort((a,b) => a.rate - b.rate || a.cnt - b.cnt); break;
+    case 'default':    sourceRows.sort((a,b) => a.defaultIdx - b.defaultIdx); break;
+    case 'count-desc':
+    default:           sourceRows.sort((a,b) => b.cnt - a.cnt); break;
+  }
+
+  const srcWrap = document.getElementById('b-source-wrap'); srcWrap.innerHTML = '';
+  if (sourceRows.length === 0) {
+    srcWrap.innerHTML = `<div class="text-[10px] text-slate-300 italic text-center py-3">데이터가 없습니다</div>`;
+  } else {
+    sourceRows.forEach(({ s, cnt, sharePct }) => {
+      srcWrap.innerHTML += `<div class="flex items-center gap-2"><span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span><div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${sharePct}%"></div></div><span class="text-[10px] font-black text-slate-500 w-5 text-right">${cnt}</span><span class="text-[9px] font-bold text-slate-400 w-8 text-right">${sharePct}%</span></div>`;
+    });
+  }
+
+  // 유입 경로별 회신 성공률 — 채널별로 callLogs가 1건 이상 남은 지원자 비율 (동일 정렬 적용)
+  const succWrap = document.getElementById('b-source-success-wrap');
+  if (succWrap) {
+    succWrap.innerHTML = '';
+    if (sourceRows.length === 0) {
+      succWrap.innerHTML = `<div class="text-[10px] text-slate-300 italic text-center py-3">데이터가 없습니다</div>`;
+    } else {
+      sourceRows.forEach(({ s, cnt, rep, rate }) => {
+        const rateColor = rate >= 70 ? 'text-emerald-600' : rate >= 40 ? 'text-amber-600' : 'text-red-500';
+        succWrap.innerHTML += `<div class="flex items-center gap-2"><span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span><div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${rate}%"></div></div><span class="text-[10px] font-black text-slate-500 w-12 text-right tabular-nums">${rep}/${cnt}</span><span class="text-[10px] font-black ${rateColor} w-9 text-right tabular-nums">${rate}%</span></div>`;
+      });
+    }
+
+    // 전체 회신 성공률 배지 갱신
+    const overallEl = document.getElementById('b-source-success-overall');
+    if (overallEl) {
+      const totalRate = total > 0 ? Math.round((replied / total) * 100) : 0;
+      overallEl.textContent = `전체 ${totalRate}%`;
+    }
+  }
+  const empGrid = document.getElementById('b-emp-grid'); empGrid.innerHTML = '';
+  employees.forEach(emp => {
+    const count = fa.filter(a=>(callLogs[a.id]||[]).some(l=>l.key===emp.key)).length;
+    const card = document.createElement('div'); card.className = 'stats-key-card';
+    card.innerHTML = `<div class="flex items-center gap-1 border-b border-slate-100 w-full px-1 pb-1 mb-1"><span class="stats-key-badge">${emp.key}</span><span class="emp-name-edit" data-emp-key="${emp.key}" ondblclick="startEmpEdit(this)" title="더블 클릭하여 수정">${emp.name}</span></div><div class="text-[10px] font-black text-brand-600">${total>0?Math.round(count/total*100):0}%</div><div class="text-[9px] text-slate-400 font-bold">${count}명</div>`;
+    empGrid.appendChild(card);
+  });
+}
+
+function periodDays(p) {
+  if (p === '1w') return 7;
+  if (p === '2w') return 14;
+  if (p === '3w') return 21;
+  if (p === '1m') return 30;
+  return 99999; // 'all'
+}
+
+function filterByPeriod(list, period) {
+  if (period === 'all') return list;
+  const now = new Date();
+  const cutoff = new Date(now);
+  cutoff.setDate(now.getDate() - periodDays(period));
+  return list.filter(a => new Date(a.time) >= cutoff);
+}
+
+function filtered(){
+  if (boardPeriod === 'custom' && boardCustomFrom && boardCustomTo) {
+    return applicants.filter(a => {
+      const d = new Date(a.time);
+      return d >= boardCustomFrom && d <= boardCustomTo;
+    });
+  }
+  return filterByPeriod(applicants, boardPeriod);
+}
+
+// ── Custom Range Picker ──
+let _rangePickerOpen = false;
+let _rangeSelecting = 'start'; // 'start' or 'end'
+let _rangeTempFrom = null;
+let _rangeTempTo = null;
+let _rangeLeftMonth = new Date().getMonth();
+let _rangeLeftYear = new Date().getFullYear();
+
+function toDateStr(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function fmtRange(d) {
+  if (!d) return null;
+  return `${d.getMonth()+1}월 ${d.getDate()}일`;
+}
+
+function toggleRangePicker() {
+  const dd = document.getElementById('range-picker-dropdown');
+  _rangePickerOpen = !_rangePickerOpen;
+  if (_rangePickerOpen) {
+    dd.classList.remove('hidden');
+    // Init to current selection or this month
+    if (historyCustomFrom) {
+      _rangeTempFrom = new Date(historyCustomFrom);
+      _rangeLeftYear = _rangeTempFrom.getFullYear();
+      _rangeLeftMonth = _rangeTempFrom.getMonth();
+    } else {
+      _rangeTempFrom = null;
+      _rangeLeftYear = new Date().getFullYear();
+      _rangeLeftMonth = new Date().getMonth();
+    }
+    _rangeTempTo = historyCustomTo ? new Date(historyCustomTo) : null;
+    _rangeSelecting = 'start';
+    renderRangeCals();
+  } else {
+    dd.classList.add('hidden');
+  }
+}
+
+function closeRangePicker() {
+  document.getElementById('range-picker-dropdown').classList.add('hidden');
+  _rangePickerOpen = false;
+}
+
+function confirmRangePicker() {
+  if (_rangeTempFrom) historyCustomFrom = new Date(_rangeTempFrom.setHours(0,0,0,0));
+  if (_rangeTempTo) historyCustomTo = new Date(_rangeTempTo.setHours(23,59,59,999));
+  else if (_rangeTempFrom) historyCustomTo = new Date(_rangeTempFrom.setHours(23,59,59,999));
+  updateRangeDisplay();
+  closeRangePicker();
+  renderHistoryFiltered();
+}
+
+function updateRangeDisplay() {
+  const fromEl = document.getElementById('range-display-from');
+  const toEl = document.getElementById('range-display-to');
+  fromEl.textContent = historyCustomFrom ? fmtRange(historyCustomFrom) : '시작일';
+  toEl.textContent = historyCustomTo ? fmtRange(historyCustomTo) : '종료일';
+  fromEl.className = historyCustomFrom ? 'text-slate-800 font-black' : 'text-slate-400';
+  toEl.className = historyCustomTo ? 'text-slate-800 font-black' : 'text-slate-400';
+}
+
+function setRangePreset(days) {
+  const now = new Date();
+  _rangeTempTo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  _rangeTempFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days);
+  _rangeLeftYear = _rangeTempFrom.getFullYear();
+  _rangeLeftMonth = _rangeTempFrom.getMonth();
+  renderRangeCals();
+}
+
+function moveRangeMonth(dir) {
+  _rangeLeftMonth += dir;
+  if (_rangeLeftMonth > 11) { _rangeLeftMonth = 0; _rangeLeftYear++; }
+  if (_rangeLeftMonth < 0) { _rangeLeftMonth = 11; _rangeLeftYear--; }
+  renderRangeCals();
+}
+
+function clickRangeDay(dateStr) {
+  const clicked = new Date(dateStr + 'T00:00:00');
+  if (_rangeSelecting === 'start') {
+    _rangeTempFrom = clicked;
+    _rangeTempTo = null;
+    _rangeSelecting = 'end';
+  } else {
+    if (clicked < _rangeTempFrom) {
+      _rangeTempFrom = clicked;
+      _rangeSelecting = 'end';
+    } else {
+      _rangeTempTo = clicked;
+      _rangeSelecting = 'start';
+    }
+  }
+  renderRangeCals();
+}
+
+function buildRangeCalMonth(y, m, containerId) {
+  const container = document.getElementById(containerId);
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const today = new Date();
+  const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+  const fromStr = _rangeTempFrom ? toDateStr(_rangeTempFrom.getFullYear(), _rangeTempFrom.getMonth(), _rangeTempFrom.getDate()) : null;
+  const toStr = _rangeTempTo ? toDateStr(_rangeTempTo.getFullYear(), _rangeTempTo.getMonth(), _rangeTempTo.getDate()) : null;
+
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  let html = `<div class="flex items-center justify-between mb-3">
+    <button onclick="moveRangeMonth(-1)" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"><i class="ph-bold ph-caret-left text-xs"></i></button>
+    <span class="text-[13px] font-black text-slate-700">${y}년 ${monthNames[m]}</span>
+    <button onclick="moveRangeMonth(1)" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"><i class="ph-bold ph-caret-right text-xs"></i></button>
+  </div>`;
+  html += `<div class="rcal-grid mb-1">${['일','월','화','수','목','금','토'].map((d,i) =>
+    `<div class="text-[9px] font-black py-1.5 text-center ${i===0?'text-red-300':i===6?'text-blue-300':'text-slate-300'} uppercase tracking-widest">${d}</div>`
+  ).join('')}</div><div class="rcal-grid">`;
+
+  for (let i = 0; i < firstDay; i++) html += '<div class="rcal-day empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = toDateStr(y, m, d);
+    const dow = (firstDay + d - 1) % 7;
+    const isToday = ds === todayStr;
+    const isStart = ds === fromStr;
+    const isEnd = ds === toStr;
+    const inRange = fromStr && toStr && ds > fromStr && ds < toStr;
+    let cls = 'rcal-day';
+    if (isToday) cls += ' today';
+    if (isStart) cls += ' range-start';
+    if (isEnd) cls += ' range-end';
+    if (inRange) cls += ' in-range';
+    if (inRange && dow === 0) cls += ' row-start';
+    if (inRange && dow === 6) cls += ' row-end';
+    html += `<div class="${cls}" onclick="clickRangeDay('${ds}')">${d}</div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderRangeCals() {
+  const rightMonth = _rangeLeftMonth + 1 > 11 ? 0 : _rangeLeftMonth + 1;
+  const rightYear = _rangeLeftMonth + 1 > 11 ? _rangeLeftYear + 1 : _rangeLeftYear;
+  buildRangeCalMonth(_rangeLeftYear, _rangeLeftMonth, 'range-cal-left');
+  buildRangeCalMonth(rightYear, rightMonth, 'range-cal-right');
+
+  // Update label
+  const label = document.getElementById('range-selected-label');
+  if (_rangeTempFrom && _rangeTempTo) {
+    label.innerHTML = `<span class="text-brand-600 font-black">${fmtRange(_rangeTempFrom)}</span> ~ <span class="text-brand-600 font-black">${fmtRange(_rangeTempTo)}</span>`;
+  } else if (_rangeTempFrom) {
+    label.innerHTML = `<span class="text-brand-600 font-black">${fmtRange(_rangeTempFrom)}</span> ~ <span class="text-slate-300">종료일 선택</span>`;
+  } else {
+    label.textContent = '시작일을 선택하세요';
+  }
+
+  // Highlight active preset
+  document.querySelectorAll('.range-preset-btn').forEach(b => b.classList.remove('active'));
+}
+
+function applyHistoryCustomRange() {
+  if (historyCustomFrom && historyCustomTo) {
+    updateRangeDisplay();
+    renderHistoryFiltered();
+  }
+}
+
+// ── Board Custom Range Picker ──
+let _boardRangeOpen = false;
+let _boardRangeSelecting = 'start';
+let _boardRangeTempFrom = null;
+let _boardRangeTempTo = null;
+let _boardRangeLeftMonth = new Date().getMonth();
+let _boardRangeLeftYear = new Date().getFullYear();
+
+function toggleBoardRangePicker() {
+  const dd = document.getElementById('board-range-picker-dropdown');
+  _boardRangeOpen = !_boardRangeOpen;
+  if (_boardRangeOpen) {
+    dd.classList.remove('hidden');
+    if (boardCustomFrom) {
+      _boardRangeTempFrom = new Date(boardCustomFrom);
+      _boardRangeLeftYear = _boardRangeTempFrom.getFullYear();
+      _boardRangeLeftMonth = _boardRangeTempFrom.getMonth();
+    } else {
+      _boardRangeTempFrom = null;
+      _boardRangeLeftYear = new Date().getFullYear();
+      _boardRangeLeftMonth = new Date().getMonth();
+    }
+    _boardRangeTempTo = boardCustomTo ? new Date(boardCustomTo) : null;
+    _boardRangeSelecting = 'start';
+    renderBoardRangeCals();
+  } else {
+    dd.classList.add('hidden');
+  }
+}
+
+function closeBoardRangePicker() {
+  document.getElementById('board-range-picker-dropdown').classList.add('hidden');
+  _boardRangeOpen = false;
+}
+
+function confirmBoardRangePicker() {
+  if (_boardRangeTempFrom) boardCustomFrom = new Date(_boardRangeTempFrom.setHours(0,0,0,0));
+  if (_boardRangeTempTo) boardCustomTo = new Date(_boardRangeTempTo.setHours(23,59,59,999));
+  else if (_boardRangeTempFrom) boardCustomTo = new Date(new Date(_boardRangeTempFrom).setHours(23,59,59,999));
+  updateBoardRangeDisplay();
+  closeBoardRangePicker();
+  renderList();
+  if(_activeMainTab==='board') renderBoard();
+}
+
+function updateBoardRangeDisplay() {
+  const fromEl = document.getElementById('board-range-display-from');
+  const toEl = document.getElementById('board-range-display-to');
+  fromEl.textContent = boardCustomFrom ? fmtRange(boardCustomFrom) : '시작일';
+  toEl.textContent = boardCustomTo ? fmtRange(boardCustomTo) : '종료일';
+  fromEl.className = boardCustomFrom ? 'text-slate-800 font-black' : 'text-slate-400';
+  toEl.className = boardCustomTo ? 'text-slate-800 font-black' : 'text-slate-400';
+}
+
+function setBoardRangePreset(days) {
+  const now = new Date();
+  _boardRangeTempTo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  _boardRangeTempFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days);
+  _boardRangeLeftYear = _boardRangeTempFrom.getFullYear();
+  _boardRangeLeftMonth = _boardRangeTempFrom.getMonth();
+  renderBoardRangeCals();
+}
+
+function moveBoardRangeMonth(dir) {
+  _boardRangeLeftMonth += dir;
+  if (_boardRangeLeftMonth > 11) { _boardRangeLeftMonth = 0; _boardRangeLeftYear++; }
+  if (_boardRangeLeftMonth < 0) { _boardRangeLeftMonth = 11; _boardRangeLeftYear--; }
+  renderBoardRangeCals();
+}
+
+function clickBoardRangeDay(dateStr) {
+  const clicked = new Date(dateStr + 'T00:00:00');
+  if (_boardRangeSelecting === 'start') {
+    _boardRangeTempFrom = clicked;
+    _boardRangeTempTo = null;
+    _boardRangeSelecting = 'end';
+  } else {
+    if (clicked < _boardRangeTempFrom) {
+      _boardRangeTempFrom = clicked;
+      _boardRangeSelecting = 'end';
+    } else {
+      _boardRangeTempTo = clicked;
+      _boardRangeSelecting = 'start';
+    }
+  }
+  renderBoardRangeCals();
+}
+
+function buildBoardCalMonth(y, m, containerId) {
+  const container = document.getElementById(containerId);
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const today = new Date();
+  const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+  const fromStr = _boardRangeTempFrom ? toDateStr(_boardRangeTempFrom.getFullYear(), _boardRangeTempFrom.getMonth(), _boardRangeTempFrom.getDate()) : null;
+  const toStr = _boardRangeTempTo ? toDateStr(_boardRangeTempTo.getFullYear(), _boardRangeTempTo.getMonth(), _boardRangeTempTo.getDate()) : null;
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  let html = `<div class="flex items-center justify-between mb-3">
+    <button onclick="moveBoardRangeMonth(-1)" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"><i class="ph-bold ph-caret-left text-xs"></i></button>
+    <span class="text-[13px] font-black text-slate-700">${y}년 ${monthNames[m]}</span>
+    <button onclick="moveBoardRangeMonth(1)" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"><i class="ph-bold ph-caret-right text-xs"></i></button>
+  </div>`;
+  html += `<div class="rcal-grid mb-1">${['일','월','화','수','목','금','토'].map((d,i) =>
+    `<div class="text-[9px] font-black py-1.5 text-center ${i===0?'text-red-300':i===6?'text-blue-300':'text-slate-300'} uppercase tracking-widest">${d}</div>`
+  ).join('')}</div><div class="rcal-grid">`;
+  for (let i = 0; i < firstDay; i++) html += '<div class="rcal-day empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = toDateStr(y, m, d);
+    const dow = (firstDay + d - 1) % 7;
+    const isToday = ds === todayStr;
+    const isStart = ds === fromStr;
+    const isEnd = ds === toStr;
+    const inRange = fromStr && toStr && ds > fromStr && ds < toStr;
+    let cls = 'rcal-day';
+    if (isToday) cls += ' today';
+    if (isStart) cls += ' range-start';
+    if (isEnd) cls += ' range-end';
+    if (inRange) cls += ' in-range';
+    if (inRange && dow === 0) cls += ' row-start';
+    if (inRange && dow === 6) cls += ' row-end';
+    html += `<div class="${cls}" onclick="clickBoardRangeDay('${ds}')">${d}</div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderBoardRangeCals() {
+  const rightMonth = _boardRangeLeftMonth + 1 > 11 ? 0 : _boardRangeLeftMonth + 1;
+  const rightYear = _boardRangeLeftMonth + 1 > 11 ? _boardRangeLeftYear + 1 : _boardRangeLeftYear;
+  buildBoardCalMonth(_boardRangeLeftYear, _boardRangeLeftMonth, 'board-range-cal-left');
+  buildBoardCalMonth(rightYear, rightMonth, 'board-range-cal-right');
+  const label = document.getElementById('board-range-selected-label');
+  if (_boardRangeTempFrom && _boardRangeTempTo) {
+    label.innerHTML = `<span class="text-brand-600 font-black">${fmtRange(_boardRangeTempFrom)}</span> ~ <span class="text-brand-600 font-black">${fmtRange(_boardRangeTempTo)}</span>`;
+  } else if (_boardRangeTempFrom) {
+    label.innerHTML = `<span class="text-brand-600 font-black">${fmtRange(_boardRangeTempFrom)}</span> ~ <span class="text-slate-300">종료일 선택</span>`;
+  } else {
+    label.textContent = '시작일을 선택하세요';
+  }
+  document.querySelectorAll('.board-range-preset').forEach(b => b.classList.remove('active'));
+}
+
+function filteredHistory() {
+  let list;
+  if (historyPeriod === 'custom' && historyCustomFrom && historyCustomTo) {
+    list = applicants.filter(a => {
+      const d = new Date(a.time);
+      return d >= historyCustomFrom && d <= historyCustomTo;
+    });
+  } else {
+    list = filterByPeriod(applicants, historyPeriod);
+  }
+  // Only history items (scheduled OR nocall OR ultimatum)
+  list = list.filter(a => visitData[a.id]?.scheduled || a.comment?.includes('전화상 안함') || a.comment?.includes('최후 통첩'));
+
+  // Result filter
+  const resultFilter = document.getElementById('history-filter-result')?.value || 'all';
+  if (resultFilter === 'scheduled') list = list.filter(a => visitData[a.id]?.scheduled);
+  else if (resultFilter === 'scheduled-eng') list = list.filter(a => visitData[a.id]?.scheduled && visitData[a.id]?.lang === '영어');
+  else if (resultFilter === 'scheduled-jpn') list = list.filter(a => visitData[a.id]?.scheduled && visitData[a.id]?.lang === '일본어');
+  else if (resultFilter === 'scheduled-nolang') list = list.filter(a => visitData[a.id]?.scheduled && !visitData[a.id]?.lang);
+  else if (resultFilter === 'nocall') list = list.filter(a => a.comment?.includes('전화상 안함'));
+  else if (resultFilter === 'ultimatum') list = list.filter(a => a.comment?.includes('최후 통첩'));
+
+  // Source filter
+  const sourceFilter = document.getElementById('history-filter-source')?.value || 'all';
+  if (sourceFilter !== 'all') list = list.filter(a => a.source === sourceFilter);
+
+  // Name search
+  const search = (document.getElementById('history-filter-search')?.value || '').trim();
+  if (search) list = list.filter(a => a.name.includes(search));
+
+  return list;
+}
+
+function toggleCall(id, key){
+  if(!callLogs[id]) callLogs[id]=[];
+  const a = applicants.find(x=>x.id===id);
+
+  // 다른 지원자 번호 가리기
+  applicants.forEach(x => { if(x.id !== id) x.revealed = false; });
+
+  callLogs[id].push({key, time:new Date()});
+  a.revealed = true;
+  a.updatedAt = new Date();
+
+  renderList();
+  if(_activeMainTab==='board') renderBoard();
+}
+
+let _inputModalCallback = null;
+
+function openInputModal({ title, desc, icon, iconBg, placeholder, value, onConfirm }) {
+  const modal = document.getElementById('input-modal');
+  document.getElementById('input-modal-title').textContent = title;
+  document.getElementById('input-modal-desc').textContent = desc || '';
+  document.getElementById('input-modal-icon').className = `w-10 h-10 rounded-xl ${iconBg || 'bg-brand-50 border border-brand-100'} flex items-center justify-center ${icon?.includes('text-') ? '' : 'text-brand-500'}`;
+  document.getElementById('input-modal-icon').innerHTML = icon || '<i class="ph-bold ph-pencil-simple text-lg"></i>';
+  const field = document.getElementById('input-modal-field');
+  field.placeholder = placeholder || '';
+  field.value = value || '';
+  _inputModalCallback = onConfirm;
+  modal.classList.add('show');
+  setTimeout(() => field.focus(), 150);
+  field.onkeydown = (e) => { if (e.key === 'Enter') confirmInputModal(); if (e.key === 'Escape') closeInputModal(); };
+}
+
+function closeInputModal() {
+  document.getElementById('input-modal').classList.remove('show');
+  _inputModalCallback = null;
+}
+
+function confirmInputModal() {
+  const val = document.getElementById('input-modal-field').value.trim();
+  if (val && _inputModalCallback) _inputModalCallback(val);
+  closeInputModal();
+}
+
+function editName(id) {
+  const a = applicants.find(x=>x.id===id);
+  if(!a) return;
+  openInputModal({
+    title: '성함 수정',
+    desc: `현재: ${a.name}`,
+    icon: '<i class="ph-bold ph-user text-lg text-brand-500"></i>',
+    iconBg: 'bg-brand-50 border border-brand-100',
+    placeholder: '수정할 성함을 입력하세요',
+    value: a.name,
+    onConfirm: (val) => {
+      a.name = val;
+      a.updatedAt = new Date();
+      toast('성함이 수정되었습니다');
+      renderList();
+    }
+  });
+}
+
+function setResult(id, label) {
+  const a = applicants.find(x=>x.id===id);
+  if(!a) return;
+
+  if (label === '기타(사유입력)') {
+    openInputModal({
+      title: '기타 사유 입력',
+      desc: `${a.name} — 전화상 안함 사유`,
+      icon: '<i class="ph-bold ph-note-pencil text-lg text-amber-500"></i>',
+      iconBg: 'bg-amber-50 border border-amber-100',
+      placeholder: '사유를 입력해주세요',
+      value: '',
+      onConfirm: (val) => _applyResult(id, `기타: ${val}`, label)
+    });
+    return;
+  }
+  _applyResult(id, label, label);
+}
+
+function _applyResult(id, finalResult, label) {
+  const a = applicants.find(x=>x.id===id);
+  if(!a) return;
+  a.comment = (a.comment ? a.comment + ' | ' : '') + finalResult;
+  a.updatedAt = new Date();
+  
+  // 전화상 안함 or 최후 통첩 → 데이터 보드 자동 열기
+  const isArchive = finalResult.includes('전화상 안함') || label === '없는 번호' || label === '타 지역 거주' || 
+    label === '잘못누름/관심없음/바로끊음' || label === '직접 컨택 희망 (고민)' || 
+    label === '당분간 참여 어려움' || label === '미성년자' || label === '기존 멤버' || 
+    label === '나이 (80대 이상)' || label.startsWith('기타') ||
+    finalResult.includes('최후 통첩');
+  
+  // '전화상 안함' 결과 선택시 comment에 '전화상 안함' 태그 추가
+  const noCallLabels = ['없는 번호','타 지역 거주','잘못누름/관심없음/바로끊음','직접 컨택 희망 (고민)','당분간 참여 어려움','미성년자','기존 멤버','나이 (80대 이상)'];
+  if(noCallLabels.includes(label) || label.startsWith('기타')) {
+    // tag as 전화상 안함 so filtering works
+    if(!a.comment.includes('전화상 안함')) a.comment += ' | 전화상 안함';
+  }
+  
+  toast(`✔️ 결과 반영: ${finalResult}`);
+  renderList();
+  if(_activeMainTab==='board') renderBoard();
+}
+
+
+function revealPhone(id) {
+  const a = applicants.find(x=>x.id===id);
+  if(a) { a.revealed = true; renderList(); }
+}
+
+function saveMemo(id){
+  const v = document.getElementById(`memo-${id}`).value;
+  const a = applicants.find(x=>x.id===id);
+  if(a){ a.memo = v; a.updatedAt = new Date(); toast('메모 저장 완료'); renderList(); }
+}
+
+// ── 중복 지원자 관리 ──
+function getDupMap() {
+  const map = {};
+  applicants.forEach(a => {
+    if (!map[a.phone]) map[a.phone] = [];
+    map[a.phone].push(a);
+  });
+  return map;
+}
+
+function getDupCount(phone) {
+  return applicants.filter(a => a.phone === phone).length;
+}
+
+let _dupCurrentPhone = null;
+
+function openDupModal(phone) {
+  const dupes = applicants.filter(a => a.phone === phone);
+  if (dupes.length === 0) { closeDupModal(); return; }
+  _dupCurrentPhone = phone;
+
+  document.getElementById('dup-modal-phone').textContent = phone;
+  document.getElementById('dup-modal-count').textContent = `동일 번호 ${dupes.length}건`;
+  document.getElementById('dup-select-all').checked = false;
+  updateDupDeleteBtn();
+
+  const list = document.getElementById('dup-modal-list');
+  list.innerHTML = dupes.map((a, idx) => {
+    const logs = callLogs[a.id] || [];
+    const vd = visitData[a.id];
+    const isScheduled = !!vd?.scheduled;
+    const isNocall = a.comment?.includes('전화상 안함');
+    const isUlti = a.comment?.includes('최후 통첩');
+
+    let statusTag = '';
+    if (isScheduled) statusTag = '<span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">예약확정</span>';
+    else if (isUlti) statusTag = '<span class="text-[9px] font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full border border-red-200">최후 통첩</span>';
+    else if (isNocall) statusTag = '<span class="text-[9px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full border border-slate-200">전화상 안함</span>';
+    else if (logs.length > 0) statusTag = '<span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">회신완료</span>';
+    else statusTag = '<span class="text-[9px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-full border border-slate-200">대기중</span>';
+
+    return `<div class="px-5 py-3 hover:bg-slate-50 transition-colors dup-row" data-dup-id="${a.id}">
+      <div class="flex items-start gap-3">
+        <input type="checkbox" class="dup-check w-4 h-4 rounded accent-red-500 cursor-pointer mt-1 flex-shrink-0" data-dup-id="${a.id}" onchange="updateDupDeleteBtn()">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-[13px] font-black text-slate-800">${a.name}</span>
+            ${statusTag}
+            <span class="text-[8px] text-slate-300 font-mono">#${a.id.slice(-7)}</span>
+          </div>
+          <div class="flex items-center gap-3 text-[10px] text-slate-400 mb-1">
+            <span><i class="ph ph-clock text-[9px]"></i> ${fmtDT(a.time)}</span>
+            <span class="pill-src border ${a.sourceCls}" style="padding:0 4px;font-size:8px;">${a.sourceLabel}</span>
+            ${logs.length > 0 ? `<span class="font-bold">회신 ${logs.length}회</span>` : ''}
+          </div>
+          ${a.memo ? `<div class="text-[10px] text-slate-500 italic truncate">${a.memo}</div>` : ''}
+          ${isScheduled ? `<div class="text-[10px] font-bold text-brand-600 mt-0.5"><i class="ph ph-calendar-check"></i> ${vd.datetime.replace('T',' ')}</div>` : ''}
+        </div>
+        <button onclick="deleteSingleDup('${a.id}')" class="flex-shrink-0 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="삭제">
+          <i class="ph-bold ph-trash text-sm"></i>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('dup-modal').classList.add('show');
+}
+
+function closeDupModal() {
+  document.getElementById('dup-modal').classList.remove('show');
+  _dupCurrentPhone = null;
+}
+
+function toggleDupSelectAll() {
+  const allChecked = document.getElementById('dup-select-all').checked;
+  document.querySelectorAll('.dup-check').forEach(cb => cb.checked = allChecked);
+  updateDupDeleteBtn();
+}
+
+function updateDupDeleteBtn() {
+  const checked = document.querySelectorAll('.dup-check:checked');
+  const btn = document.getElementById('dup-delete-selected-btn');
+  const countEl = document.getElementById('dup-delete-count');
+  if (checked.length > 0) {
+    btn.classList.remove('hidden');
+    btn.classList.add('flex');
+    countEl.textContent = checked.length;
+  } else {
+    btn.classList.add('hidden');
+    btn.classList.remove('flex');
+  }
+  // 전체선택 체크박스 동기화
+  const total = document.querySelectorAll('.dup-check').length;
+  document.getElementById('dup-select-all').checked = checked.length === total && total > 0;
+}
+
+function deleteSingleDup(id) {
+  if (!_dupCurrentPhone) return;
+  const total = applicants.filter(x => x.phone === _dupCurrentPhone).length;
+  if (total <= 1) { toast('마지막 1건은 삭제할 수 없습니다'); return; }
+  const a = applicants.find(x => x.id === id);
+  applicants = applicants.filter(x => x.id !== id);
+  delete callLogs[id];
+  delete visitData[id];
+  toast(`${a?.name || ''} 삭제 완료`);
+  openDupModal(_dupCurrentPhone);
+  renderList();
+  if(_activeMainTab==='board') renderBoard();
+}
+
+function deleteSelectedDups() {
+  if (!_dupCurrentPhone) return;
+  const checkedIds = [...document.querySelectorAll('.dup-check:checked')].map(cb => cb.dataset.dupId);
+  const total = applicants.filter(x => x.phone === _dupCurrentPhone).length;
+
+  if (checkedIds.length >= total) {
+    toast('최소 1건은 남겨야 합니다');
+    return;
+  }
+
+  checkedIds.forEach(id => {
+    applicants = applicants.filter(x => x.id !== id);
+    delete callLogs[id];
+    delete visitData[id];
+  });
+
+  toast(`${checkedIds.length}건 삭제 완료`);
+
+  openDupModal(_dupCurrentPhone);
+  renderList();
+  if(_activeMainTab==='board') renderBoard();
+}
+
+function scheduleVisit(id){
+  openPicker(id);
+}
+
+let currentSelectingId = null;
+let pickerDate = new Date();
+let selectedPickerDate = null;
+let selectedPickerTime = "12:00";
+let selectedPickerLang = null;
+
+function selectPickerLang(lang) {
+  selectedPickerLang = (selectedPickerLang === lang) ? null : lang;
+  document.querySelectorAll('.picker-lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === selectedPickerLang);
+  });
+}
+
+function openPicker(id) {
+  currentSelectingId = id;
+  const a = applicants.find(x=>x.id===id);
+  const existing = visitData[id];
+  selectedPickerDate = existing ? new Date(existing.datetime) : new Date();
+  pickerDate = new Date(selectedPickerDate);
+  selectedPickerTime = existing ? existing.datetime.split('T')[1].substring(0,5) : "12:00";
+  
+  document.getElementById('picker-applicant-name').textContent = a ? `${a.name} 님 예약 일정` : '';
+  // 기존 언어 선택 복원
+  selectedPickerLang = existing?.lang || null;
+  document.querySelectorAll('.picker-lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === selectedPickerLang);
+  });
+  const modal = document.getElementById('picker-modal');
+  modal.classList.add('show');
+  setTimeout(()=>document.getElementById('picker-content').classList.remove('scale-95'), 10);
+  
+  renderPicker();
+}
+
+function closePicker() {
+  document.getElementById('picker-content').classList.add('scale-95');
+  const modal = document.getElementById('picker-modal');
+  setTimeout(()=> { modal.classList.remove('show'); currentSelectingId = null; }, 200);
+}
+
+function changePickerMonth(v) {
+  pickerDate.setMonth(pickerDate.getMonth() + v);
+  renderPicker();
+}
+
+function renderPicker() {
+  const monthLabel = document.getElementById('picker-month-year');
+  monthLabel.textContent = `${pickerDate.getFullYear()}.${String(pickerDate.getMonth()+1).padStart(2,'0')}`;
+  
+  const grid = document.getElementById('mini-cal-grid');
+  grid.innerHTML = '';
+  
+  const first = new Date(pickerDate.getFullYear(), pickerDate.getMonth(), 1).getDay();
+  const daysInMonth = new Date(pickerDate.getFullYear(), pickerDate.getMonth() + 1, 0).getDate();
+  const today = new Date();
+
+  for(let i=0; i<first; i++) {
+    const empty = document.createElement('div'); empty.className = 'mini-cal-day empty';
+    grid.appendChild(empty);
+  }
+
+  for(let d=1; d<=daysInMonth; d++) {
+    const day = document.createElement('div');
+    day.className = 'mini-cal-day';
+    day.textContent = d;
+    
+    const dStr = `${pickerDate.getFullYear()}-${String(pickerDate.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const selStr = selectedPickerDate ? `${selectedPickerDate.getFullYear()}-${String(selectedPickerDate.getMonth()+1).padStart(2,'0')}-${String(selectedPickerDate.getDate()).padStart(2,'0')}` : '';
+    
+    if(dStr === selStr) day.classList.add('selected');
+    if(dStr === `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`) day.classList.add('today');
+    
+    day.onclick = () => {
+      selectedPickerDate = new Date(pickerDate.getFullYear(), pickerDate.getMonth(), d);
+      renderPicker();
+    };
+    grid.appendChild(day);
+  }
+
+  // Time list
+  const timeScroller = document.getElementById('time-list-scroller');
+  timeScroller.innerHTML = '';
+  for(let i=9; i<=22; i++) {
+    ["00", "30"].forEach(m => {
+      if(i===22 && m==="30") return;
+      const t = `${String(i).padStart(2,'0')}:${m}`;
+      const item = document.createElement('div');
+      item.className = 'time-list-item' + (selectedPickerTime === t ? ' selected' : '');
+      item.textContent = t;
+      item.onclick = () => {
+        selectedPickerTime = t;
+        renderPicker();
+      };
+      timeScroller.appendChild(item);
+      if(selectedPickerTime === t && timeScroller.dataset.init !== 'done') {
+        setTimeout(()=>item.scrollIntoView({block:'center'}), 10);
+      }
+    });
+  }
+}
+
+function confirmPicker() {
+  if(!selectedPickerDate) { toast('❗ 날짜를 선택하세요'); return; }
+  const dateStr = `${selectedPickerDate.getFullYear()}-${String(selectedPickerDate.getMonth()+1).padStart(2,'0')}-${String(selectedPickerDate.getDate()).padStart(2,'0')}`;
+  const finalDT = `${dateStr}T${selectedPickerTime}`;
+  
+  visitData[currentSelectingId] = {datetime: finalDT, scheduled: true, lang: selectedPickerLang};
+  const a = applicants.find(x=>x.id===currentSelectingId); a.updatedAt = new Date();
+  
+  toast(`📅 ${dateStr} ${selectedPickerTime} 예약 완료`);
+  renderList();
+  if(_activeMainTab==='board') renderBoard();
+  closePicker();
+}
+
+function parseTimeStr(s) {
+  let [ampm, time] = s.split(' ');
+  let [h, m] = time.replace('시', ':').replace('분', '').split(':');
+  let hour = parseInt(h);
+  if (ampm === '오후' && hour < 12) hour += 12;
+  if (ampm === '오전' && hour === 12) hour = 0;
+  return `${String(hour).padStart(2,'0')}:${(m||'00').padStart(2,'0')}`;
+}
+
+function setQuickTime(id, timeStr) {
+  const a = applicants.find(x=>x.id===id);
+  const existing = visitData[id];
+  const date = existing ? existing.datetime.split('T')[0] : new Date().toISOString().split('T')[0];
+  const time = parseTimeStr(timeStr);
+  visitData[id] = {datetime: `${date}T${time}`, scheduled: true, label: timeStr};
+  a.updatedAt = new Date();
+  toast(`📅 ${timeStr} 예약 완료`);
+  renderList();
+  if(_activeMainTab==='board') renderBoard();
+}
+
+let _activeStatType = null;
+
+function showStatDetail(type) {
+  const isSummary = ['total', 'replied', 'success'].includes(type);
+  const slotIdx = isSummary ? 1 : 2;
+  const otherIdx = isSummary ? 2 : 1;
+
+  const panel = document.getElementById(`stat-detail-slot-${slotIdx}`);
+
+  // Toggle logic
+  if (_activeStatType === type && !panel.classList.contains('hidden')) {
+    closeStatDetail(slotIdx);
+    _activeStatType = null;
+    return;
+  }
+
+  closeStatDetail(otherIdx);
+
+  const title = document.getElementById(`stat-detail-title-${slotIdx}`);
+  const list = document.getElementById(`stat-detail-list-${slotIdx}`);
+
+  _activeStatType = type;
+
+  // ── TYPE: 총 지원자 — 유입 경로별 분류 + 전체 목록 ──
+  if (type === 'total') {
+    const all = window._lastTotal || [];
+    const srcCounts = {};
+    SOURCES.forEach(s => { srcCounts[s.id] = { label: s.label, cls: s.cls, count: 0 }; });
+    all.forEach(a => { if(srcCounts[a.source]) srcCounts[a.source].count++; });
+    const replied = all.filter(a => (callLogs[a.id]||[]).length > 0).length;
+    const noReply = all.length - replied;
+
+    let html = `<div class="px-4 py-3 bg-slate-50 border-b border-slate-100">
+      <div class="grid grid-cols-3 gap-3 mb-3">
+        <div class="text-center"><div class="text-lg font-black text-slate-800">${all.length}</div><div class="text-[9px] text-slate-400 font-bold">전체</div></div>
+        <div class="text-center"><div class="text-lg font-black text-emerald-600">${replied}</div><div class="text-[9px] text-slate-400 font-bold">회신 완료</div></div>
+        <div class="text-center"><div class="text-lg font-black text-red-400">${noReply}</div><div class="text-[9px] text-slate-400 font-bold">미회신</div></div>
+      </div>
+      <div class="flex flex-wrap gap-2">${SOURCES.map(s => {
+        const c = srcCounts[s.id]?.count || 0;
+        return c > 0 ? `<span class="text-[9px] font-black border ${s.cls} px-2 py-0.5 rounded-full">${s.label} ${c}명</span>` : '';
+      }).join('')}</div>
+    </div>`;
+    html += all.map(p => {
+      const logs = callLogs[p.id] || [];
+      const hasReply = logs.length > 0;
+      const hasVisit = visitData[p.id]?.scheduled;
+      return `<div class="px-3 py-1.5 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+        <div class="flex items-center gap-3">
+          <div class="w-16 flex-shrink-0">
+            <div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div>
+            <div class="text-[8px] text-slate-400 font-mono">${fmtDT(p.time).split(' ')[1]}</div>
+          </div>
+          <span class="text-[8px] font-black border ${p.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full">${p.sourceLabel||'-'}</span>
+          <div class="flex-1"></div>
+          ${hasVisit ? '<span class="text-[8px] font-black text-white bg-brand-500 px-1.5 py-0.5 rounded-full">예약확정</span>' : hasReply ? '<span class="text-[8px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">회신완료</span>' : '<span class="text-[8px] font-bold text-red-400 bg-red-50 px-1.5 py-0.5 rounded-full border border-red-200">미회신</span>'}
+        </div>
+      </div>`;
+    }).join('');
+    list.innerHTML = all.length === 0 ? `<div class="p-8 text-center text-slate-300 text-[11px] italic">해당되는 내역이 없습니다.</div>` : html;
+    title.textContent = `총 지원자 현황 (${all.length}명)`;
+
+  // ── TYPE: 총 회신율 — 회신자별 회신 횟수, 담당자, 소요시간 ──
+  } else if (type === 'replied') {
+    const replied = window._lastReplied || [];
+    const all = window._lastTotal || [];
+    const noReply = (all || []).filter(a => (callLogs[a.id]||[]).length === 0);
+
+    let html = `<div class="px-4 py-3 bg-emerald-50/50 border-b border-emerald-100">
+      <div class="grid grid-cols-3 gap-3">
+        <div class="text-center"><div class="text-lg font-black text-emerald-600">${replied.length}</div><div class="text-[9px] text-slate-400 font-bold">회신 완료</div></div>
+        <div class="text-center"><div class="text-lg font-black text-red-400">${noReply.length}</div><div class="text-[9px] text-slate-400 font-bold">미회신</div></div>
+        <div class="text-center"><div class="text-lg font-black text-slate-800">${all.length > 0 ? Math.round(replied.length / all.length * 100) : 0}%</div><div class="text-[9px] text-slate-400 font-bold">회신율</div></div>
+      </div>
+    </div>`;
+    // 회신 완료 목록
+    if (replied.length > 0) {
+      html += `<div class="px-3 py-1.5 bg-slate-50 border-b border-slate-100"><span class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">회신 완료</span></div>`;
+      html += replied.map(p => {
+        const logs = callLogs[p.id] || [];
+        const empKeys = [...new Set(logs.map(l => l.key))];
+        const empNames = empKeys.map(k => { const e = employees.find(e => e.key === k); return e ? e.name : k; });
+        const firstReply = new Date(logs[0].time);
+        const diffMin = Math.max(0, Math.round((firstReply - new Date(p.time)) / (1000 * 60)));
+        return `<div class="px-3 py-2 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-3">
+            <div class="w-16 flex-shrink-0">
+              <div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div>
+            </div>
+            <div class="flex items-center gap-1">${empKeys.map((k,i) => `<span class="text-[8px] font-black bg-slate-800 text-white px-1 rounded">${k}</span><span class="text-[8px] text-slate-500">${empNames[i]}</span>`).join(' ')}</div>
+            <div class="flex-1"></div>
+            <span class="text-[8px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded-full">${logs.length}회 회신</span>
+            <span class="text-[8px] font-bold text-slate-400">${fmtMin(diffMin)} 소요</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    // 미회신 목록
+    if (noReply.length > 0) {
+      html += `<div class="px-3 py-1.5 bg-red-50/50 border-b border-slate-100"><span class="text-[9px] font-black text-red-400 uppercase tracking-widest">미회신 (${noReply.length}명)</span></div>`;
+      html += noReply.map(p => `<div class="px-3 py-1.5 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+        <div class="flex items-center gap-3">
+          <div class="text-[10px] font-black text-slate-400 truncate">${p.name}</div>
+          <span class="text-[8px] font-black border ${p.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full">${p.sourceLabel||'-'}</span>
+          <div class="flex-1"></div>
+          <span class="text-[8px] text-slate-300">${fmtDT(p.time)}</span>
+        </div>
+      </div>`).join('');
+    }
+    list.innerHTML = (all.length === 0) ? `<div class="p-8 text-center text-slate-300 text-[11px] italic">해당되는 내역이 없습니다.</div>` : html;
+    title.textContent = `회신 현황 분석 (${replied.length}/${all.length})`;
+
+  // ── TYPE: 예약 성공률 — 예약 확정자 + 일정 정보 ──
+  } else if (type === 'success') {
+    const successes = window._lastSuccesses || [];
+    const replied = window._lastReplied || [];
+    const rate = replied.length > 0 ? Math.round(successes.length / replied.length * 100) : 0;
+
+    let html = `<div class="px-4 py-3 bg-brand-50/50 border-b border-brand-100">
+      <div class="grid grid-cols-3 gap-3">
+        <div class="text-center"><div class="text-lg font-black text-brand-600">${successes.length}</div><div class="text-[9px] text-slate-400 font-bold">예약 확정</div></div>
+        <div class="text-center"><div class="text-lg font-black text-emerald-600">${replied.length}</div><div class="text-[9px] text-slate-400 font-bold">총 회신</div></div>
+        <div class="text-center"><div class="text-lg font-black text-brand-600">${rate}%</div><div class="text-[9px] text-slate-400 font-bold">전환율</div></div>
+      </div>
+    </div>`;
+    if (successes.length > 0) {
+      html += successes.map(p => {
+        const vd = visitData[p.id];
+        const logs = callLogs[p.id] || [];
+        const empKeys = [...new Set(logs.map(l => l.key))];
+        const schedDate = vd?.datetime ? vd.datetime.split('T')[0] : '-';
+        const schedTime = vd?.datetime ? vd.datetime.split('T')[1]?.slice(0,5) : '';
+        return `<div class="px-3 py-2 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-3">
+            <div class="w-16 flex-shrink-0">
+              <div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div>
+              <div class="text-[8px] text-slate-400 font-mono">${p.phone.slice(-4)}</div>
+            </div>
+            <div class="flex items-center gap-1">${empKeys.map(k => `<span class="text-[8px] font-black bg-slate-800 text-white px-1 rounded">${k}</span>`).join(' ')}</div>
+            <div class="flex-1"></div>
+            <div class="text-right">
+              <div class="text-[10px] font-black text-brand-600"><i class="ph ph-calendar-check text-xs"></i> ${schedDate}</div>
+              ${schedTime ? `<div class="text-[9px] font-bold text-slate-400">${schedTime}</div>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    list.innerHTML = successes.length === 0 ? `<div class="p-8 text-center text-slate-300 text-[11px] italic">예약 확정된 건이 없습니다.</div>` : html;
+    title.textContent = `예약 성공 현황 (${successes.length}명)`;
+
+  // ── TYPE: 지원 집중 시간대 — 시간대별 분포표 + 해당 시간 지원자 ──
+  } else if (type === 'peak') {
+    const all = window._lastTotal || [];
+    const peakH = window._lastPeakHour;
+    const hours = Array.from({length:14}, (_,i)=>i+9);
+    const hourCounts = {};
+    hours.forEach(h => hourCounts[h] = 0);
+    all.forEach(a => { const h = new Date(a.time).getHours(); if(hourCounts[h] !== undefined) hourCounts[h]++; });
+    const maxCount = Math.max(1, ...Object.values(hourCounts));
+    const peakApplicants = all.filter(a => new Date(a.time).getHours() === peakH);
+
+    let html = `<div class="px-4 py-3 bg-amber-50/50 border-b border-amber-100">
+      <div class="text-[10px] font-black text-amber-700 mb-2 uppercase tracking-widest"><i class="ph-fill ph-fire"></i> 시간대별 지원 분포</div>
+      <div class="space-y-1">${hours.filter(h => hourCounts[h] > 0).map(h => {
+        const pct = Math.round(hourCounts[h] / (all.length || 1) * 100);
+        const isPeak = h === peakH;
+        return `<div class="flex items-center gap-2">
+          <span class="text-[9px] font-mono font-bold w-8 text-right ${isPeak ? 'text-amber-700' : 'text-slate-400'}">${h}시</span>
+          <div class="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all" style="width:${Math.round(hourCounts[h]/maxCount*100)}%;background:${isPeak ? '#F59E0B' : '#CBD5E1'}"></div>
+          </div>
+          <span class="text-[9px] font-black w-12 text-right ${isPeak ? 'text-amber-700' : 'text-slate-500'}">${hourCounts[h]}명 (${pct}%)</span>
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+    if (peakApplicants.length > 0) {
+      html += `<div class="px-3 py-1.5 bg-amber-50/30 border-b border-slate-100"><span class="text-[9px] font-black text-amber-600 uppercase tracking-widest"><i class="ph-fill ph-fire"></i> ${peakH}시 지원자 (${peakApplicants.length}명)</span></div>`;
+      html += peakApplicants.map(p => {
+        const logs = callLogs[p.id] || [];
+        const hasReply = logs.length > 0;
+        return `<div class="px-3 py-1.5 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-3">
+            <div class="w-16 flex-shrink-0"><div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div></div>
+            <span class="text-[8px] font-black border ${p.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full">${p.sourceLabel||'-'}</span>
+            <span class="text-[8px] text-slate-400 font-mono">${fmtDT(p.time).split(' ')[1]}</span>
+            <div class="flex-1"></div>
+            ${hasReply ? '<span class="text-[8px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">회신완료</span>' : '<span class="text-[8px] font-bold text-red-400 bg-red-50 px-1.5 py-0.5 rounded-full border border-red-200">미회신</span>'}
+          </div>
+        </div>`;
+      }).join('');
+    }
+    list.innerHTML = all.length === 0 ? `<div class="p-8 text-center text-slate-300 text-[11px] italic">해당되는 내역이 없습니다.</div>` : html;
+    title.textContent = `지원 집중 시간대 분석 (피크: ${peakH}시)`;
+
+  // ── TYPE: 회신 효율 분석 — 응답 소요시간 순 정렬 + 담당자별 평균 ──
+  } else if (type === 'efficiency') {
+    const replied = (window._lastReplied || []).map(p => {
+      const logs = callLogs[p.id] || [];
+      const firstReply = new Date(logs[0].time);
+      const diffMin = Math.max(0, Math.round((firstReply - new Date(p.time)) / (1000 * 60)));
+      const empKeys = [...new Set(logs.map(l => l.key))];
+      return { ...p, diffMin, empKeys, logCount: logs.length };
+    }).sort((a, b) => a.diffMin - b.diffMin);
+
+    // 담당자별 평균 응답시간
+    const empStats = {};
+    replied.forEach(p => {
+      p.empKeys.forEach(k => {
+        if (!empStats[k]) empStats[k] = { total: 0, count: 0 };
+        empStats[k].total += p.diffMin;
+        empStats[k].count++;
+      });
+    });
+    const avgAll = replied.length > 0 ? Math.round(replied.reduce((s, p) => s + p.diffMin, 0) / replied.length) : 0;
+    const fastCount = replied.filter(p => p.diffMin <= 30).length;
+    const slowCount = replied.filter(p => p.diffMin > 60).length;
+
+    let html = `<div class="px-4 py-3 bg-blue-50/50 border-b border-blue-100">
+      <div class="grid grid-cols-3 gap-3 mb-3">
+        <div class="text-center"><div class="text-lg font-black text-blue-600">${fmtMin(avgAll)}</div><div class="text-[9px] text-slate-400 font-bold">평균 소요</div></div>
+        <div class="text-center"><div class="text-lg font-black text-emerald-600">${fastCount}</div><div class="text-[9px] text-slate-400 font-bold">30분 이내</div></div>
+        <div class="text-center"><div class="text-lg font-black text-red-400">${slowCount}</div><div class="text-[9px] text-slate-400 font-bold">60분 초과</div></div>
+      </div>
+      ${Object.keys(empStats).length > 0 ? `<div class="text-[9px] font-black text-blue-600 mb-1 uppercase tracking-widest">담당자별 평균</div>
+      <div class="flex flex-wrap gap-2">${Object.entries(empStats).map(([k, v]) => {
+        const avg = Math.round(v.total / v.count);
+        const emp = employees.find(e => e.key === k);
+        return `<span class="text-[9px] font-bold bg-white border border-slate-200 px-2 py-0.5 rounded-full"><span class="font-black bg-slate-800 text-white px-1 rounded text-[8px]">${k}</span> ${emp ? emp.name : k} ${fmtMin(avg)} (${v.count}건)</span>`;
+      }).join('')}</div>` : ''}
+    </div>`;
+    if (replied.length > 0) {
+      html += `<div class="px-3 py-1.5 bg-slate-50 border-b border-slate-100"><span class="text-[9px] font-black text-blue-600 uppercase tracking-widest">응답 소요시간 순</span></div>`;
+      html += replied.map((p, idx) => {
+        const speedColor = p.diffMin <= 30 ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : p.diffMin <= 60 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-red-500 bg-red-50 border-red-200';
+        return `<div class="px-3 py-2 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-3">
+            <span class="text-[9px] font-black text-slate-300 w-4">${idx + 1}</span>
+            <div class="w-16 flex-shrink-0"><div class="text-[10px] font-black text-slate-700 truncate">${p.name}</div></div>
+            <div class="flex items-center gap-1">${p.empKeys.map(k => `<span class="text-[8px] font-black bg-slate-800 text-white px-1 rounded">${k}</span>`).join(' ')}</div>
+            <div class="flex-1"></div>
+            <span class="text-[9px] font-bold text-slate-400">${p.logCount}회</span>
+            <span class="text-[9px] font-black ${speedColor} px-1.5 py-0.5 rounded-full border">${fmtMin(p.diffMin)}</span>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    list.innerHTML = replied.length === 0 ? `<div class="p-8 text-center text-slate-300 text-[11px] italic">회신 기록이 없습니다.</div>` : html;
+    title.textContent = `회신 효율 분석 (평균 ${fmtMin(avgAll)})`;
+  }
+
+  panel.classList.remove('hidden');
+}
+
+function closeStatDetail(idx) {
+  const panel = document.getElementById(`stat-detail-slot-${idx || 1}`);
+  if(panel) {
+    panel.classList.add('hidden');
+    if (idx === 1 && _activeStatType && ['total', 'replied', 'success'].includes(_activeStatType)) _activeStatType = null;
+    if (idx === 2 && _activeStatType && ['peak', 'efficiency'].includes(_activeStatType)) _activeStatType = null;
+  }
+}
+
+// ── New Applicant Modal ──
+const NEW_APP_SOURCES = {
+  phone:    { id:'phone',    label:'전화문의',  cls:'border-slate-200 bg-slate-50 text-slate-700' },
+  walkin:   { id:'walkin',   label:'워크인',    cls:'border-emerald-100 bg-emerald-50 text-emerald-700' },
+  naver:    { id:'naver',    label:'네이버',    cls:'border-emerald-100 bg-emerald-50 text-emerald-700' },
+  kakao:    { id:'kakao',    label:'카카오',    cls:'border-amber-100 bg-amber-50 text-amber-700' },
+  insta:    { id:'insta',    label:'인스타',    cls:'border-purple-100 bg-purple-50 text-purple-700' },
+  referral: { id:'referral', label:'지인소개',  cls:'border-slate-200 bg-slate-50 text-slate-700' },
+  sns:      { id:'sns',      label:'SNS광고',   cls:'border-blue-100 bg-blue-50 text-blue-700' },
+  blog:     { id:'blog',     label:'블로그',    cls:'border-orange-100 bg-orange-50 text-orange-700' },
+  other:    { id:'other',    label:'기타',      cls:'border-slate-200 bg-slate-50 text-slate-700' }
+};
+
+let _newAppSource = null;
+let _newAppSchedule = 'pending';
+let _newAppLang = null;
+
+function formatPhoneInput(el) {
+  const nums = el.value.replace(/[^0-9]/g, '').slice(0, 11);
+  if (nums.length <= 3) el.value = nums;
+  else if (nums.length <= 7) el.value = nums.slice(0,3) + '-' + nums.slice(3);
+  else el.value = nums.slice(0,3) + '-' + nums.slice(3,7) + '-' + nums.slice(7);
+}
+
+function openNewAppModal() {
+  const modal = document.getElementById('new-app-modal');
+  const box = document.getElementById('new-app-box');
+  // Reset
+  document.getElementById('new-app-name').value = '';
+  document.getElementById('new-app-phone').value = '';
+  _newAppSource = null;
+  _newAppSchedule = 'pending';
+  _newAppLang = null;
+  document.querySelectorAll('.new-app-src-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.new-app-sched-btn').forEach(b => b.classList.toggle('active', b.dataset.sched === 'pending'));
+  document.getElementById('new-app-schedule-form').classList.add('hidden');
+  document.getElementById('new-app-other-reason').classList.add('hidden');
+  document.getElementById('new-app-other-text').value = '';
+  document.getElementById('new-app-date').value = new Date().toISOString().split('T')[0];
+  // Lang reset
+  document.querySelectorAll('#new-app-schedule-form .picker-lang-btn').forEach(b => b.classList.remove('active'));
+
+  modal.style.visibility = 'visible';
+  modal.style.opacity = '1';
+  modal.style.pointerEvents = 'auto';
+  setTimeout(() => { box.style.transform = 'scale(1) translateY(0)'; }, 10);
+  setTimeout(() => document.getElementById('new-app-name').focus(), 150);
+}
+
+function closeNewAppModal() {
+  const modal = document.getElementById('new-app-modal');
+  const box = document.getElementById('new-app-box');
+  box.style.transform = 'scale(0.95) translateY(8px)';
+  modal.style.opacity = '0';
+  setTimeout(() => {
+    modal.style.visibility = 'hidden';
+    modal.style.pointerEvents = 'none';
+  }, 150);
+}
+
+function selectNewAppSource(btn, srcKey) {
+  if (_newAppSource === srcKey) {
+    _newAppSource = null;
+    btn.classList.remove('active');
+  } else {
+    _newAppSource = srcKey;
+    document.querySelectorAll('.new-app-src-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const otherEl = document.getElementById('new-app-other-reason');
+  if (_newAppSource === 'other') {
+    otherEl.classList.remove('hidden');
+    setTimeout(() => document.getElementById('new-app-other-text').focus(), 100);
+  } else {
+    otherEl.classList.add('hidden');
+  }
+}
+
+let _naCalYear, _naCalMonth, _naCalSelectedDate, _naCalSelectedTime;
+
+function setNewAppSchedule(type) {
+  _newAppSchedule = type;
+  document.querySelectorAll('.new-app-sched-btn').forEach(b => b.classList.toggle('active', b.dataset.sched === type));
+  const form = document.getElementById('new-app-schedule-form');
+  form.classList.toggle('hidden', type !== 'scheduled');
+  if (type === 'scheduled') {
+    const now = new Date();
+    _naCalYear = now.getFullYear();
+    _naCalMonth = now.getMonth();
+    _naCalSelectedDate = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
+    _naCalSelectedTime = quickTimes[0] || '오후 3시';
+    document.getElementById('new-app-date').value = _naCalSelectedDate;
+    renderNewAppCal();
+    renderNewAppTimeGrid();
+  }
+}
+
+function moveNewAppCalMonth(dir) {
+  _naCalMonth += dir;
+  if (_naCalMonth > 11) { _naCalMonth = 0; _naCalYear++; }
+  if (_naCalMonth < 0) { _naCalMonth = 11; _naCalYear--; }
+  renderNewAppCal();
+}
+
+function selectNewAppDate(dateStr) {
+  _naCalSelectedDate = dateStr;
+  document.getElementById('new-app-date').value = dateStr;
+  renderNewAppCal();
+}
+
+function selectNewAppTime(time) {
+  _naCalSelectedTime = time;
+  renderNewAppTimeGrid();
+}
+
+function renderNewAppCal() {
+  const grid = document.getElementById('new-app-cal-grid');
+  const title = document.getElementById('new-app-cal-title');
+  const y = _naCalYear, m = _naCalMonth;
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  title.textContent = `${y}년 ${monthNames[m]}`;
+
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const today = new Date();
+  const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div class="nacal-day empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = toDateStr(y, m, d);
+    const dow = (firstDay + d - 1) % 7;
+    const isPast = ds < todayStr;
+    const isToday = ds === todayStr;
+    const isSel = ds === _naCalSelectedDate;
+    let cls = 'nacal-day';
+    if (isPast) cls += ' past';
+    if (isToday && !isSel) cls += ' today';
+    if (isSel) cls += ' selected';
+    if (dow === 0) cls += ' sun';
+    if (dow === 6) cls += ' sat';
+    html += `<div class="${cls}" ${isPast ? '' : `onclick="selectNewAppDate('${ds}')"`}>${d}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderNewAppTimeGrid() {
+  const wrap = document.getElementById('new-app-time-scroller');
+  wrap.innerHTML = quickTimes.map(t =>
+    `<div class="time-list-item ${t === _naCalSelectedTime ? 'selected' : ''}" onclick="selectNewAppTime('${t}')">${t}</div>`
+  ).join('');
+}
+
+function selectNewAppLang(lang) {
+  _newAppLang = (_newAppLang === lang) ? null : lang;
+  document.querySelectorAll('#new-app-schedule-form .picker-lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === _newAppLang);
+  });
+}
+
+function submitNewApp() {
+  const name = document.getElementById('new-app-name').value.trim();
+  const phone = document.getElementById('new-app-phone').value.trim();
+  if (!name) { toast('성함을 입력하세요'); document.getElementById('new-app-name').focus(); return; }
+  if (!phone) { toast('연락처를 입력하세요'); document.getElementById('new-app-phone').focus(); return; }
+
+  const srcInfo = NEW_APP_SOURCES[_newAppSource] || NEW_APP_SOURCES.other;
+  const otherText = document.getElementById('new-app-other-text')?.value.trim();
+  const srcLabel = (_newAppSource === 'other' && otherText) ? otherText : srcInfo.label;
+  const id = 'APP_' + Math.random().toString(36).slice(2,8).toUpperCase();
+
+  const app = {
+    id, name, phone,
+    team: '', slot: '',
+    source: srcInfo.id,
+    sourceLabel: srcLabel,
+    sourceCls: srcInfo.cls,
+    time: new Date(),
+    updatedAt: new Date(),
+    details: `[하남점] ${srcLabel} 직접 등록`,
+    comment: '',
+    memo: ''
+  };
+  applicants.unshift(app);
+
+  // 상담 일정이 있으면 바로 예약
+  if (_newAppSchedule === 'scheduled') {
+    const dateVal = _naCalSelectedDate;
+    const timeStr = _naCalSelectedTime;
+    if (dateVal && timeStr) {
+      const parsedTime = parseTimeStr(timeStr);
+      visitData[id] = { datetime: `${dateVal}T${parsedTime}`, scheduled: true, lang: _newAppLang };
+    }
+  }
+
+  closeNewAppModal();
+  toast(`${name} 님 추가 완료`);
+  renderList();
+  if(_activeMainTab==='board') renderBoard();
+}
+
+// ── Main Tabs ──
+let _activeMainTab = 'calendar';
+
+let _tabCardCollapsed = false;
+
+function toggleTabCard() {
+  _tabCardCollapsed = !_tabCardCollapsed;
+  const wrap = document.getElementById('tab-content-wrap');
+  const icon = document.getElementById('tab-collapse-icon');
+  if (_tabCardCollapsed) {
+    wrap.style.maxHeight = '0';
+    wrap.style.overflow = 'hidden';
+    icon.style.transform = 'rotate(180deg)';
+  } else {
+    wrap.style.maxHeight = '';
+    wrap.style.overflow = '';
+    icon.style.transform = '';
+    if (_activeMainTab === 'board') renderBoard();
+    if (_activeMainTab === 'history') renderHistoryFiltered();
+  }
+}
+
+function switchMainTab(tab) {
+  if (_tabCardCollapsed) { _tabCardCollapsed = false; document.getElementById('tab-content-wrap').style.maxHeight = ''; document.getElementById('tab-content-wrap').style.overflow = ''; document.getElementById('tab-collapse-icon').style.transform = ''; }
+  _activeMainTab = tab;
+  document.querySelectorAll('.main-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.main-tab-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById(`tab-panel-${tab}`).classList.remove('hidden');
+
+  // Trigger renders for the active tab
+  if (tab === 'history') renderHistoryFiltered();
+  if (tab === 'board') renderBoard();
+}
+
+function updateTabBadges() {
+  const fa = applicants;
+  // Calendar: today's scheduled count
+  const today = new Date().toISOString().split('T')[0];
+  const calCount = Object.values(visitData).filter(v => v.scheduled && v.datetime?.startsWith(today)).length;
+  const calBadge = document.getElementById('tab-badge-cal');
+  if (calBadge) { calBadge.textContent = calCount; calBadge.classList.toggle('hidden', calCount === 0); }
+
+  // History: total processed
+  const histCount = fa.filter(a => visitData[a.id]?.scheduled || a.comment?.includes('전화상 안함') || a.comment?.includes('최후 통첩')).length;
+  const histBadge = document.getElementById('tab-badge-history');
+  if (histBadge) { histBadge.textContent = histCount; histBadge.classList.toggle('hidden', histCount === 0); }
+
+  // Board: total applicants
+  const boardBadge = document.getElementById('tab-badge-board');
+  if (boardBadge) { boardBadge.textContent = fa.length; boardBadge.classList.toggle('hidden', fa.length === 0); }
+}
+
+// ── Global Search ──
+function onGlobalSearch() {
+  const val = (document.getElementById('global-search')?.value || '').trim();
+  const clearBtn = document.getElementById('global-search-clear');
+  const panel = document.getElementById('global-search-panel');
+  if (clearBtn) clearBtn.classList.toggle('hidden', !val);
+
+  if (!val) {
+    panel.classList.add('hidden');
+    return;
+  }
+
+  const q = val.replace(/-/g, '');
+  const results = applicants.filter(a => a.name.includes(val) || a.phone.replace(/-/g, '').includes(q));
+
+  document.getElementById('global-search-total').textContent = results.length;
+
+  const wrap = document.getElementById('global-search-results');
+  if (results.length === 0) {
+    wrap.innerHTML = '<div class="p-8 text-center text-slate-300 text-[11px] italic">검색 결과가 없습니다.</div>';
+  } else {
+    wrap.innerHTML = results.map(a => {
+      const logs = callLogs[a.id] || [];
+      const vd = visitData[a.id];
+      const isScheduled = !!vd?.scheduled;
+      const isNocall = a.comment?.includes('전화상 안함');
+      const isUlti = a.comment?.includes('최후 통첩');
+
+      let statusTag = '';
+      if (isScheduled) statusTag = '<span class="text-[9px] font-black text-white bg-emerald-500 px-1.5 py-0.5 rounded-full">예약확정</span>';
+      else if (isUlti) statusTag = '<span class="text-[9px] font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full border border-red-200">최후 통첩</span>';
+      else if (isNocall) statusTag = '<span class="text-[9px] font-black text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full border border-slate-200">전화상 안함</span>';
+      else if (logs.length > 0) statusTag = '<span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">회신완료</span>';
+      else statusTag = '<span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200">대기중</span>';
+
+      const langTag = vd?.lang ? `<span class="text-[8px] font-bold ${vd.lang==='영어'?'text-purple-600 bg-purple-50 border-purple-200':vd.lang==='일본어'?'text-blue-600 bg-blue-50 border-blue-200':'text-slate-600 bg-slate-50 border-slate-200'} px-1 py-0.5 rounded border">${vd.lang}</span>` : '';
+
+      // Highlight matched text
+      const highlightName = val ? a.name.replace(new RegExp(`(${val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'g'), '<mark class="bg-yellow-200 text-yellow-900 rounded px-0.5 font-black">$1</mark>') : a.name;
+      const highlightPhone = val ? a.phone.replace(new RegExp(`(${val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'g'), '<mark class="bg-yellow-200 text-yellow-900 rounded px-0.5 font-black">$1</mark>') : a.phone;
+
+      return `<div class="px-5 py-3 hover:bg-slate-50 transition-colors">
+        <div class="flex items-center gap-3">
+          <div class="w-20 flex-shrink-0">
+            <div class="text-[13px] font-black text-slate-800 flex items-center gap-1">${highlightName}<button onclick="event.stopPropagation();editName('${a.id}');setTimeout(onGlobalSearch,300)" class="text-slate-300 hover:text-brand-500 transition-colors"><i class="ph ph-pencil-simple-line text-[10px]"></i></button></div>
+            <div class="text-[11px] text-slate-500 font-mono">${highlightPhone}</div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            ${statusTag}
+            ${langTag}
+          </div>
+          <span class="text-[8px] font-black border ${a.sourceCls||'border-slate-200 text-slate-400'} px-1.5 rounded-full">${a.sourceLabel||'-'}</span>
+          <div class="flex-1 min-w-0 text-[10px] text-slate-400 truncate">${a.memo || ''}</div>
+          <div class="flex-shrink-0 text-right">
+            <div class="text-[9px] text-slate-400 font-mono">${fmtDT(a.time)}</div>
+            ${isScheduled ? `<div class="text-[9px] font-bold text-brand-600"><i class="ph ph-calendar-check"></i> ${vd.datetime.replace('T',' ')}</div>` : ''}
+          </div>
+          ${logs.length > 0 ? `<span class="text-[9px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded-full border border-brand-100">${logs.length}회</span>` : ''}
+          ${!isScheduled ? `<button onclick="clearGlobalSearch();openPicker('${a.id}')" class="flex-shrink-0 px-2.5 py-1.5 text-[10px] font-black bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-all shadow-sm shadow-brand-500/20 flex items-center gap-1"><i class="ph-bold ph-calendar-plus text-xs"></i>예약</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  panel.classList.remove('hidden');
+}
+
+function clearGlobalSearch() {
+  document.getElementById('global-search').value = '';
+  document.getElementById('global-search-panel').classList.add('hidden');
+  document.getElementById('global-search-clear').classList.add('hidden');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const drawer = document.getElementById('nav-drawer'), overlay = document.getElementById('drawer-overlay');
+  document.getElementById('hamburger-btn').onclick = () => { overlay.classList.remove('hidden'); setTimeout(()=> {overlay.classList.remove('opacity-0'); drawer.classList.remove('-translate-x-full');}, 10); };
+  const close = () => { overlay.classList.add('opacity-0'); drawer.classList.add('-translate-x-full'); setTimeout(()=>overlay.classList.add('hidden'), 300); };
+  overlay.onclick = close; document.getElementById('close-drawer-btn').onclick = close;
+  // History period buttons
+  document.querySelectorAll('.history-period-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.history-period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      historyPeriod = btn.dataset.hperiod;
+      const customEl = document.getElementById('history-custom-range');
+      if (historyPeriod === 'custom') {
+        customEl.classList.remove('hidden');
+        if (!_rangePickerOpen) toggleRangePicker();
+      } else {
+        customEl.classList.add('hidden');
+        closeRangePicker();
+        historyCustomFrom = null;
+        historyCustomTo = null;
+        renderHistoryFiltered();
+      }
+    };
+  });
+  // Board period buttons
+  document.querySelectorAll('.board-period-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.board-period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      boardPeriod = btn.dataset.bperiod;
+      const customEl = document.getElementById('board-custom-range');
+      if (boardPeriod === 'custom') {
+        customEl.classList.remove('hidden');
+        if (!_boardRangeOpen) toggleBoardRangePicker();
+      } else {
+        customEl.classList.add('hidden');
+        closeBoardRangePicker();
+        boardCustomFrom = null;
+        boardCustomTo = null;
+        renderList();
+        if(_activeMainTab==='board') renderBoard();
+      }
+    };
+  });
+  // History filters
+  ['history-filter-result','history-filter-source','history-filter-search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(id.includes('search') ? 'input' : 'change', () => renderHistoryFiltered());
+  });
+  // 유입 경로 분석 정렬 (지원자/성공률 × 오름/내림 등)
+  const sortSel = document.getElementById('b-source-sort');
+  if (sortSel) sortSel.addEventListener('change', () => { if (_activeMainTab === 'board') renderBoard(); });
+  
+  // Initial Data: Pre-populate with 15 varied samples
+  const populateInitial = () => {
+    const NAMES = ['김서연','이민준','박채원','최하은','정유진','강민준','조서준','윤수빈','장하윤','임채원','정우진','한소희','서지민','송유찬','권하랑','오다은','배준서','나예림','문시우','황지호'];
+    const DETAILS = ['[하남점] 영어 무료 레벨테스트 신청','[하남점] 인스타 프로모션 유입건','[하남점] 일어 기초반 문의','[하남점] 네이버 블로그 유입건','[하남점] 지인 소개 문의'];
+    const STAFF = ['A','B','C','D','E','F'];
+
+    for(let i=0; i<20; i++){
+      const src = SOURCES[Math.floor(Math.random()*SOURCES.length)];
+      const id = 'APP_'+Math.random().toString(36).slice(2,8).toUpperCase();
+      const isToday = i < 10;
+
+      const app = {
+        id: id,
+        name: NAMES[i % NAMES.length],
+        team: Math.random() > 0.5 ? 'ig' : 'fb',
+        slot: ['11시','2시','3시','7시','8시'][Math.floor(Math.random()*5)],
+        phone: `010-${Math.floor(Math.random()*9000+1000)}-${Math.floor(Math.random()*9000+1000)}`,
+        source: src.id,
+        sourceLabel: src.label,
+        sourceCls: src.cls,
+        time: isToday ? new Date(Date.now() - Math.random()*3600000*8) : new Date(Date.now() - (i * 86400000 * 0.5 + Math.random()*86400000)),
+        updatedAt: new Date(),
+        details: DETAILS[i % DETAILS.length],
+        comment: '',
+        memo: ''
+      };
+
+      // 예시 데이터 분배 로직 (전화상 안함 / 최후 통첩 등) — 5명만 비활성
+      if (i === 15) {
+        app.comment = '없는 번호 | 전화상 안함';
+      } else if (i === 16) {
+        app.comment = '미성년자 | 전화상 안함';
+      } else if (i === 17) {
+        app.comment = '잘못누름/관심없음/바로끊음 | 전화상 안함';
+      } else if (i === 18) {
+        app.comment = '최후 통첩';
+      } else if (i === 19) {
+        app.comment = '최후 통첩';
+      }
+
+      // Add fake logs for some
+      if (i % 2 === 0) {
+        callLogs[id] = [{key: STAFF[i % STAFF.length], time: new Date()}];
+      }
+      // Add fake visits for some (2명 예약 확정)
+      if ((i === 10 || i === 12) && !app.comment.includes('전화상 안함') && !app.comment.includes('최후 통첩')) {
+        const visitDateStr = new Date().toISOString().split('T')[0];
+        visitData[id] = {datetime: `${visitDateStr}T19:00`, scheduled: true};
+      }
+
+      applicants.push(app);
+    }
+    // 중복 지원 샘플: 기존 지원자 번호로 재지원
+    const dupPhone = applicants[0].phone;
+    const dupSrc = SOURCES[2];
+    applicants.push({
+      id: 'APP_'+Math.random().toString(36).slice(2,8).toUpperCase(),
+      name: applicants[0].name,
+      team: 'ig', slot: '3시',
+      phone: dupPhone,
+      source: dupSrc.id, sourceLabel: dupSrc.label, sourceCls: dupSrc.cls,
+      time: new Date(Date.now() - 86400000 * 3),
+      updatedAt: new Date(),
+      details: '[하남점] 재문의 - 이전 지원 이력 있음',
+      comment: ''
+    });
+
+    applicants.sort((a,b) => b.time - a.time);
+  };
+
+
+  populateInitial();
+  renderList();
+  updateTabBadges();
+  
+  // Also hook up the manual sample button for more
+  document.getElementById('add-sample-btn').onclick = () => openNewAppModal();
+});
+</script>
+</body>
+</html>
