@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1090 720" preserveAspectRatio="xMidYMid meet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&amp;display=swap');
+    text { font-family: 'JetBrains Mono', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Pretendard', monospace; }
+    .title-text { fill: #f8fafc; font-size: 16px; font-weight: 700; }
+    .subtitle-text { fill: #94a3b8; font-size: 10px; font-weight: 400; }
+    .root-name { fill: white; font-size: 14px; font-weight: 700; }
+    .root-sub { fill: #cbd5e1; font-size: 10px; font-weight: 400; }
+    .alert-name { fill: white; font-size: 12px; font-weight: 600; }
+    .alert-sub { fill: #cbd5e1; font-size: 8px; font-weight: 400; }
+    .alert-pri { font-size: 8px; font-weight: 700; }
+    .action-name { fill: white; font-size: 11px; font-weight: 600; }
+    .action-sub { fill: #cbd5e1; font-size: 8px; font-weight: 400; }
+    .legend-text { fill: #cbd5e1; font-size: 9px; font-weight: 400; }
+  </style>
+
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrow-resolve" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#0f172a"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="30" y="30" class="title-text">CHECK 알림 5종 분류 + 대응 워크플로우 (C-2)</text>
+  <text x="30" y="46" class="subtitle-text">member.html · 페이지 핵심 가치 · 알림 카운트 0 달성 워크플로우</text>
+
+  <!-- ========== CONNECTION LINES (drawn first) ========== -->
+
+  <!-- Root → fan-out bar -->
+  <line x1="545" y1="140" x2="545" y2="170" stroke="#fbbf24" stroke-width="1.5"/>
+  <!-- Horizontal fan-out bar -->
+  <line x1="135" y1="170" x2="955" y2="170" stroke="#fbbf24" stroke-width="1.5"/>
+  <!-- Verticals to each alert top -->
+  <line x1="135" y1="170" x2="135" y2="200" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="340" y1="170" x2="340" y2="200" stroke="#fb923c" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="545" y1="170" x2="545" y2="200" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="750" y1="170" x2="750" y2="200" stroke="#facc15" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="955" y1="170" x2="955" y2="200" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Alert → Action arrows (5 verticals) -->
+  <line x1="135" y1="290" x2="135" y2="325" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <line x1="340" y1="290" x2="340" y2="325" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <line x1="545" y1="290" x2="545" y2="325" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <line x1="750" y1="290" x2="750" y2="325" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <line x1="955" y1="290" x2="955" y2="325" stroke="#94a3b8" stroke-width="1.3" marker-end="url(#arrow)"/>
+
+  <!-- Action → Resolve convergence -->
+  <!-- Each action bottom (y=425) → horizontal bar at y=455 -->
+  <line x1="135" y1="425" x2="135" y2="455" stroke="#34d399" stroke-width="1.3"/>
+  <line x1="340" y1="425" x2="340" y2="455" stroke="#34d399" stroke-width="1.3"/>
+  <line x1="545" y1="425" x2="545" y2="455" stroke="#34d399" stroke-width="1.3"/>
+  <line x1="750" y1="425" x2="750" y2="455" stroke="#34d399" stroke-width="1.3"/>
+  <line x1="955" y1="425" x2="955" y2="455" stroke="#34d399" stroke-width="1.3"/>
+  <!-- Horizontal merge bar -->
+  <line x1="135" y1="455" x2="955" y2="455" stroke="#34d399" stroke-width="1.3"/>
+  <!-- Down to Resolve -->
+  <line x1="545" y1="455" x2="545" y2="490" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-resolve)"/>
+
+  <!-- Resolve → Final -->
+  <line x1="545" y1="555" x2="545" y2="600" stroke="#34d399" stroke-width="1.8" marker-end="url(#arrow-resolve)"/>
+
+  <!-- ========== ROOT NODE: CHECK 알림 ========== -->
+  <rect x="425" y="80" width="240" height="60" rx="6" fill="#0f172a"/>
+  <rect x="425" y="80" width="240" height="60" rx="6" fill="rgba(120,53,15,0.5)" stroke="#fbbf24" stroke-width="2"/>
+  <text x="545" y="106" class="root-name" text-anchor="middle">🚨 CHECK 알림</text>
+  <text x="545" y="124" class="root-sub" text-anchor="middle">member.html · 앰버 테마 섹션</text>
+
+  <!-- ========== 5 ALERT TYPES (compartmented boxes) ========== -->
+
+  <!-- 1. 첫방문 미체크 (red, P0) -->
+  <rect x="50" y="200" width="170" height="90" rx="6" fill="#0f172a"/>
+  <rect x="50" y="200" width="170" height="90" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+  <text x="135" y="222" class="alert-name" text-anchor="middle">🔴 첫방문 미체크</text>
+  <line x1="50" y1="232" x2="220" y2="232" stroke="#fb7185" stroke-width="0.5" stroke-opacity="0.6"/>
+  <text x="135" y="250" class="alert-sub" text-anchor="middle">신규 멤버가 첫 세션</text>
+  <text x="135" y="263" class="alert-sub" text-anchor="middle">출석 미기록</text>
+  <text x="135" y="282" class="alert-pri" fill="#fb7185" text-anchor="middle">우선순위 P0</text>
+
+  <!-- 2. 만료 D-7 (orange, P1) -->
+  <rect x="255" y="200" width="170" height="90" rx="6" fill="#0f172a"/>
+  <rect x="255" y="200" width="170" height="90" rx="6" fill="rgba(120,53,15,0.4)" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="340" y="222" class="alert-name" text-anchor="middle">🟠 만료 D-7</text>
+  <line x1="255" y1="232" x2="425" y2="232" stroke="#fb923c" stroke-width="0.5" stroke-opacity="0.6"/>
+  <text x="340" y="250" class="alert-sub" text-anchor="middle">멤버십 만료</text>
+  <text x="340" y="263" class="alert-sub" text-anchor="middle">7일 이내 임박</text>
+  <text x="340" y="282" class="alert-pri" fill="#fb923c" text-anchor="middle">우선순위 P1</text>
+
+  <!-- 3. 출석률 부진 (amber, P1) -->
+  <rect x="460" y="200" width="170" height="90" rx="6" fill="#0f172a"/>
+  <rect x="460" y="200" width="170" height="90" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="545" y="222" class="alert-name" text-anchor="middle">🟡 출석률 부진</text>
+  <line x1="460" y1="232" x2="630" y2="232" stroke="#fbbf24" stroke-width="0.5" stroke-opacity="0.6"/>
+  <text x="545" y="250" class="alert-sub" text-anchor="middle">출석률 20% 이하</text>
+  <text x="545" y="263" class="alert-sub" text-anchor="middle">관리 필요</text>
+  <text x="545" y="282" class="alert-pri" fill="#fbbf24" text-anchor="middle">우선순위 P1</text>
+
+  <!-- 4. 결제 확인 (yellow, P2) -->
+  <rect x="665" y="200" width="170" height="90" rx="6" fill="#0f172a"/>
+  <rect x="665" y="200" width="170" height="90" rx="6" fill="rgba(133,77,14,0.35)" stroke="#facc15" stroke-width="1.5"/>
+  <text x="750" y="222" class="alert-name" text-anchor="middle">🟨 결제 확인</text>
+  <line x1="665" y1="232" x2="835" y2="232" stroke="#facc15" stroke-width="0.5" stroke-opacity="0.6"/>
+  <text x="750" y="250" class="alert-sub" text-anchor="middle">결제 정보</text>
+  <text x="750" y="263" class="alert-sub" text-anchor="middle">검증 대기</text>
+  <text x="750" y="282" class="alert-pri" fill="#facc15" text-anchor="middle">우선순위 P2</text>
+
+  <!-- 5. 홀딩 복귀 (sky, P2) -->
+  <rect x="870" y="200" width="170" height="90" rx="6" fill="#0f172a"/>
+  <rect x="870" y="200" width="170" height="90" rx="6" fill="rgba(7,89,133,0.35)" stroke="#38bdf8" stroke-width="1.5"/>
+  <text x="955" y="222" class="alert-name" text-anchor="middle">🟦 홀딩 복귀</text>
+  <line x1="870" y1="232" x2="1040" y2="232" stroke="#38bdf8" stroke-width="0.5" stroke-opacity="0.6"/>
+  <text x="955" y="250" class="alert-sub" text-anchor="middle">일시 정지 후</text>
+  <text x="955" y="263" class="alert-sub" text-anchor="middle">활동 복귀</text>
+  <text x="955" y="282" class="alert-pri" fill="#38bdf8" text-anchor="middle">우선순위 P2</text>
+
+  <!-- ========== 5 ACTIONS ========== -->
+
+  <!-- Action 1: 행 스크롤 + 출석체크 -->
+  <rect x="50" y="325" width="170" height="100" rx="6" fill="#0f172a"/>
+  <rect x="50" y="325" width="170" height="100" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.3"/>
+  <text x="135" y="346" class="action-name" text-anchor="middle">대응 액션</text>
+  <line x1="50" y1="354" x2="220" y2="354" stroke="#22d3ee" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="135" y="372" class="action-sub" text-anchor="middle">• 멤버 이름 클릭</text>
+  <text x="135" y="386" class="action-sub" text-anchor="middle">• 행 자동 스크롤</text>
+  <text x="135" y="400" class="action-sub" text-anchor="middle">• 하이라이트</text>
+  <text x="135" y="416" class="action-sub" text-anchor="middle" fill="#22d3ee">• 금일 출석 체크</text>
+
+  <!-- Action 2: 전화 복사 + 연장 안내 -->
+  <rect x="255" y="325" width="170" height="100" rx="6" fill="#0f172a"/>
+  <rect x="255" y="325" width="170" height="100" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.3"/>
+  <text x="340" y="346" class="action-name" text-anchor="middle">대응 액션</text>
+  <line x1="255" y1="354" x2="425" y2="354" stroke="#22d3ee" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="340" y="372" class="action-sub" text-anchor="middle">• 전화번호 클릭</text>
+  <text x="340" y="386" class="action-sub" text-anchor="middle">• 클립보드 복사</text>
+  <text x="340" y="400" class="action-sub" text-anchor="middle">• 연장 등록 안내</text>
+  <text x="340" y="416" class="action-sub" text-anchor="middle" fill="#22d3ee">• 상담 결과 메모</text>
+
+  <!-- Action 3: 프로필 + 상담 -->
+  <rect x="460" y="325" width="170" height="100" rx="6" fill="#0f172a"/>
+  <rect x="460" y="325" width="170" height="100" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.3"/>
+  <text x="545" y="346" class="action-name" text-anchor="middle">대응 액션</text>
+  <line x1="460" y1="354" x2="630" y2="354" stroke="#22d3ee" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="545" y="372" class="action-sub" text-anchor="middle">• 프로필 모달 오픈</text>
+  <text x="545" y="386" class="action-sub" text-anchor="middle">• 히스토리 확인</text>
+  <text x="545" y="400" class="action-sub" text-anchor="middle">• 독려 상담 통화</text>
+  <text x="545" y="416" class="action-sub" text-anchor="middle" fill="#22d3ee">• 메모 셀 갱신</text>
+
+  <!-- Action 4: 결제 검증 -->
+  <rect x="665" y="325" width="170" height="100" rx="6" fill="#0f172a"/>
+  <rect x="665" y="325" width="170" height="100" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.3"/>
+  <text x="750" y="346" class="action-name" text-anchor="middle">대응 액션</text>
+  <line x1="665" y1="354" x2="835" y2="354" stroke="#22d3ee" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="750" y="372" class="action-sub" text-anchor="middle">• 결제 정보 확인</text>
+  <text x="750" y="386" class="action-sub" text-anchor="middle">• 미수금 검증</text>
+  <text x="750" y="400" class="action-sub" text-anchor="middle">• 정산 처리</text>
+  <text x="750" y="416" class="action-sub" text-anchor="middle" fill="#22d3ee">• 영수증 확인</text>
+
+  <!-- Action 5: 복귀 환영 -->
+  <rect x="870" y="325" width="170" height="100" rx="6" fill="#0f172a"/>
+  <rect x="870" y="325" width="170" height="100" rx="6" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.3"/>
+  <text x="955" y="346" class="action-name" text-anchor="middle">대응 액션</text>
+  <line x1="870" y1="354" x2="1040" y2="354" stroke="#22d3ee" stroke-width="0.5" stroke-opacity="0.5"/>
+  <text x="955" y="372" class="action-sub" text-anchor="middle">• 복귀 환영 메시지</text>
+  <text x="955" y="386" class="action-sub" text-anchor="middle">• 멤버십 재활성</text>
+  <text x="955" y="400" class="action-sub" text-anchor="middle">• 첫 세션 안내</text>
+  <text x="955" y="416" class="action-sub" text-anchor="middle" fill="#22d3ee">• 적응 모니터링</text>
+
+  <!-- ========== RESOLVE BUTTON (convergence) ========== -->
+  <rect x="425" y="490" width="240" height="65" rx="6" fill="#0f172a"/>
+  <rect x="425" y="490" width="240" height="65" rx="6" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="2"/>
+  <text x="545" y="516" class="root-name" text-anchor="middle">✓ "해결" 버튼 클릭</text>
+  <text x="545" y="535" class="root-sub" text-anchor="middle">알림 항목 DOM 제거</text>
+  <text x="545" y="549" class="root-sub" text-anchor="middle">카운트 -1</text>
+
+  <!-- ========== FINAL: 알림 카운트 0 ========== -->
+  <rect x="425" y="600" width="240" height="55" rx="25" fill="#0f172a"/>
+  <rect x="425" y="600" width="240" height="55" rx="25" fill="rgba(59,130,246,0.3)" stroke="#60a5fa" stroke-width="2"/>
+  <text x="545" y="624" class="root-name" text-anchor="middle">⏹ 알림 카운트 = 0</text>
+  <text x="545" y="643" class="root-sub" text-anchor="middle">대응 완료 · 페이지 핵심 가치 달성</text>
+
+  <!-- ========== LEGEND (top-right) ========== -->
+  <g transform="translate(880, 80)">
+    <rect x="0" y="0" width="180" height="70" rx="6" fill="rgba(15,23,42,0.85)" stroke="#334155" stroke-width="1"/>
+    <text x="14" y="18" fill="#f8fafc" font-size="10" font-weight="700">P0/P1/P2 정의</text>
+    <text x="14" y="34" class="legend-text" fill="#fb7185" font-weight="600">P0:</text>
+    <text x="36" y="34" class="legend-text">즉시 대응 (당일)</text>
+    <text x="14" y="48" class="legend-text" fill="#fb923c" font-weight="600">P1:</text>
+    <text x="36" y="48" class="legend-text">우선 대응 (주간)</text>
+    <text x="14" y="62" class="legend-text" fill="#94a3b8" font-weight="600">P2:</text>
+    <text x="36" y="62" class="legend-text">관찰 (수시)</text>
+  </g>
+</svg>

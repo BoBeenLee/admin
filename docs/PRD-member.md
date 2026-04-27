@@ -1,6 +1,7 @@
 # PRD: 멤버 팀 출석부 — member.html
 
 > 하남 지점 어드민 > 멤버 팀 관리 페이지 제품 요구사항 정의서
+> 📖 **유저 스토리 시각 요약:** [USER-STORY-member.md](./USER-STORY-member.md)
 
 ---
 

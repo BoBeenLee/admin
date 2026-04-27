@@ -1,6 +1,7 @@
 # PRD: 리더 팀 출석부 — leader.html
 
 > 하남 지점 어드민 > 리더 팀 관리 페이지 제품 요구사항 정의서
+> 📖 **유저 스토리 시각 요약:** [USER-STORY-leader.md](./USER-STORY-leader.md)
 
 ---
 

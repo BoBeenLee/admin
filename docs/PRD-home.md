@@ -1,6 +1,7 @@
 # PRD: 대시보드 캘린더 (홈) — home.html
 
 > 하남 지점 어드민 > 대시보드 페이지 제품 요구사항 정의서
+> 📖 **유저 스토리 시각 요약:** [USER-STORY-home.md](./USER-STORY-home.md)
 
 ---
 

@@ -2,6 +2,7 @@
 
 > PRD 문서 기반 사용자 시나리오 정의서
 > 주요 사용자: **지점장**, **매니저**
+> 💡 **페이지별 시각 요약:** [USER-STORY-home.md](./USER-STORY-home.md) · [USER-STORY-leader.md](./USER-STORY-leader.md) · [USER-STORY-member.md](./USER-STORY-member.md)
 
 ---
 
