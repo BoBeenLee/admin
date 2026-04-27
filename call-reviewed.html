@@ -16,7 +16,13 @@ tailwind.config = {
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css"/>
 <style>
-body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
+body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;font-feature-settings:"ss01","ss02";}
+h1,h2,h3,h4{text-wrap:balance;word-break:keep-all;}
+p{text-wrap:pretty;word-break:keep-all;}
+.num,time,.font-mono{font-variant-numeric:tabular-nums;}
+@media (prefers-reduced-motion:reduce){
+    *{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}
+}
 .glass-panel{background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(226,232,240,0.8);}
 .hide-scrollbar::-webkit-scrollbar{display:none;}
 .hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
@@ -52,7 +58,7 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 
 /* ── APPLICANT TABLE ── */
 .app-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; }
-.app-table th { background: #f8fafc; padding: 8px 10px; font-size: 11px; font-weight: 800; text-align: left; color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; white-space: nowrap; }
+.app-table th { background: #f8fafc; padding: 8px 10px; font-size: 11px; font-weight: 800; text-align: left; color: #64748b; border-bottom: 2px solid #e2e8f0; white-space: nowrap; letter-spacing: 0.02em; }
 .app-table td { padding: 6px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
 .app-table tr:hover td { background-color: #fbfcfe; }
 
