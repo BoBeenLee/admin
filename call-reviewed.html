@@ -516,32 +516,26 @@ p{text-wrap:pretty;word-break:keep-all;}
             
             <!-- Hourly Insight Cards -->
             <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-slate-200/60">
-              <div onclick="showStatDetail('peak')" class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-amber-200 transition-all">
-                <div class="absolute right-[-10px] top-[-10px] opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.08] transition-all">
-                  <i class="ph ph-trend-up text-6xl"></i>
-                </div>
-                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 group-hover:text-amber-600 transition-colors">
+              <div onclick="showStatDetail('peak')" class="p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                <div class="text-[10px] font-black text-slate-500 tracking-wider mb-1.5 flex items-center gap-1.5">
                   <i class="ph-fill ph-fire text-amber-500"></i> 지원 집중 시간대
                 </div>
                 <div class="flex items-baseline gap-2">
                   <span id="insight-peak-hour" class="text-xl font-black text-slate-800">-시</span>
-                  <span id="insight-peak-pct" class="text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">0%</span>
+                  <span id="insight-peak-pct" class="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-100">0%</span>
                 </div>
-                <p class="text-[9px] text-slate-400 mt-1 font-medium italic">가장 지원자가 많이 몰리는 골든 타임입니다.</p>
+                <p class="text-[9px] text-slate-500 mt-1 font-medium">가장 지원자가 많이 몰리는 골든 타임입니다.</p>
               </div>
-              
-              <div onclick="showStatDetail('efficiency')" class="p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative overflow-hidden group cursor-pointer hover:shadow-md hover:border-blue-200 transition-all">
-                <div class="absolute right-[-10px] top-[-10px] opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.08] transition-all">
-                  <i class="ph ph-lightning text-6xl"></i>
-                </div>
-                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 group-hover:text-blue-600 transition-colors">
+
+              <div onclick="showStatDetail('efficiency')" class="p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                <div class="text-[10px] font-black text-slate-500 tracking-wider mb-1.5 flex items-center gap-1.5">
                   <i class="ph-fill ph-clock text-blue-500"></i> 회신 효율 분석
                 </div>
                 <div class="flex items-baseline gap-2">
                   <span id="insight-avg-reply" class="text-xl font-black text-slate-800">-분</span>
-                  <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full shadow-none border-none">Success <span id="insight-success-rate">0</span>%</span>
+                  <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-100"><span id="insight-success-rate">0</span>% 성공</span>
                 </div>
-                <p class="text-[9px] text-slate-400 mt-1 font-medium italic">지원 후 첫 회신까지 평균 소요 시간입니다.</p>
+                <p class="text-[9px] text-slate-500 mt-1 font-medium">지원 후 첫 회신까지 평균 소요 시간입니다.</p>
               </div>
             </div>
             
