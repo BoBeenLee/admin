@@ -55,6 +55,14 @@
             100% { transform: translateY(0); }
         }
         .notice-scroller { animation: scroll-up 10s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+        /* A11y: 모션 감소 선호 시 자동 스크롤 정지, 호버 트랜지션 즉시화 */
+        @media (prefers-reduced-motion: reduce) {
+            .notice-scroller { animation: none; }
+            .member-row { transition: none; }
+            .member-row:hover { transform: none; }
+            * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
         
         /* Tooltip utilities */
         .tooltip-container { position: relative; }
