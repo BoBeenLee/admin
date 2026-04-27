@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1230 880" preserveAspectRatio="xMidYMid meet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&amp;display=swap');
+    text { font-family: 'JetBrains Mono', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Pretendard', monospace; }
+    .actor-name { fill: white; font-size: 12px; font-weight: 600; }
+    .actor-role { fill: #94a3b8; font-size: 9px; font-weight: 400; }
+    .msg-label { fill: #e2e8f0; font-size: 10px; font-weight: 500; }
+    .msg-label-return { fill: #94a3b8; font-size: 9px; font-style: italic; font-weight: 400; }
+    .msg-num { fill: white; font-size: 8px; font-weight: 700; }
+    .title-text { fill: #f8fafc; font-size: 16px; font-weight: 700; }
+    .subtitle-text { fill: #94a3b8; font-size: 10px; font-weight: 400; }
+    .note-text { fill: #fbbf24; font-size: 10px; font-weight: 500; }
+    .branch-label { fill: #fbbf24; font-size: 11px; font-weight: 700; }
+    .legend-text { fill: #cbd5e1; font-size: 9px; font-weight: 400; }
+  </style>
+
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+
+    <marker id="arrow-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa"/>
+    </marker>
+    <marker id="arrow-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+    </marker>
+    <marker id="arrow-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fb923c"/>
+    </marker>
+    <marker id="arrow-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#0f172a"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="30" class="title-text">신규 지원자 콜백 파이프라인 (D-2)</text>
+  <text x="30" y="46" class="subtitle-text">call.html · 매니저 콜백 한 사이클 · 통화 → 결과 코딩 → 예약 확정</text>
+
+  <!-- Lifelines -->
+  <line x1="130" y1="115" x2="130" y2="800" stroke="#64748b" stroke-width="1" stroke-dasharray="6,4"/>
+  <line x1="370" y1="115" x2="370" y2="800" stroke="#475569" stroke-width="1" stroke-dasharray="6,4"/>
+  <line x1="610" y1="115" x2="610" y2="800" stroke="#475569" stroke-width="1" stroke-dasharray="6,4"/>
+  <line x1="850" y1="115" x2="850" y2="800" stroke="#475569" stroke-width="1" stroke-dasharray="6,4"/>
+  <line x1="1090" y1="115" x2="1090" y2="800" stroke="#475569" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <!-- Activation bar on 매니저 lifeline -->
+  <rect x="125" y="140" width="10" height="620" rx="2" fill="rgba(76,29,149,0.5)" stroke="#a78bfa" stroke-width="1"/>
+
+  <!-- Actor 1: 매니저 (violet) -->
+  <rect x="50" y="65" width="160" height="50" rx="6" fill="#0f172a"/>
+  <rect x="50" y="65" width="160" height="50" rx="6" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="130" y="85" class="actor-name" text-anchor="middle">👤 매니저</text>
+  <text x="130" y="100" class="actor-role" text-anchor="middle">Actor · 콜백 수행</text>
+
+  <!-- Actor 2: 지원자 행 (cyan) -->
+  <rect x="290" y="65" width="160" height="50" rx="6" fill="#0f172a"/>
+  <rect x="290" y="65" width="160" height="50" rx="6" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="370" y="85" class="actor-name" text-anchor="middle">📋 지원자 행</text>
+  <text x="370" y="100" class="actor-role" text-anchor="middle">UI · 메인 테이블 row</text>
+
+  <!-- Actor 3: 직원 토글 (cyan) -->
+  <rect x="530" y="65" width="160" height="50" rx="6" fill="#0f172a"/>
+  <rect x="530" y="65" width="160" height="50" rx="6" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="610" y="85" class="actor-name" text-anchor="middle">🔘 직원 토글 A~P</text>
+  <text x="610" y="100" class="actor-role" text-anchor="middle">UI · 16명 callLogs 입력</text>
+
+  <!-- Actor 4: System (emerald) -->
+  <rect x="770" y="65" width="160" height="50" rx="6" fill="#0f172a"/>
+  <rect x="770" y="65" width="160" height="50" rx="6" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="850" y="85" class="actor-name" text-anchor="middle">⚙️ callLogs / visitData</text>
+  <text x="850" y="100" class="actor-role" text-anchor="middle">System · 인메모리 저장</text>
+
+  <!-- Actor 5: 지원자 (외부, orange) -->
+  <rect x="1010" y="65" width="160" height="50" rx="6" fill="#0f172a"/>
+  <rect x="1010" y="65" width="160" height="50" rx="6" fill="rgba(124,45,18,0.5)" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="1090" y="85" class="actor-name" text-anchor="middle">📞 지원자 (외부)</text>
+  <text x="1090" y="100" class="actor-role" text-anchor="middle">External · 전화 응답</text>
+
+  <!-- ========== MESSAGES ========== -->
+
+  <!-- 1: 매니저 → 지원자 행 -->
+  <line x1="130" y1="155" x2="365" y2="155" stroke="#a78bfa" stroke-width="1.8" marker-end="url(#arrow-violet)"/>
+  <circle cx="130" cy="155" r="9" fill="#7c3aed" stroke="#a78bfa" stroke-width="1"/>
+  <text x="130" y="158" class="msg-num" text-anchor="middle">1</text>
+  <text x="247" y="148" class="msg-label" text-anchor="middle">행 클릭 → 전화번호 reveal</text>
+
+  <!-- 2: 매니저 → 지원자 (외부) -->
+  <line x1="130" y1="195" x2="1085" y2="195" stroke="#fb923c" stroke-width="1.8" marker-end="url(#arrow-orange)"/>
+  <circle cx="130" cy="195" r="9" fill="#9a3412" stroke="#fb923c" stroke-width="1"/>
+  <text x="130" y="198" class="msg-num" text-anchor="middle">2</text>
+  <text x="600" y="188" class="msg-label" text-anchor="middle">📞 전화 통화 시도</text>
+
+  <!-- 3: 매니저 → 직원 토글 -->
+  <line x1="130" y1="235" x2="605" y2="235" stroke="#a78bfa" stroke-width="1.8" marker-end="url(#arrow-violet)"/>
+  <circle cx="130" cy="235" r="9" fill="#7c3aed" stroke="#a78bfa" stroke-width="1"/>
+  <text x="130" y="238" class="msg-num" text-anchor="middle">3</text>
+  <text x="367" y="228" class="msg-label" text-anchor="middle">직원 키(A) 토글 클릭</text>
+
+  <!-- 4: 직원 토글 → System -->
+  <line x1="610" y1="270" x2="845" y2="270" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#arrow-cyan)"/>
+  <circle cx="610" cy="270" r="9" fill="#155e75" stroke="#22d3ee" stroke-width="1"/>
+  <text x="610" y="273" class="msg-num" text-anchor="middle">4</text>
+  <text x="727" y="263" class="msg-label" text-anchor="middle">callLogs[id].push({key:'A', time})</text>
+
+  <!-- 5: System --> 지원자 행 (return) -->
+  <line x1="845" y1="305" x2="375" y2="305" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-emerald)"/>
+  <circle cx="850" cy="305" r="9" fill="#065f46" stroke="#34d399" stroke-width="1"/>
+  <text x="850" y="308" class="msg-num" text-anchor="middle">5</text>
+  <text x="612" y="298" class="msg-label-return" text-anchor="middle">↩ 행 배경 초록 · 회신 완료 표시</text>
+
+  <!-- ========== ALT BRANCH (3-way) ========== -->
+  <rect x="60" y="335" width="1110" height="380" rx="8" fill="rgba(120,53,15,0.15)" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="4,3"/>
+  <text x="80" y="355" class="branch-label">alt · 통화 결과 분기 (3-way)</text>
+
+  <!-- Branch A: 응답 OK · 예약 확정 -->
+  <line x1="80" y1="370" x2="1170" y2="370" stroke="#fbbf24" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="80" y="385" class="note-text">[응답 OK · 상담 의향 있음]</text>
+
+  <!-- 6a: 매니저 → System -->
+  <line x1="130" y1="405" x2="845" y2="405" stroke="#a78bfa" stroke-width="1.8" marker-end="url(#arrow-violet)"/>
+  <circle cx="130" cy="405" r="9" fill="#7c3aed" stroke="#a78bfa" stroke-width="1"/>
+  <text x="130" y="408" class="msg-num" text-anchor="middle">6a</text>
+  <text x="487" y="398" class="msg-label" text-anchor="middle">시간 피커 → 언어 선택 → 확정</text>
+
+  <!-- 7a: System --> 지원자 행 -->
+  <line x1="845" y1="440" x2="375" y2="440" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-emerald)"/>
+  <circle cx="850" cy="440" r="9" fill="#065f46" stroke="#34d399" stroke-width="1"/>
+  <text x="850" y="443" class="msg-num" text-anchor="middle">7a</text>
+  <text x="612" y="433" class="msg-label-return" text-anchor="middle">↩ visitData[id]={scheduled:true, lang}</text>
+  <text x="612" y="455" class="note-text" text-anchor="middle">📌 예약 확정 뱃지 노출</text>
+
+  <!-- Branch B: 응답 X · 결과 코딩 -->
+  <line x1="80" y1="475" x2="1170" y2="475" stroke="#fbbf24" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="80" y="490" class="note-text">[응답 X · 부적합 · 9사유 코딩]</text>
+
+  <!-- 6b: 매니저 → System -->
+  <line x1="130" y1="510" x2="845" y2="510" stroke="#a78bfa" stroke-width="1.8" marker-end="url(#arrow-violet)"/>
+  <circle cx="130" cy="510" r="9" fill="#7c3aed" stroke="#a78bfa" stroke-width="1"/>
+  <text x="130" y="513" class="msg-num" text-anchor="middle">6b</text>
+  <text x="487" y="503" class="msg-label" text-anchor="middle">결과 코딩 (없는번호 · 타지역 · 미성년 · 기존멤버 ···)</text>
+
+  <!-- 7b: System --> 지원자 행 (rose, archive) -->
+  <line x1="845" y1="545" x2="375" y2="545" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-rose)"/>
+  <circle cx="850" cy="545" r="9" fill="#9f1239" stroke="#fb7185" stroke-width="1"/>
+  <text x="850" y="548" class="msg-num" text-anchor="middle">7b</text>
+  <text x="612" y="538" class="msg-label-return" text-anchor="middle">↩ comment += '| 전화상 안함'</text>
+  <text x="612" y="560" class="note-text" text-anchor="middle">📌 메인 목록 자동 분리 → 데이터 보드 아카이브</text>
+
+  <!-- Branch C: 최후 통첩 -->
+  <line x1="80" y1="580" x2="1170" y2="580" stroke="#fbbf24" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="80" y="595" class="note-text">[마지막 시도 · 최후 통첩]</text>
+
+  <!-- 6c: 매니저 → System -->
+  <line x1="130" y1="615" x2="845" y2="615" stroke="#a78bfa" stroke-width="1.8" marker-end="url(#arrow-violet)"/>
+  <circle cx="130" cy="615" r="9" fill="#7c3aed" stroke="#a78bfa" stroke-width="1"/>
+  <text x="130" y="618" class="msg-num" text-anchor="middle">6c</text>
+  <text x="487" y="608" class="msg-label" text-anchor="middle">"최후 통첩" 표시 토글</text>
+
+  <!-- 7c: System --> 지원자 행 (rose) -->
+  <line x1="845" y1="650" x2="375" y2="650" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-rose)"/>
+  <circle cx="850" cy="650" r="9" fill="#9f1239" stroke="#fb7185" stroke-width="1"/>
+  <text x="850" y="653" class="msg-num" text-anchor="middle">7c</text>
+  <text x="612" y="643" class="msg-label-return" text-anchor="middle">↩ comment += '| 최후 통첩'</text>
+  <text x="612" y="665" class="note-text" text-anchor="middle">📌 데이터 보드 우측 별도 영역</text>
+
+  <!-- ========== FINAL ========== -->
+  <!-- 8: System --> 매니저 (KPI 갱신) -->
+  <line x1="845" y1="745" x2="135" y2="745" stroke="#34d399" stroke-width="1.8" marker-end="url(#arrow-emerald)"/>
+  <circle cx="850" cy="745" r="9" fill="#065f46" stroke="#34d399" stroke-width="1"/>
+  <text x="850" y="748" class="msg-num" text-anchor="middle">8</text>
+  <text x="490" y="738" class="msg-label" text-anchor="middle">📊 데이터 보드 KPI 자동 갱신 (회신율 · 전환율 · 시계열)</text>
+
+  <!-- ========== LEGEND ========== -->
+  <rect x="30" y="820" width="1170" height="40" rx="4" fill="rgba(15,23,42,0.6)" stroke="#334155" stroke-width="1"/>
+
+  <circle cx="55" cy="840" r="6" fill="#a78bfa"/>
+  <text x="68" y="844" class="legend-text">Actor (매니저)</text>
+
+  <circle cx="190" cy="840" r="6" fill="#22d3ee"/>
+  <text x="203" y="844" class="legend-text">UI 컴포넌트</text>
+
+  <circle cx="320" cy="840" r="6" fill="#34d399"/>
+  <text x="333" y="844" class="legend-text">System / Resolve</text>
+
+  <circle cx="465" cy="840" r="6" fill="#fb923c"/>
+  <text x="478" y="844" class="legend-text">External (전화)</text>
+
+  <circle cx="600" cy="840" r="6" fill="#fb7185"/>
+  <text x="613" y="844" class="legend-text">Alert / 아카이브 분기</text>
+
+  <circle cx="770" cy="840" r="6" fill="#fbbf24"/>
+  <text x="783" y="844" class="legend-text">Decision / Note (alt 분기)</text>
+
+  <line x1="965" y1="840" x2="985" y2="840" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="993" y="844" class="legend-text">Return / 자동 반영</text>
+
+  <text x="1170" y="844" class="legend-text" text-anchor="end" fill="#94a3b8">© 하남 지점 어드민 · USER-STORY-call.md</text>
+</svg>

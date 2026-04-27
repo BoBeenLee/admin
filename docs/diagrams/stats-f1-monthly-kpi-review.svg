@@ -1,0 +1,248 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" preserveAspectRatio="xMidYMid meet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&amp;display=swap');
+    text { font-family: 'JetBrains Mono', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Pretendard', monospace; }
+    .title-text { fill: #f8fafc; font-size: 16px; font-weight: 700; }
+    .subtitle-text { fill: #94a3b8; font-size: 10px; font-weight: 400; }
+    .root-name { fill: white; font-size: 14px; font-weight: 700; }
+    .root-sub { fill: #cbd5e1; font-size: 10px; font-weight: 400; }
+    .branch-title { fill: white; font-size: 12px; font-weight: 700; }
+    .branch-sub { fill: #cbd5e1; font-size: 9px; font-weight: 400; }
+    .kpi-value { fill: white; font-size: 14px; font-weight: 700; }
+    .kpi-label { fill: #94a3b8; font-size: 9px; font-weight: 400; }
+    .kpi-change-up { fill: #34d399; font-size: 10px; font-weight: 600; }
+    .kpi-change-down { fill: #fb923c; font-size: 10px; font-weight: 600; }
+    .insight-text { fill: #fbbf24; font-size: 10px; font-weight: 500; }
+    .route-name { fill: white; font-size: 11px; font-weight: 600; }
+    .route-sub { fill: #cbd5e1; font-size: 8px; font-weight: 400; }
+    .legend-text { fill: #cbd5e1; font-size: 9px; font-weight: 400; }
+  </style>
+
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+    </marker>
+    <marker id="arrow-resolve" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#0f172a"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="30" class="title-text">월간 KPI 검토 → 인사이트 도출 (F-1)</text>
+  <text x="30" y="46" class="subtitle-text">stats.html · 지점장 1분 통계 검토 · 4 KPI + 2 차트 → 후속 페이지 드릴다운</text>
+
+  <!-- ============================ CONNECTION LINES ============================ -->
+
+  <!-- Root → 3 branches fan-out -->
+  <line x1="600" y1="155" x2="600" y2="195" stroke="#fbbf24" stroke-width="1.5"/>
+  <line x1="200" y1="195" x2="1000" y2="195" stroke="#fbbf24" stroke-width="1.5"/>
+  <line x1="200" y1="195" x2="200" y2="225" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="600" y1="195" x2="600" y2="225" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="1000" y1="195" x2="1000" y2="225" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- 3 branches → Decision (converge) -->
+  <line x1="200" y1="490" x2="200" y2="530" stroke="#fbbf24" stroke-width="1.3"/>
+  <line x1="600" y1="490" x2="600" y2="530" stroke="#fbbf24" stroke-width="1.3"/>
+  <line x1="1000" y1="490" x2="1000" y2="530" stroke="#fbbf24" stroke-width="1.3"/>
+  <line x1="200" y1="530" x2="1000" y2="530" stroke="#fbbf24" stroke-width="1.3"/>
+  <line x1="600" y1="530" x2="600" y2="565" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+
+  <!-- Decision → 4 routes fan-out -->
+  <line x1="600" y1="640" x2="600" y2="680" stroke="#fbbf24" stroke-width="1.3"/>
+  <line x1="135" y1="680" x2="1065" y2="680" stroke="#fbbf24" stroke-width="1.3"/>
+  <line x1="135" y1="680" x2="135" y2="720" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-resolve)"/>
+  <line x1="445" y1="680" x2="445" y2="720" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrow-rose)"/>
+  <line x1="755" y1="680" x2="755" y2="720" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrow-rose)"/>
+  <line x1="1065" y1="680" x2="1065" y2="720" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrow-rose)"/>
+
+  <!-- Route labels -->
+  <text x="155" y="703" class="legend-text" fill="#34d399" font-weight="700">정상</text>
+  <text x="465" y="703" class="legend-text" fill="#fb7185" font-weight="700">신규 부진</text>
+  <text x="775" y="703" class="legend-text" fill="#fb7185" font-weight="700">출석 저조</text>
+  <text x="1085" y="703" class="legend-text" fill="#fb7185" font-weight="700">매출 미달</text>
+
+  <!-- ============================ ROOT NODE ============================ -->
+  <rect x="430" y="80" width="340" height="75" rx="8" fill="#0f172a"/>
+  <rect x="430" y="80" width="340" height="75" rx="8" fill="rgba(120,53,15,0.5)" stroke="#fbbf24" stroke-width="2"/>
+  <text x="600" y="110" class="root-name" text-anchor="middle">📅 2026년 4월 지점 실적</text>
+  <text x="600" y="130" class="root-sub" text-anchor="middle">월간 KPI · 출석 분포 · 팀 분배</text>
+  <text x="600" y="146" class="root-sub" text-anchor="middle">stats.html 진입 → 1분 검토</text>
+
+  <!-- ============================ BRANCH 1: KPI 4-up ============================ -->
+  <rect x="60" y="225" width="280" height="265" rx="8" fill="#0f172a"/>
+  <rect x="60" y="225" width="280" height="265" rx="8" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="200" y="248" class="branch-title" text-anchor="middle">📊 KPI 카드 4-up</text>
+  <line x1="80" y1="258" x2="320" y2="258" stroke="#22d3ee" stroke-width="0.8"/>
+
+  <!-- KPI 1 -->
+  <rect x="80" y="270" width="115" height="48" rx="4" fill="rgba(15,23,42,0.6)" stroke="#1e40af" stroke-width="1"/>
+  <text x="137" y="287" class="kpi-value" text-anchor="middle">1,248명</text>
+  <text x="137" y="300" class="kpi-label" text-anchor="middle">활성 멤버</text>
+  <text x="137" y="313" class="kpi-change-up" text-anchor="middle">+12% ▲</text>
+
+  <!-- KPI 2 -->
+  <rect x="205" y="270" width="115" height="48" rx="4" fill="rgba(15,23,42,0.6)" stroke="#1e40af" stroke-width="1"/>
+  <text x="262" y="287" class="kpi-value" text-anchor="middle">84.2%</text>
+  <text x="262" y="300" class="kpi-label" text-anchor="middle">월 평균 출석률</text>
+  <text x="262" y="313" class="kpi-change-up" text-anchor="middle">+3.4% ▲</text>
+
+  <!-- KPI 3 -->
+  <rect x="80" y="328" width="115" height="48" rx="4" fill="rgba(15,23,42,0.6)" stroke="#1e40af" stroke-width="1"/>
+  <text x="137" y="345" class="kpi-value" text-anchor="middle">84명</text>
+  <text x="137" y="358" class="kpi-label" text-anchor="middle">신규 등록</text>
+  <text x="137" y="371" class="kpi-change-down" text-anchor="middle">-2% ▼</text>
+
+  <!-- KPI 4 -->
+  <rect x="205" y="328" width="115" height="48" rx="4" fill="rgba(15,23,42,0.6)" stroke="#1e40af" stroke-width="1"/>
+  <text x="262" y="345" class="kpi-value" text-anchor="middle">92.5%</text>
+  <text x="262" y="358" class="kpi-label" text-anchor="middle">매출 달성도</text>
+  <rect x="221" y="365" width="83" height="6" rx="3" fill="#1e293b"/>
+  <rect x="221" y="365" width="77" height="6" rx="3" fill="#0ea5e9"/>
+
+  <!-- KPI insight -->
+  <rect x="80" y="390" width="240" height="90" rx="4" fill="rgba(120,53,15,0.25)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="90" y="408" class="insight-text">💡 인사이트</text>
+  <text x="90" y="425" class="branch-sub">• 멤버·출석은 안정 성장세</text>
+  <text x="90" y="441" class="branch-sub">• 신규 등록 -2%는 경계 신호</text>
+  <text x="90" y="457" class="branch-sub">• 매출 92.5%, 월말 마감 임박</text>
+  <text x="90" y="473" class="branch-sub">→ call.html 회신율 점검 권장</text>
+
+  <!-- ============================ BRANCH 2: Day-of-week chart ============================ -->
+  <rect x="460" y="225" width="280" height="265" rx="8" fill="#0f172a"/>
+  <rect x="460" y="225" width="280" height="265" rx="8" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="600" y="248" class="branch-title" text-anchor="middle">📈 요일별 출석 추이</text>
+  <line x1="480" y1="258" x2="720" y2="258" stroke="#22d3ee" stroke-width="0.8"/>
+
+  <!-- Mini bar chart -->
+  <g transform="translate(490,275)">
+    <!-- Bars (월~일) -->
+    <rect x="0"   y="50" width="22" height="50" fill="#7dd3fc" rx="2"/>
+    <rect x="32"  y="35" width="22" height="65" fill="#7dd3fc" rx="2"/>
+    <rect x="64"  y="15" width="22" height="85" fill="#0ea5e9" rx="2"/>
+    <rect x="96"  y="25" width="22" height="75" fill="#7dd3fc" rx="2"/>
+    <rect x="128" y="40" width="22" height="60" fill="#7dd3fc" rx="2"/>
+    <rect x="160" y="65" width="22" height="35" fill="#475569" rx="2"/>
+    <rect x="192" y="73" width="22" height="27" fill="#475569" rx="2"/>
+    <!-- Day labels -->
+    <text x="11"  y="115" class="kpi-label" text-anchor="middle">월</text>
+    <text x="43"  y="115" class="kpi-label" text-anchor="middle">화</text>
+    <text x="75"  y="115" class="kpi-label" text-anchor="middle" fill="#0ea5e9" font-weight="700">수</text>
+    <text x="107" y="115" class="kpi-label" text-anchor="middle">목</text>
+    <text x="139" y="115" class="kpi-label" text-anchor="middle">금</text>
+    <text x="171" y="115" class="kpi-label" text-anchor="middle">토</text>
+    <text x="203" y="115" class="kpi-label" text-anchor="middle">일</text>
+    <!-- Peak callout -->
+    <text x="75" y="9" class="kpi-label" text-anchor="middle" fill="#0ea5e9" font-weight="700">★90%</text>
+  </g>
+
+  <!-- Day insight -->
+  <rect x="480" y="390" width="240" height="90" rx="4" fill="rgba(120,53,15,0.25)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="490" y="408" class="insight-text">💡 인사이트</text>
+  <text x="490" y="425" class="branch-sub">• 수요일 피크 90% (만석 우려)</text>
+  <text x="490" y="441" class="branch-sub">• 토 40% / 일 30% — 슬롯 저활용</text>
+  <text x="490" y="457" class="branch-sub">• 평일 출석 균일·안정</text>
+  <text x="490" y="473" class="branch-sub">→ 주말 프로모션 검토 가치 있음</text>
+
+  <!-- ============================ BRANCH 3: Team distribution ============================ -->
+  <rect x="860" y="225" width="280" height="265" rx="8" fill="#0f172a"/>
+  <rect x="860" y="225" width="280" height="265" rx="8" fill="rgba(8,51,68,0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="1000" y="248" class="branch-title" text-anchor="middle">👥 팀별 분배 현황</text>
+  <line x1="880" y1="258" x2="1120" y2="258" stroke="#22d3ee" stroke-width="0.8"/>
+
+  <!-- Horizontal progress bars -->
+  <g transform="translate(880,275)">
+    <!-- 영어 오전 -->
+    <text x="0" y="12" class="branch-sub">영 오전 11시 · 423명</text>
+    <rect x="0" y="18" width="240" height="10" rx="3" fill="#1e293b"/>
+    <rect x="0" y="18" width="108" height="10" rx="3" fill="#6366f1"/>
+    <text x="245" y="27" class="kpi-label" text-anchor="end" fill="#a5b4fc" font-weight="600">45%</text>
+
+    <!-- 영어 저녁 -->
+    <text x="0" y="48" class="branch-sub">영 저녁 8시 · 382명</text>
+    <rect x="0" y="54" width="240" height="10" rx="3" fill="#1e293b"/>
+    <rect x="0" y="54" width="96" height="10" rx="3" fill="#818cf8"/>
+    <text x="245" y="63" class="kpi-label" text-anchor="end" fill="#a5b4fc" font-weight="600">40%</text>
+
+    <!-- 일어 오전 -->
+    <text x="0" y="84" class="branch-sub">일 오전 11시 · 214명</text>
+    <rect x="0" y="90" width="240" height="10" rx="3" fill="#1e293b"/>
+    <rect x="0" y="90" width="60" height="10" rx="3" fill="#3b82f6"/>
+    <text x="245" y="99" class="kpi-label" text-anchor="end" fill="#93c5fd" font-weight="600">25%</text>
+
+    <!-- 일어 저녁 -->
+    <text x="0" y="120" class="branch-sub">일 저녁 8시 · 229명</text>
+    <rect x="0" y="126" width="240" height="10" rx="3" fill="#1e293b"/>
+    <rect x="0" y="126" width="67" height="10" rx="3" fill="#60a5fa"/>
+    <text x="245" y="135" class="kpi-label" text-anchor="end" fill="#93c5fd" font-weight="600">28%</text>
+  </g>
+
+  <!-- Team insight -->
+  <rect x="880" y="390" width="240" height="90" rx="4" fill="rgba(120,53,15,0.25)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="890" y="408" class="insight-text">💡 인사이트</text>
+  <text x="890" y="425" class="branch-sub">• 영어 우세 (오전+저녁 85%)</text>
+  <text x="890" y="441" class="branch-sub">• 영어 오전 45% — 정원 압박 가능성</text>
+  <text x="890" y="457" class="branch-sub">• 일어 비중 53% — 균형 양호</text>
+  <text x="890" y="473" class="branch-sub">→ leader.html 영 오전 결원 점검</text>
+
+  <!-- ============================ DECISION DIAMOND ============================ -->
+  <polygon points="600,565 750,605 600,640 450,605" fill="rgba(120,53,15,0.5)" stroke="#fbbf24" stroke-width="1.8"/>
+  <text x="600" y="603" class="root-name" text-anchor="middle">판단</text>
+  <text x="600" y="619" class="branch-sub" text-anchor="middle">정상 / 이상치 발견 ?</text>
+
+  <!-- ============================ ROUTES ============================ -->
+
+  <!-- Route 1: Normal → Download -->
+  <rect x="55" y="720" width="160" height="65" rx="6" fill="#0f172a"/>
+  <rect x="55" y="720" width="160" height="65" rx="6" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="135" y="743" class="route-name" text-anchor="middle">📥 리포트 다운로드</text>
+  <text x="135" y="760" class="route-sub" text-anchor="middle">월 마감 보고용</text>
+  <text x="135" y="773" class="route-sub" text-anchor="middle">(미구현 — UI만)</text>
+
+  <!-- Route 2: 신규 부진 → call.html -->
+  <rect x="365" y="720" width="160" height="65" rx="6" fill="#0f172a"/>
+  <rect x="365" y="720" width="160" height="65" rx="6" fill="rgba(159,18,57,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+  <text x="445" y="743" class="route-name" text-anchor="middle">📞 call.html</text>
+  <text x="445" y="760" class="route-sub" text-anchor="middle">회신율 · 전환율 점검</text>
+  <text x="445" y="773" class="route-sub" text-anchor="middle">데이터 보드 탭</text>
+
+  <!-- Route 3: 출석 저조 → member.html -->
+  <rect x="675" y="720" width="160" height="65" rx="6" fill="#0f172a"/>
+  <rect x="675" y="720" width="160" height="65" rx="6" fill="rgba(159,18,57,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+  <text x="755" y="743" class="route-name" text-anchor="middle">🎓 member.html</text>
+  <text x="755" y="760" class="route-sub" text-anchor="middle">CHECK 알림 5종 확인</text>
+  <text x="755" y="773" class="route-sub" text-anchor="middle">레벨 · 멤버십 분포</text>
+
+  <!-- Route 4: 매출 미달 → branchstatus.html -->
+  <rect x="985" y="720" width="160" height="65" rx="6" fill="#0f172a"/>
+  <rect x="985" y="720" width="160" height="65" rx="6" fill="rgba(159,18,57,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+  <text x="1065" y="743" class="route-name" text-anchor="middle">💰 branchstatus.html</text>
+  <text x="1065" y="760" class="route-sub" text-anchor="middle">결제일 기준 코호트 분석</text>
+  <text x="1065" y="773" class="route-sub" text-anchor="middle">환불 비중 · 멤버십별 매출</text>
+
+  <!-- ============================ LEGEND ============================ -->
+  <rect x="30" y="60" width="160" height="100" rx="4" fill="rgba(15,23,42,0.7)" stroke="#334155" stroke-width="1"/>
+  <text x="40" y="78" class="legend-text" font-weight="700" fill="#f8fafc">색 의미</text>
+  <circle cx="48" cy="98" r="5" fill="#fbbf24"/>
+  <text x="58" y="102" class="legend-text">Root / Decision</text>
+  <circle cx="48" cy="118" r="5" fill="#22d3ee"/>
+  <text x="58" y="122" class="legend-text">UI 섹션 / 차트</text>
+  <circle cx="48" cy="138" r="5" fill="#34d399"/>
+  <text x="58" y="142" class="legend-text">정상 경로</text>
+  <circle cx="48" cy="158" r="5" fill="#fb7185"/>
+  <text x="58" y="162" class="legend-text">이상치 드릴다운</text>
+
+  <text x="1170" y="800" class="legend-text" text-anchor="end" fill="#94a3b8">© 하남 지점 어드민 · USER-STORY-stats.md</text>
+</svg>

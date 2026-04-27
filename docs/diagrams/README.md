@@ -10,6 +10,9 @@
 | [home-a2-leader-board-flow.svg](./home-a2-leader-board-flow.svg) | `home.html` | A-2 리더 현황 상세 확인 | Flowchart |
 | [leader-b2-substitute-workflow.svg](./leader-b2-substitute-workflow.svg) | `leader.html` | B-2 불참→대타 배정 ⭐ | Sequence Diagram |
 | [member-c2-check-alert-decomposition.svg](./member-c2-check-alert-decomposition.svg) | `member.html` | C-2 CHECK 알림 분류 + 대응 ⭐ | Structural / Decomposition |
+| [call-d2-callback-pipeline.svg](./call-d2-callback-pipeline.svg) | `call.html` | D-2 콜백→결과 코딩→예약 확정 ⭐ | Sequence Diagram |
+| [branchstatus-e1-refund-workflow.svg](./branchstatus-e1-refund-workflow.svg) | `branchstatus.html` | E-1 환불 처리 (3유형) ⭐ | Flowchart |
+| [stats-f1-monthly-kpi-review.svg](./stats-f1-monthly-kpi-review.svg) | `stats.html` | F-1 월간 KPI 검토 + 인사이트 도출 ⭐ | Structural / Decomposition |
 
 ⭐ = 페이지 핵심 워크플로우
 
@@ -45,4 +48,7 @@
 - [USER-STORY-home.md](../USER-STORY-home.md)
 - [USER-STORY-leader.md](../USER-STORY-leader.md)
 - [USER-STORY-member.md](../USER-STORY-member.md)
+- [USER-STORY-call.md](../USER-STORY-call.md)
+- [USER-STORY-branchstatus.md](../USER-STORY-branchstatus.md)
+- [USER-STORY-stats.md](../USER-STORY-stats.md)
 - [USER-SCENARIOS.md](../USER-SCENARIOS.md)

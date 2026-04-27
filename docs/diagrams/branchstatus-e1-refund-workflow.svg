@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1000" preserveAspectRatio="xMidYMid meet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&amp;display=swap');
+    text { font-family: 'JetBrains Mono', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Pretendard', monospace; }
+    .node-name { fill: white; font-size: 12px; font-weight: 600; }
+    .node-sub { fill: #cbd5e1; font-size: 9px; font-weight: 400; }
+    .node-decision { fill: white; font-size: 11px; font-weight: 700; }
+    .branch-label { fill: white; font-size: 12px; font-weight: 700; }
+    .branch-sub { fill: #cbd5e1; font-size: 9px; font-weight: 400; }
+    .arrow-label { font-size: 9px; font-weight: 600; }
+    .title-text { fill: #f8fafc; font-size: 16px; font-weight: 700; }
+    .subtitle-text { fill: #94a3b8; font-size: 10px; font-weight: 400; }
+    .legend-text { fill: #cbd5e1; font-size: 9px; font-weight: 400; }
+    .note-text { fill: #fbbf24; font-size: 9px; font-weight: 500; }
+  </style>
+
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrow-flow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22d3ee"/>
+    </marker>
+    <marker id="arrow-resolve" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#0f172a"/>
+  <rect width="100%" height="100%" fill="url(#grid)"/>
+
+  <text x="30" y="30" class="title-text">환불 처리 워크플로우 — 3유형 (E-1)</text>
+  <text x="30" y="46" class="subtitle-text">branchstatus.html · 지점장 핵심 결정 시나리오 · 전체/부분/정산 입금 분기</text>
+
+  <!-- ============================ FLOW ARROWS ============================ -->
+
+  <!-- Start → Click -->
+  <line x1="620" y1="115" x2="620" y2="155" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#arrow-flow)"/>
+  <!-- Click → Modal -->
+  <line x1="620" y1="215" x2="620" y2="255" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#arrow-flow)"/>
+  <!-- Modal → Show pay info -->
+  <line x1="620" y1="315" x2="620" y2="355" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#arrow-flow)"/>
+  <!-- Show pay → Decision -->
+  <line x1="620" y1="415" x2="620" y2="450" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#arrow-flow)"/>
+
+  <!-- Decision → 3 branches (fan-out) -->
+  <line x1="535" y1="495" x2="200" y2="495" stroke="#fbbf24" stroke-width="1.5"/>
+  <line x1="200" y1="495" x2="200" y2="540" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+  <line x1="620" y1="540" x2="620" y2="540" stroke="#fbbf24" stroke-width="0"/>
+  <line x1="620" y1="510" x2="620" y2="540" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+  <line x1="705" y1="495" x2="1040" y2="495" stroke="#fbbf24" stroke-width="1.5"/>
+  <line x1="1040" y1="495" x2="1040" y2="540" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+
+  <!-- Branch labels (Yes/Yes/Yes) -->
+  <text x="385" y="488" class="arrow-label" fill="#fbbf24" text-anchor="middle">전체 취소</text>
+  <text x="630" y="528" class="arrow-label" fill="#fbbf24" text-anchor="start">부분 취소</text>
+  <text x="855" y="488" class="arrow-label" fill="#fbbf24" text-anchor="middle">정산 입금</text>
+
+  <!-- Each branch box → Reason convergence (down) -->
+  <line x1="200" y1="685" x2="200" y2="730" stroke="#22d3ee" stroke-width="1.5"/>
+  <line x1="620" y1="685" x2="620" y2="730" stroke="#22d3ee" stroke-width="1.5"/>
+  <line x1="1040" y1="685" x2="1040" y2="730" stroke="#22d3ee" stroke-width="1.5"/>
+  <!-- Horizontal merge bar -->
+  <line x1="200" y1="730" x2="1040" y2="730" stroke="#22d3ee" stroke-width="1.5"/>
+  <!-- Down to Reason -->
+  <line x1="620" y1="730" x2="620" y2="765" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#arrow-flow)"/>
+
+  <!-- Reason → Submit -->
+  <line x1="620" y1="825" x2="620" y2="860" stroke="#22d3ee" stroke-width="1.8" marker-end="url(#arrow-flow)"/>
+
+  <!-- Submit → System effects (3 fan-out) -->
+  <line x1="540" y1="900" x2="280" y2="900" stroke="#34d399" stroke-width="1.5"/>
+  <line x1="700" y1="900" x2="960" y2="900" stroke="#34d399" stroke-width="1.5"/>
+  <line x1="280" y1="900" x2="280" y2="935" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-resolve)"/>
+  <line x1="620" y1="900" x2="620" y2="935" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-resolve)"/>
+  <line x1="960" y1="900" x2="960" y2="935" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrow-resolve)"/>
+
+  <!-- ============================ NODES ============================ -->
+
+  <!-- Start -->
+  <rect x="510" y="65" width="220" height="50" rx="25" fill="#0f172a"/>
+  <rect x="510" y="65" width="220" height="50" rx="25" fill="rgba(59,130,246,0.3)" stroke="#60a5fa" stroke-width="1.8"/>
+  <text x="620" y="89" class="node-name" text-anchor="middle">▶ 회원 환불 요청</text>
+  <text x="620" y="104" class="node-sub" text-anchor="middle">전화 / 카운터 / 카톡 등 외부 트리거</text>
+
+  <!-- Step 1: Click -->
+  <rect x="510" y="155" width="220" height="60" rx="6" fill="#0f172a"/>
+  <rect x="510" y="155" width="220" height="60" rx="6" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="620" y="180" class="node-name" text-anchor="middle">📋 테이블 행 → "추가" 드롭다운</text>
+  <text x="620" y="197" class="node-sub" text-anchor="middle">→ "환불" 항목 클릭</text>
+  <text x="620" y="210" class="node-sub" text-anchor="middle">_refundTargetId = visitor.id</text>
+
+  <!-- Step 2: Open Modal -->
+  <rect x="510" y="255" width="220" height="60" rx="6" fill="#0f172a"/>
+  <rect x="510" y="255" width="220" height="60" rx="6" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="620" y="280" class="node-name" text-anchor="middle">🪟 환불 처리 모달 오픈</text>
+  <text x="620" y="297" class="node-sub" text-anchor="middle">openRefundModal(id)</text>
+  <text x="620" y="310" class="node-sub" text-anchor="middle">화면 중앙 dim + scale-in</text>
+
+  <!-- Step 3: Show pay info -->
+  <rect x="510" y="355" width="220" height="60" rx="6" fill="#0f172a"/>
+  <rect x="510" y="355" width="220" height="60" rx="6" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="620" y="380" class="node-name" text-anchor="middle">💰 기존 결제 정보 (R/O)</text>
+  <text x="620" y="397" class="node-sub" text-anchor="middle">결제 방식 · 금액 · 결제일</text>
+  <text x="620" y="410" class="node-sub" text-anchor="middle">visitor 객체 참조</text>
+
+  <!-- Decision (diamond) -->
+  <polygon points="620,440 730,495 620,510 535,495 620,440 705,495" fill="rgba(120,53,15,0.5)" stroke="#fbbf24" stroke-width="1.8"/>
+  <polygon points="620,440 730,495 620,510 535,495" fill="rgba(120,53,15,0.5)" stroke="#fbbf24" stroke-width="1.8"/>
+  <text x="620" y="478" class="node-decision" text-anchor="middle">환불 유형</text>
+  <text x="620" y="494" class="node-sub" text-anchor="middle">_refundType ?</text>
+
+  <!-- Branch A: Full -->
+  <rect x="80" y="540" width="240" height="145" rx="8" fill="#0f172a"/>
+  <rect x="80" y="540" width="240" height="145" rx="8" fill="rgba(76,29,149,0.25)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="200" y="564" class="branch-label" text-anchor="middle">A · 전체 취소 (full)</text>
+  <line x1="100" y1="572" x2="300" y2="572" stroke="#a78bfa" stroke-width="0.8"/>
+  <text x="100" y="590" class="branch-sub">• 환불 금액 = 결제 금액 자동</text>
+  <text x="100" y="608" class="branch-sub">• 환불 방식 (라디오):</text>
+  <text x="115" y="624" class="branch-sub">  카드취소 / 계좌입금 / 현금 / 토스</text>
+  <text x="100" y="644" class="branch-sub">• 환불 처리일 (date picker)</text>
+  <text x="100" y="668" class="note-text">→ 가장 빈번한 케이스</text>
+
+  <!-- Branch B: Partial -->
+  <rect x="500" y="540" width="240" height="145" rx="8" fill="#0f172a"/>
+  <rect x="500" y="540" width="240" height="145" rx="8" fill="rgba(76,29,149,0.25)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="620" y="564" class="branch-label" text-anchor="middle">B · 부분 취소 (partial)</text>
+  <line x1="520" y1="572" x2="720" y2="572" stroke="#a78bfa" stroke-width="0.8"/>
+  <text x="520" y="590" class="branch-sub">• 부분 환불 금액 직접 입력</text>
+  <text x="520" y="608" class="branch-sub">• 환불 방식 (라디오):</text>
+  <text x="535" y="624" class="branch-sub">  카드취소 / 계좌입금 / 현금 / 토스</text>
+  <text x="520" y="644" class="branch-sub">• 환불 처리일 (date picker)</text>
+  <text x="520" y="668" class="note-text">→ 일부 차감 후 환불</text>
+
+  <!-- Branch C: Deposit -->
+  <rect x="920" y="540" width="240" height="145" rx="8" fill="#0f172a"/>
+  <rect x="920" y="540" width="240" height="145" rx="8" fill="rgba(76,29,149,0.25)" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="1040" y="564" class="branch-label" text-anchor="middle">C · 환불 정산 입금 (deposit)</text>
+  <line x1="940" y1="572" x2="1140" y2="572" stroke="#a78bfa" stroke-width="0.8"/>
+  <text x="940" y="590" class="branch-sub">• 정산 비용 입력</text>
+  <text x="940" y="608" class="branch-sub">• 정산 결제일 + 결제 방식</text>
+  <text x="940" y="626" class="branch-sub">• 환불 금액 입력</text>
+  <text x="940" y="644" class="branch-sub">• 환불 처리일 (date picker)</text>
+  <text x="940" y="668" class="note-text">→ 정산 후 잔액 환불</text>
+
+  <!-- Reason node -->
+  <rect x="430" y="765" width="380" height="60" rx="8" fill="#0f172a"/>
+  <rect x="430" y="765" width="380" height="60" rx="8" fill="rgba(120,53,15,0.4)" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="620" y="790" class="node-name" text-anchor="middle">📝 환불 사유 입력</text>
+  <text x="620" y="807" class="node-sub" text-anchor="middle">사유 칩 (개인사정 · 이사 · 불만족 · 건강 · 시간) 또는</text>
+  <text x="620" y="820" class="node-sub" text-anchor="middle">textarea 직접 입력 (선택 시 칩 → textarea 자동 채움)</text>
+
+  <!-- Submit button -->
+  <rect x="490" y="860" width="260" height="40" rx="20" fill="#0f172a"/>
+  <rect x="490" y="860" width="260" height="40" rx="20" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1.8"/>
+  <text x="620" y="885" class="node-name" text-anchor="middle">🔘 "환불 처리" 버튼 클릭</text>
+
+  <!-- System effects (3 boxes) -->
+  <rect x="160" y="935" width="240" height="60" rx="6" fill="#0f172a"/>
+  <rect x="160" y="935" width="240" height="60" rx="6" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="280" y="960" class="node-name" text-anchor="middle">📜 history += 환불</text>
+  <text x="280" y="977" class="node-sub" text-anchor="middle">type:'환불', date, color:'red'</text>
+  <text x="280" y="990" class="node-sub" text-anchor="middle">상세 모달 타임라인 표시</text>
+
+  <rect x="500" y="935" width="240" height="60" rx="6" fill="#0f172a"/>
+  <rect x="500" y="935" width="240" height="60" rx="6" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="620" y="960" class="node-name" text-anchor="middle">📌 extras += 환불 항목</text>
+  <text x="620" y="977" class="node-sub" text-anchor="middle">테이블 결제금액 셀 서브표시</text>
+  <text x="620" y="990" class="node-sub" text-anchor="middle">amount -= refundAmount</text>
+
+  <rect x="840" y="935" width="240" height="60" rx="6" fill="#0f172a"/>
+  <rect x="840" y="935" width="240" height="60" rx="6" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1.5"/>
+  <text x="960" y="960" class="node-name" text-anchor="middle">🔄 renderAll() 호출</text>
+  <text x="960" y="977" class="node-sub" text-anchor="middle">KPI · 차트 5종 · 테이블 갱신</text>
+  <text x="960" y="990" class="node-sub" text-anchor="middle">환불 뱃지 토스트 노출</text>
+
+  <!-- ========== LEGEND ========== -->
+  <rect x="30" y="60" width="170" height="120" rx="4" fill="rgba(15,23,42,0.7)" stroke="#334155" stroke-width="1"/>
+  <text x="40" y="78" class="legend-text" font-weight="700" fill="#f8fafc">색 의미 (Legend)</text>
+  <circle cx="48" cy="98" r="5" fill="#60a5fa"/>
+  <text x="58" y="102" class="legend-text">Start / End</text>
+  <circle cx="48" cy="118" r="5" fill="#22d3ee"/>
+  <text x="58" y="122" class="legend-text">UI Process</text>
+  <circle cx="48" cy="138" r="5" fill="#fbbf24"/>
+  <text x="58" y="142" class="legend-text">Decision / Note</text>
+  <circle cx="48" cy="158" r="5" fill="#a78bfa"/>
+  <text x="58" y="162" class="legend-text">Type Branch</text>
+  <circle cx="48" cy="178" r="5" fill="#34d399"/>
+  <text x="58" y="182" class="legend-text">System Effect</text>
+
+  <!-- Bottom credit -->
+  <text x="1210" y="990" class="legend-text" text-anchor="end" fill="#94a3b8">© 하남 지점 어드민 · USER-STORY-branchstatus.md</text>
+</svg>
