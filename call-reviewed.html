@@ -125,7 +125,7 @@ p{text-wrap:pretty;word-break:keep-all;}
 /* ── INPUT MODAL (이름/사유 수정) ── */
 #input-modal { transition: opacity 0.15s; visibility: hidden; opacity: 0; pointer-events: none; }
 #input-modal.show { visibility: visible; opacity: 1; pointer-events: auto; }
-#input-modal .modal-box { transform: scale(0.95) translateY(8px); transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+#input-modal .modal-box { transform: scale(0.95) translateY(8px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
 #input-modal.show .modal-box { transform: scale(1) translateY(0); }
 .input-modal-field { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 14px; font-size: 15px; font-weight: 700; color: #0f172a; outline: none; transition: border-color 0.2s, box-shadow 0.2s; background: #f8fafc; }
 .input-modal-field:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14,165,233,0.1); background: white; }
@@ -134,7 +134,7 @@ p{text-wrap:pretty;word-break:keep-all;}
 /* ── DUPLICATE MODAL ── */
 #dup-modal { transition: opacity 0.15s; visibility: hidden; opacity: 0; pointer-events: none; }
 #dup-modal.show { visibility: visible; opacity: 1; pointer-events: auto; }
-#dup-modal .dup-box { transform: scale(0.95) translateY(8px); transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+#dup-modal .dup-box { transform: scale(0.95) translateY(8px); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
 #dup-modal.show .dup-box { transform: scale(1) translateY(0); }
 .dup-badge { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 99px; font-size: 9px; font-weight: 800; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; cursor: pointer; transition: all 0.15s; }
 .dup-badge:hover { background: #fee2e2; border-color: #f87171; box-shadow: 0 2px 8px rgba(220,38,38,0.15); }
@@ -754,7 +754,7 @@ p{text-wrap:pretty;word-break:keep-all;}
 
 <!-- New Applicant Modal -->
 <div id="new-app-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center" style="transition:opacity 0.15s;visibility:hidden;opacity:0;pointer-events:none;" onclick="if(event.target===this)closeNewAppModal()">
-  <div class="bg-white rounded-2xl shadow-2xl w-[420px] overflow-hidden" style="transform:scale(0.95) translateY(8px);transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);" id="new-app-box">
+  <div class="bg-white rounded-2xl shadow-2xl w-[420px] overflow-hidden" style="transform:scale(0.95) translateY(8px);transition:transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);" id="new-app-box">
     <!-- Header -->
     <div class="px-6 pt-5 pb-3 border-b border-slate-100">
       <div class="flex items-center gap-3">
