@@ -106,3 +106,22 @@
 - 커밋 22건: scaffold 2(1차+2차) + finding 19건 + notes 1
   - 1차(home/leader/member): FINDING-H × 4, FINDING-L × 6, FINDING-M × 3 = 13건
   - 2차(stats/branchstatus/call): FINDING-S × 3, FINDING-B × 2, FINDING-C × 3 = 8건
+
+## member-impeccable.html (3차, experimental)
+
+| 항목 | reviewed | impeccable |
+|---|---|---|
+| Sticky 헤더 단수 | 3단 (헤더+팀탭+레벨바) | **1단** (헤더만 56px) |
+| 색상 종수 | 17 (레벨5+멤버십5+팀2+알림5) | **6** (slate base + brand opacity step + 영/일 dot + critical/medium 알림) |
+| 모달 수 | 2 (프로필 + 출석이력) | **1** (프로필) — 출석이력은 행 inline expand |
+| 정렬 옵션 노출 | 13개 한 줄 | **segmented 4 + details 9** |
+| 멤버 행 위계 | 동일 | **3-tier 변주** (compact 48 / standard 64 / emphasized 80) |
+| 출석 시각화 | 16블록 막대 | **4주 sparkline + expand 16블록** |
+| 멤버십 표시 | 행 배경 5색 | **brand opacity dot + 잔여 도넛 SVG** |
+| 팀 배지 | `border-left:3px solid` (side-stripe) | **6px dot** (impeccable 금지룰 시정) |
+| 신규 모드 | 없음 | **"오늘 모드"** 토글 (첫방문/미출석/알림 우선) |
+| 팀 네비 | sticky 가로 탭 | **좌측 96px rail** (영/일 그룹) |
+| 레벨 점프 | sticky 바로가기 | **우측 36px dot column** + IntersectionObserver |
+| 라인 수 | 1,849 | 1,460 |
+
+**주의**: experimental study로 nav drawer 노출하지 않음, PRD 동기화 미수행, member-reviewed.html과 병행 보존.
