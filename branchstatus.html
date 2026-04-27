@@ -86,6 +86,14 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 .settle-method-btn{flex:1;padding:5px;border-radius:6px;font-size:10px;font-weight:700;border:1.5px solid #fde68a;color:#92400e;background:white;cursor:pointer;transition:all 0.12s;text-align:center;}
 .settle-method-btn:hover{background:#fffbeb;}
 .settle-method-btn.active{border-color:#f59e0b;color:#f59e0b;background:#fffbeb;}
+
+/* 재무 모드 활성 컬럼 강조 (자료등록일/결제일/스터디 시작일 헤더) */
+.bs-table th.bs-basis-active{background:#fef3c7;color:#92400e;border-bottom:2px solid #f59e0b;position:relative;}
+.bs-table th.bs-basis-active::before{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:#f59e0b;}
+.bs-table th.bs-basis-active::after{content:'재무';position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:900;background:#f59e0b;color:white;padding:1px 5px;border-radius:99px;letter-spacing:0.05em;}
+.bs-table td.bs-basis-active{background:#fffbeb;border-left:1px solid #fde68a;border-right:1px solid #fde68a;}
+.bs-table td.bs-basis-active span{color:#92400e !important;font-weight:700 !important;}
+.bs-table tr:hover td.bs-basis-active{background:#fef3c7;}
 </style>
 </head>
 <body class="antialiased min-h-screen pb-20">
@@ -124,11 +132,22 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 
   <!-- PAGE HEADER + Period -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-    <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+    <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3 flex-wrap">
       BRANCH STATUS
       <span class="text-sm font-semibold text-brand-600 bg-brand-50 px-2 py-1 rounded-md border border-brand-100">하남 지점 현황</span>
+      <span id="bs-basis-badge" class="hidden text-[11px] font-black bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200 items-center gap-1"><i class="ph-fill ph-coin text-xs"></i><span id="bs-basis-badge-text">결제일 기준</span></span>
     </h2>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 flex-wrap">
+      <!-- 재무 필터: 기간을 어느 날짜 컬럼 기준으로 볼지 선택 (결제일/시작일 모드는 결제자만 자동 노출) -->
+      <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2 py-1.5 shadow-sm">
+        <i class="ph-fill ph-funnel text-brand-500 text-sm"></i>
+        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">기준일</span>
+        <select id="bs-basis" class="text-[11px] font-bold text-slate-700 outline-none bg-transparent cursor-pointer border-none">
+          <option value="regDate">자료 등록일</option>
+          <option value="payDate">결제일 (재무)</option>
+          <option value="startDate">스터디 시작일 (재무)</option>
+        </select>
+      </div>
       <div class="flex items-center gap-1 p-1 bg-slate-200/50 rounded-xl border border-slate-200">
         <button class="period-btn bs-period active" data-period="month">이번달</button>
         <button class="period-btn bs-period" data-period="1w">1주</button>
@@ -305,9 +324,9 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
             <th>유입 경로</th>
             <th>결제 방식</th>
             <th>결제 금액</th>
-            <th>자료 등록일</th>
-            <th>결제일</th>
-            <th>스터디 시작일</th>
+            <th data-basis="regDate">자료 등록일</th>
+            <th data-basis="payDate">결제일</th>
+            <th data-basis="startDate">스터디 시작일</th>
             <th>종료일</th>
             <th>메모</th>
             <th class="text-center">추가</th>
@@ -615,6 +634,9 @@ function genVisitors(){
       endDate:endDate?fmtD(endDate):'-',
       regDate:regStr,
       regTime:regDate.getTime(),
+      // 재무 필터용 타임스탬프 (결제일/스터디 시작일 기준 조회)
+      payTime: status.id !== 'unregistered' ? payDate.getTime() : null,
+      startTime: startDate ? startDate.getTime() : null,
       memo:'',
       extras:[],
       // Study & History
@@ -629,18 +651,34 @@ function periodDays(p){
   if(p==='1w')return 7;if(p==='2w')return 14;if(p==='1m')return 30;if(p==='3m')return 90;return 99999;
 }
 
+// 기준일(자료 등록일/결제일/스터디 시작일) — 재무 모드에선 결제일 또는 스터디 시작일 사용
+let bsBasis = 'regDate';
+function basisField(){
+  if(bsBasis==='payDate') return 'payTime';
+  if(bsBasis==='startDate') return 'startTime';
+  return 'regTime';
+}
+function basisLabel(){
+  if(bsBasis==='payDate') return '결제일';
+  if(bsBasis==='startDate') return '스터디 시작일';
+  return '자료 등록일';
+}
+
 function filteredVisitors(){
+  const field = basisField();
+  // 결제일/시작일 모드: 해당 timestamp 없는 visitor(미가입자/미시작자) 자동 제외
+  const base = visitors.filter(v => v[field] != null);
   if(bsPeriod==='custom' && bsCustomFrom && bsCustomTo){
-    return visitors.filter(v=>v.regTime>=bsCustomFrom.getTime()&&v.regTime<=bsCustomTo.getTime());
+    return base.filter(v=>v[field]>=bsCustomFrom.getTime()&&v[field]<=bsCustomTo.getTime());
   }
   if(bsPeriod==='month'){
     const now=new Date();
     const start=new Date(now.getFullYear(),now.getMonth(),1).getTime();
-    return visitors.filter(v=>v.regTime>=start);
+    return base.filter(v=>v[field]>=start);
   }
   const days=periodDays(bsPeriod);
   const cutoff=Date.now()-days*86400000;
-  return visitors.filter(v=>v.regTime>=cutoff);
+  return base.filter(v=>v[field]>=cutoff);
 }
 
 // ── Custom Range Picker ──
@@ -1314,10 +1352,43 @@ function closeBsDetail(){
   setTimeout(() => { modal.style.visibility = 'hidden'; modal.style.pointerEvents = 'none'; }, 150);
 }
 
+function updateBasisUI(){
+  // 헤더 옆 컨텍스트 배지 — 재무 모드(결제일/시작일)일 때만 노출
+  const badge = document.getElementById('bs-basis-badge');
+  const txt   = document.getElementById('bs-basis-badge-text');
+  if(badge && txt){
+    if(bsBasis === 'regDate'){
+      badge.classList.add('hidden'); badge.classList.remove('inline-flex');
+    } else {
+      badge.classList.remove('hidden'); badge.classList.add('inline-flex');
+      txt.textContent = `${basisLabel()} 기준 · 결제자만`;
+    }
+  }
+  // 테이블 헤더/바디 컬럼 강조 — 활성 기준일 컬럼만 하이라이트
+  const ths = document.querySelectorAll('.bs-table th[data-basis]');
+  let activeColIdx = -1;
+  ths.forEach((th, idx) => {
+    const isActive = th.dataset.basis === bsBasis && bsBasis !== 'regDate';
+    th.classList.toggle('bs-basis-active', isActive);
+    if(isActive){
+      // 헤더 인덱스(전체 th 중 위치)를 찾아 td에도 적용
+      const allThs = Array.from(th.parentNode.children);
+      activeColIdx = allThs.indexOf(th);
+    }
+  });
+  // td 강조 (활성 컬럼만)
+  document.querySelectorAll('.bs-table tbody tr').forEach(tr => {
+    Array.from(tr.children).forEach((td, i) => {
+      td.classList.toggle('bs-basis-active', i === activeColIdx);
+    });
+  });
+}
+
 function renderAll(){
   renderKPIs();
   renderCharts();
   renderTable();
+  updateBasisUI();
 }
 
 function switchBsTab(tab){
@@ -1332,6 +1403,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('hamburger-btn').onclick=()=>{overlay.classList.remove('hidden');setTimeout(()=>{overlay.classList.remove('opacity-0');drawer.classList.remove('-translate-x-full');},10);};
   const close=()=>{overlay.classList.add('opacity-0');drawer.classList.add('-translate-x-full');setTimeout(()=>overlay.classList.add('hidden'),300);};
   overlay.onclick=close;document.getElementById('close-drawer-btn').onclick=close;
+
+  // 기준일 셀렉트 (재무 모드 토글) — 결제일/스터디시작일 모드 선택 시 결제자만 자동 노출
+  const basisSel = document.getElementById('bs-basis');
+  if(basisSel){
+    basisSel.addEventListener('change', e => {
+      bsBasis = e.target.value;
+      renderAll();
+    });
+  }
 
   // Period buttons
   document.querySelectorAll('.bs-period').forEach(btn=>{

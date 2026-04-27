@@ -493,7 +493,7 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
           </div>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-6">
           <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col">
             <div class="flex items-center justify-between mb-4">
               <span class="text-xs font-bold text-slate-600">시간대별 실시간 현황</span>
@@ -550,7 +550,31 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
               </div>
             </div>
           </div>
-          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100"><span class="text-xs font-bold text-slate-600 mb-4 block">유입 경로 현황</span><div id="b-source-wrap" class="space-y-2"></div></div>
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">유입 경로 분석</span>
+              <select id="b-source-sort" class="text-[10px] font-bold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-600 outline-none cursor-pointer hover:border-brand-300 transition-colors">
+                <option value="count-desc">지원자 많은순</option>
+                <option value="count-asc">지원자 적은순</option>
+                <option value="rate-desc">성공률 높은순</option>
+                <option value="rate-asc">성공률 낮은순</option>
+                <option value="default">기본 순서</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs font-bold text-slate-600 mb-3 block">유입 경로 현황</span>
+                <div id="b-source-wrap" class="space-y-2"></div>
+              </div>
+              <div class="sm:border-l sm:border-slate-200/60 sm:pl-4">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5"><i class="ph-fill ph-target text-emerald-500"></i> 회신 성공률</span>
+                  <span id="b-source-success-overall" class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100" title="회신 기록(통화 로그)이 1건 이상 남은 지원자 비율">0%</span>
+                </div>
+                <div id="b-source-success-wrap" class="space-y-2"></div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="pt-4 border-t border-slate-100">
           <span class="text-xs font-bold text-slate-500 mb-3 block flex items-center justify-between">
@@ -1336,12 +1360,57 @@ function renderBoard(){
   window._lastReplied = fa.filter(a => (callLogs[a.id]||[]).length > 0);
   window._lastTotal = fa;
 
+  // ── 유입 경로 분석: 두 패널 공통 데이터/정렬 ──
+  // 정렬 기준은 select 값에 따라 결정 (지원자/성공률, 오름/내림). 두 패널이 동일 순서로 렌더링되어 비교 용이.
+  const sortSel = document.getElementById('b-source-sort');
+  const sortVal = (sortSel?.value) || 'count-desc';
+  const sourceRows = SOURCES.map((s, idx) => {
+    const apps = fa.filter(a => a.source === s.id);
+    const cnt = apps.length;
+    const rep = apps.filter(a => (callLogs[a.id] || []).length > 0).length;
+    const rate = cnt > 0 ? Math.round((rep / cnt) * 100) : 0;
+    const sharePct = total > 0 ? Math.round(cnt / total * 100) : 0;
+    return { s, cnt, rep, rate, sharePct, defaultIdx: idx };
+  }).filter(r => r.cnt > 0);
+
+  switch (sortVal) {
+    case 'count-asc':  sourceRows.sort((a,b) => a.cnt - b.cnt); break;
+    case 'rate-desc':  sourceRows.sort((a,b) => b.rate - a.rate || b.cnt - a.cnt); break;
+    case 'rate-asc':   sourceRows.sort((a,b) => a.rate - b.rate || a.cnt - b.cnt); break;
+    case 'default':    sourceRows.sort((a,b) => a.defaultIdx - b.defaultIdx); break;
+    case 'count-desc':
+    default:           sourceRows.sort((a,b) => b.cnt - a.cnt); break;
+  }
+
   const srcWrap = document.getElementById('b-source-wrap'); srcWrap.innerHTML = '';
-  SOURCES.forEach(s => {
-    const count = fa.filter(a=>a.source===s.id).length; if(count === 0) return;
-    const pct = total>0?Math.round(count/total*100):0;
-    srcWrap.innerHTML += `<div class="flex items-center gap-2"><span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span><div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${pct}%"></div></div><span class="text-[10px] font-black text-slate-500 w-5 text-right">${count}</span><span class="text-[9px] font-bold text-slate-400 w-8 text-right">${pct}%</span></div>`;
-  });
+  if (sourceRows.length === 0) {
+    srcWrap.innerHTML = `<div class="text-[10px] text-slate-300 italic text-center py-3">데이터가 없습니다</div>`;
+  } else {
+    sourceRows.forEach(({ s, cnt, sharePct }) => {
+      srcWrap.innerHTML += `<div class="flex items-center gap-2"><span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span><div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${sharePct}%"></div></div><span class="text-[10px] font-black text-slate-500 w-5 text-right">${cnt}</span><span class="text-[9px] font-bold text-slate-400 w-8 text-right">${sharePct}%</span></div>`;
+    });
+  }
+
+  // 유입 경로별 회신 성공률 — 채널별로 callLogs가 1건 이상 남은 지원자 비율 (동일 정렬 적용)
+  const succWrap = document.getElementById('b-source-success-wrap');
+  if (succWrap) {
+    succWrap.innerHTML = '';
+    if (sourceRows.length === 0) {
+      succWrap.innerHTML = `<div class="text-[10px] text-slate-300 italic text-center py-3">데이터가 없습니다</div>`;
+    } else {
+      sourceRows.forEach(({ s, cnt, rep, rate }) => {
+        const rateColor = rate >= 70 ? 'text-emerald-600' : rate >= 40 ? 'text-amber-600' : 'text-red-500';
+        succWrap.innerHTML += `<div class="flex items-center gap-2"><span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span><div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${rate}%"></div></div><span class="text-[10px] font-black text-slate-500 w-12 text-right tabular-nums">${rep}/${cnt}</span><span class="text-[10px] font-black ${rateColor} w-9 text-right tabular-nums">${rate}%</span></div>`;
+      });
+    }
+
+    // 전체 회신 성공률 배지 갱신
+    const overallEl = document.getElementById('b-source-success-overall');
+    if (overallEl) {
+      const totalRate = total > 0 ? Math.round((replied / total) * 100) : 0;
+      overallEl.textContent = `전체 ${totalRate}%`;
+    }
+  }
   const empGrid = document.getElementById('b-emp-grid'); empGrid.innerHTML = '';
   employees.forEach(emp => {
     const count = fa.filter(a=>(callLogs[a.id]||[]).some(l=>l.key===emp.key)).length;
@@ -2745,6 +2814,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById(id);
     if (el) el.addEventListener(id.includes('search') ? 'input' : 'change', () => renderHistoryFiltered());
   });
+  // 유입 경로 분석 정렬 (지원자/성공률 × 오름/내림 등)
+  const sortSel = document.getElementById('b-source-sort');
+  if (sortSel) sortSel.addEventListener('change', () => { if (_activeMainTab === 'board') renderBoard(); });
   
   // Initial Data: Pre-populate with 15 varied samples
   const populateInitial = () => {

@@ -1333,10 +1333,12 @@
                 return { name, phone, age, lv, teams: myTeams, readingLevels, att, abs, sub, total, done, rate, rateColor, blocks, allBlocks, todayChecked, memo, schedule };
             }
 
-            // Guarantee exactly 2 leaders per level per specific class slot (teamSlot)
+            // 슬롯·레벨별 2~3명 리더 생성 (대부분 2명, 30% 확률로 3명).
+            // 두 팀 동시 선택 시 레벨당 4~5명 표시되도록 의도적 분포.
             teamSlots.forEach(slot => {
                 for (let level = 0; level <= 5; level++) {
-                    for (let count = 0; count < 2; count++) {
+                    const count = Math.random() < 0.3 ? 3 : 2;
+                    for (let i = 0; i < count; i++) {
                         leaders.push(createLeaderObj(level, undefined, slot));
                     }
                 }
@@ -1601,16 +1603,19 @@
                 const grid = document.getElementById('mx-grid');
                 if (!grid) return;
 
-                // Filter leaders (respect activeTeams)
+                // Filter leaders (respect activeTeams) — 테이블 뷰와 동일한 규칙:
+                // 개별 팀 선택 시 주(primary) 팀 기준 매칭.
                 const filtered = leaders.filter(l => {
-                    // Team tab filter
                     if (window._activeTeams && !window._activeTeams.has('all')) {
-                        const teamMatch = l.teams.some(t => {
-                            if (window._activeTeams.has(t)) return true;
-                            if (window._activeTeams.has('eng-all') && t.startsWith('영')) return true;
-                            if (window._activeTeams.has('jpn-all') && t.startsWith('일')) return true;
-                            return false;
-                        });
+                        const primaryTeam = l.teams[0] || '';
+                        let teamMatch;
+                        if (window._activeTeams.has('eng-all')) {
+                            teamMatch = l.teams.some(t => t.startsWith('영'));
+                        } else if (window._activeTeams.has('jpn-all')) {
+                            teamMatch = l.teams.some(t => t.startsWith('일'));
+                        } else {
+                            teamMatch = window._activeTeams.has(primaryTeam);
+                        }
                         if (!teamMatch) return false;
                     }
                     if (mxFilterLang !== 'all') {
@@ -3280,8 +3285,8 @@
                         const rB = parseInt(rateText(b));
                         return actualSortVal === 'rate-asc' ? rA - rB : rB - rA;
                     } else if (actualSortVal.startsWith('level')) {
-                        // 레벨 컬럼을 기준으로 정렬
-                        const getLv = el => parseInt(el.querySelector('td:nth-child(3) .font-bold')?.textContent.replace(/\D/g, '') || '0');
+                        // 레벨 정렬: data-leader-lv 만 사용 (badge 텍스트엔 시간 숫자가 섞여 있어 사용 금지)
+                        const getLv = el => parseInt(el.dataset.leaderLv || '0');
                         return actualSortVal === 'level-asc' ? getLv(a) - getLv(b) : getLv(b) - getLv(a);
                     } else if (actualSortVal.startsWith('today')) {
                         const isChecked = el => el.querySelector('td:nth-child(7) .bg-emerald-50') ? 1 : 0;
@@ -3305,13 +3310,19 @@
                 const visibleRows = [];
 
                 rows.forEach(row => {
-                    // Team filter
+                    // Team filter — 개별 팀 선택 시 주(primary) 팀 기준 매칭.
+                    // (다중 팀 선택해도 주 팀이 그 팀인 리더만 노출 → 레벨별 카운트 안정화)
                     let teamMatch = activeTeams.has('all');
                     if (!teamMatch) {
                         const rowTeams = (row.dataset.teams || '').split(',').map(t => t.trim());
-                        teamMatch = rowTeams.some(t => activeTeams.has(t));
-                        if (!teamMatch && activeTeams.has('eng-all')) teamMatch = rowTeams.some(t => t.startsWith('영'));
-                        if (!teamMatch && activeTeams.has('jpn-all')) teamMatch = rowTeams.some(t => t.startsWith('일'));
+                        if (activeTeams.has('eng-all')) {
+                            teamMatch = rowTeams.some(t => t.startsWith('영'));
+                        } else if (activeTeams.has('jpn-all')) {
+                            teamMatch = rowTeams.some(t => t.startsWith('일'));
+                        } else {
+                            const primaryTeam = rowTeams[0];
+                            teamMatch = activeTeams.has(primaryTeam);
+                        }
                     }
 
                     // Search filter
