@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>하남 지점 어드민 (통합 캘린더 버전)</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        /* CSS variables for dynamic sticky positions — set by JS on load */
+        :root { --header-h: 60px; --tabs-top: 60px; --level-nav-top: 104px; --level-header-top: 147px; }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .editable-text:hover {
+            background-color: #f1f5f9;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .member-row {
+            transition: all 0.2s ease;
+        }
+
+        .member-row:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            z-index: 10;
+            position: relative;
+        }
+
+        .action-dropdown {
+            display: none;
+        }
+
+        .action-menu:hover .action-dropdown,
+        .action-menu:focus-within .action-dropdown {
+            display: block;
+        }
+
+        /* Table Layout Alignment Fixes */
+        tr.member-row>td {
+            vertical-align: top !important;
+            padding-top: 4px !important;
+            padding-bottom: 4px !important;
+        }
+
+        /* Notice Scrolling Animation */
+        @keyframes scroll-up {
+
+            0%,
+            25% {
+                transform: translateY(0);
+            }
+
+            33%,
+            58% {
+                transform: translateY(-50%);
+            }
+
+            66%,
+            91% {
+                transform: translateY(-100%);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .notice-scroller {
+            animation: scroll-up 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        /* Tooltip utilities */
+        .tooltip-container {
+            position: relative;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: calc(100% + 5px);
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1e293b;
+            color: white;
+            text-align: left;
+            padding: 8px 12px;
+            border-radius: 6px;
+            z-index: 50;
+            transition: opacity 0.2s, visibility 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            width: max-content;
+            pointer-events: none;
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Calendar Specific utilities */
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+
+        .cal-day {
+            min-height: 120px;
+            transition: background-color 0.2s;
+        }
+
+        .cal-day:hover {
+            background-color: #f8fafc;
+        }
+
+        .view-hidden {
+            display: none !important;
+        }
+
+        .alert-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen pb-24">
+
+    <!-- Top Navigation Header -->
+    <header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <button id="hamburger-btn"
+                class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+            <div class="bg-brand-500 text-white p-1.5 rounded-lg">
+                <i class="ph-bold ph-buildings text-xl"></i>
+            </div>
+            <h1 class="text-lg font-bold text-slate-800 tracking-tight">하남 지점 어드민</h1>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <button class="relative p-2 text-slate-600 hover:bg-slate-100 rounded-full flex items-center gap-2">
+                <div class="relative">
+                    <i class="ph ph-bell text-xl"></i>
+                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-white"></span>
+                    </span>
+                </div>
+            </button>
+            <div class="h-6 w-px bg-slate-200"></div>
+            <div
+                class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg border border-transparent transition-colors">
+                <img src="https://ui-avatars.com/api/?name=매니저&background=0284c7&color=fff" alt="User"
+                    class="w-8 h-8 rounded-full">
+                <span class="text-sm font-medium hidden sm:block">지점장 옵션 <i
+                        class="ph ph-caret-down text-xs ml-1 font-bold"></i></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Side Navigation Drawer -->
+    <div id="drawer-overlay"
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity cursor-pointer">
+    </div>
+    <div id="nav-drawer"
+        class="fixed top-0 left-0 h-full w-full sm:w-72 bg-white shadow-2xl z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
+            <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800">
+                <i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴
+            </h2>
+            <button id="close-drawer-btn"
+                class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer transition">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <nav class="p-4 space-y-1">
+            <a href="home-reviewed.html"
+                class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-calendar-blank text-lg"></i> 대시보드 캘린더 (홈)
+            </a>
+            <a href="member-reviewed.html"
+                class="nav-item w-full flex items-center gap-3 px-3 py-3 bg-brand-50 text-brand-700 rounded-lg font-medium transition-colors">
+                <i class="ph ph-users-three text-lg"></i> 멤버 팀
+            </a>
+            <a href="leader-reviewed.html"
+                class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-crown text-lg"></i> 리더 팀
+            </a>
+            <a href="stats.html"
+                class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트
+            </a>
+            <a href="call.html"
+                class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-phone-call text-lg"></i> 신규 회신
+            </a>
+            <a href="branchstatus.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+                <i class="ph ph-building-office text-lg"></i> Branch Status
+            </a>
+        </nav>
+    </div>
+
+    <!-- TEAM ATTENDANCE VIEW (Hidden by default, triggered by drawer navigation) -->
+    <div id="team-view" class="max-w-[1600px] mx-auto">
+
+        <!-- Team Tabs inside Team View -->
+        <nav id="team-tabs-nav" class="bg-white border-b border-slate-200 sticky z-40" style="top:var(--tabs-top)">
+            <div class="flex items-center gap-1.5 px-4 scrollbar-hide overflow-x-auto pb-1 py-1.5">
+                <!-- 영어 팀 -->
+                <span class="flex-shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-tighter mr-1">영어</span>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-slate-900 text-white text-[13px] font-bold shadow-sm transition-all active:scale-95">월수 11</button>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 text-[13px] font-medium transition-all active:scale-95">월수 8</button>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 text-[13px] font-medium transition-all active:scale-95">화목 11</button>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 text-[13px] font-medium transition-all active:scale-95">화목 8</button>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 text-[13px] font-medium transition-all active:scale-95">토일 11</button>
+                
+                <!-- 구분선 -->
+                <span class="flex-shrink-0 w-px h-4 bg-slate-200 mx-1"></span>
+                
+                <!-- 일어 팀 -->
+                <span class="flex-shrink-0 text-[10px] font-black text-slate-400 uppercase tracking-tighter mr-1">일어</span>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-[13px] font-medium transition-all active:scale-95">월수 11</button>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-[13px] font-medium transition-all active:scale-95">월수 8</button>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-[13px] font-medium transition-all active:scale-95">화목 11</button>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-[13px] font-medium transition-all active:scale-95">화목 8</button>
+                <button class="team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-[13px] font-medium transition-all active:scale-95">토일 11</button>
+            </div>
+        </nav>
+
+        <!-- Level Quick-Nav (scroll jump) -->
+        <nav id="level-nav" class="bg-slate-50/90 backdrop-blur-sm border-b border-slate-200 sticky z-30" style="top:var(--level-nav-top)">
+            <div class="max-w-[1600px] mx-auto overflow-x-auto hide-scrollbar flex items-center gap-1.5 px-4 py-1.5">
+                <span class="flex-shrink-0 text-[9px] font-bold text-slate-400 uppercase tracking-wider mr-1">바로가기</span>
+                <!-- Level jump buttons injected by JS -->
+            </div>
+        </nav>
+
+        <div class="px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8 pt-0 space-y-6">
+            <!-- Team Content Header & Toolbar -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-4">
+                <div
+                    class="flex items-center gap-2 group cursor-pointer transition-colors hover:bg-slate-50 p-1.5 -ml-1.5 rounded-lg">
+                    <h2 id="team-title" class="text-2xl font-bold text-slate-800 flex flex-wrap items-center gap-1.5">
+                        <span class="text-xl font-black text-slate-800 mr-1 italic">Member</span>
+                        <!-- dynamic badges -->
+                    </h2>
+                    <button class="text-slate-300 group-hover:text-brand-600 p-1 transition-colors" title="팀 이름 수정">
+                        <i class="ph-bold ph-pencil-simple text-sm"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+
+                    <button onclick="openSmsModal()"
+                        class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm focus:ring-2 focus:ring-slate-200">
+                        <i class="ph ph-envelope-simple text-lg"></i> 일괄 문자
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- Action Needed / Alerts Section (CHECK) -->
+            <div id="check-section"
+                class="bg-amber-50 rounded-xl shadow-sm border border-amber-200 overflow-hidden mb-4">
+                <button onclick="toggleCheckSection()" class="w-full px-4 py-3 border-b border-amber-200 bg-amber-100/50 flex justify-between items-center cursor-pointer hover:bg-amber-100/80 transition-colors">
+                    <h3 class="text-sm font-bold text-amber-800 flex items-center gap-2">
+                        <i class="ph-fill ph-warning-circle text-lg"></i> 주의 알림 (CHECK)
+                        <span id="check-count"
+                            class="px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs font-bold shadow-inner border border-amber-300">5명</span>
+                    </h3>
+                    <i class="ph ph-caret-down text-amber-400 text-sm transition-transform" id="check-collapse-icon"></i>
+                </button>
+                <div id="check-content-wrap" style="max-height:2000px;overflow:hidden;transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1);">
+                <div class="px-4 py-2 border-b border-amber-200 bg-amber-50 flex items-center gap-3">
+                    <div class="flex items-center bg-white/50 rounded-lg p-0.5 gap-0.5 border border-amber-200">
+                        <button id="alert-view-btn-list" onclick="setAlertViewMode('list')" title="리스트 보기"
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-all bg-white shadow-sm text-amber-600">
+                            <i class="ph-bold ph-list-bullets text-sm"></i>
+                        </button>
+                        <button id="alert-view-btn-card" onclick="setAlertViewMode('card')" title="카드 보기"
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-all text-amber-400 hover:text-amber-600">
+                            <i class="ph-bold ph-squares-four text-sm"></i>
+                        </button>
+                    </div>
+                    <select id="inner-alert-filter" class="px-2 py-1 bg-white border border-amber-300 rounded text-xs font-medium text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none cursor-pointer">
+                        <option value="all">전체 유형</option>
+                        <option value="0">첫 스터디 미체크</option>
+                        <option value="1">만료 D-7</option>
+                        <option value="2">첫 스터디 체크</option>
+                        <option value="3">결제 확인</option>
+                        <option value="4">홀딩 복귀</option>
+                    </select>
+                </div>
+                <div id="alert-list-container" class="divide-y divide-amber-100">
+                    <!-- Alert Item 1 -->
+                    <div class="p-3 hover:bg-amber-100/50 transition-colors group flex items-center justify-between gap-2 border-b border-amber-100/50"
+                        id="alert-1">
+                        <div class="grid grid-cols-[104px_72px_44px_90px_1fr] items-center gap-3 flex-1 min-w-0">
+                            <!-- Badge -->
+                            <span
+                                class="inline-flex items-center justify-center w-full px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200 shadow-sm whitespace-nowrap"><span
+                                    class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse"></span>첫방문
+                                미체크</span>
+
+                            <!-- Name -->
+                            <button onclick="scrollToMember('member-row-1-0')"
+                                class="text-sm font-bold text-slate-800 hover:text-brand-600 transition-colors flex items-center justify-between gap-1 w-full text-left">
+                                김지윤 <i
+                                    class="ph-bold ph-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-slate-400"></i>
+                            </button>
+
+                            <!-- Level -->
+                            <span
+                                class="inline-block w-full text-center px-1 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold border border-slate-200">LV
+                                2</span>
+
+                            <!-- Phone -->
+                            <span class="text-[11px] font-mono text-slate-600 text-center w-full cursor-pointer hover:text-brand-600 active:scale-95 transition-all" onclick="copyPhone('010-2757-9662')">010-2757-9662</span>
+
+                            <!-- Team -->
+                            <div class="hidden sm:flex items-center gap-1 overflow-hidden">
+                                <span
+                                    class="inline-block w-[88px] text-center px-1 py-0.5 text-[9px] rounded font-semibold border truncate whitespace-nowrap" style="color:#6C3483;background:#f3e8f9;border-color:#6C3483">영
+                                    월수 8PM(2)</span>
+                                <span
+                                    class="inline-block w-[88px] text-center px-1 py-0.5 text-[9px] rounded font-semibold border truncate whitespace-nowrap" style="color:#2C3E50;background:#e8ecf0;border-color:#2C3E50">일
+                                    화목 8PM(1)</span>
+                            </div>
+                        </div>
+
+                        <!-- Resolve Button -->
+                        <button onclick="resolveAlert('alert-1')"
+                            class="shrink-0 p-1 px-2.5 rounded-lg text-amber-700 bg-white border border-amber-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center gap-1">
+                            <i class="ph-bold ph-check"></i> 해결
+                        </button>
+                    </div>
+                    <!-- Alert Item 2 -->
+                    <div class="p-3 hover:bg-amber-100/50 transition-colors group flex items-center justify-between gap-2"
+                        id="alert-2">
+                        <div class="grid grid-cols-[104px_72px_44px_90px_1fr] items-center gap-3 flex-1 min-w-0">
+                            <!-- Badge -->
+                            <span
+                                class="inline-flex items-center justify-center w-full px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 border border-orange-200 shadow-sm whitespace-nowrap"><i
+                                    class="ph-fill ph-clock-countdown mr-1.5"></i>만료 D-7</span>
+
+                            <!-- Name -->
+                            <button onclick="scrollToMember('member-row-1-2')"
+                                class="text-sm font-bold text-slate-800 hover:text-brand-600 transition-colors flex items-center justify-between gap-1 w-full text-left">
+                                성경희 <i
+                                    class="ph-bold ph-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-slate-400"></i>
+                            </button>
+
+                            <!-- Level -->
+                            <span
+                                class="inline-block w-full text-center px-1 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold border border-slate-200">LV
+                                3</span>
+
+                            <!-- Phone -->
+                            <span class="text-[11px] font-mono text-slate-600 text-center w-full cursor-pointer hover:text-brand-600 active:scale-95 transition-all" onclick="copyPhone('010-6385-8265')">010-6385-8265</span>
+
+                            <!-- Team -->
+                            <div class="hidden sm:flex items-center gap-1 overflow-hidden">
+                                <span
+                                    class="inline-block w-[88px] text-center px-1 py-0.5 text-[9px] rounded font-semibold border truncate whitespace-nowrap" style="color:#9B59B6;background:#f5eafa;border-color:#9B59B6">영
+                                    월수 10AM(3)</span>
+                            </div>
+                        </div>
+
+                        <!-- Resolve Button -->
+                        <button onclick="resolveAlert('alert-2')"
+                            class="shrink-0 p-1 px-2.5 rounded-lg text-amber-700 bg-white border border-amber-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center gap-1">
+                            <i class="ph-bold ph-check"></i> 해결
+                        </button>
+                    </div>
+                </div>
+                <!-- Card Grid View for Alerts -->
+                <div id="alert-card-container" class="hidden p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                </div>
+                </div><!-- end check-content-wrap -->
+            </div>
+
+            <!-- 검색 및 필터 바 -->
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 mb-4">
+                <div class="relative flex-1 min-w-[200px] max-w-md">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                    <input id="search-input" type="text" placeholder="성함 또는 연락처 검색..."
+                           class="w-full pl-9 pr-8 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all shadow-sm">
+                    <button id="search-clear" class="absolute right-2.5 top-1/2 -translate-y-1/2 hidden text-slate-400 hover:text-slate-600 transition-colors">
+                        <i class="ph ph-x-circle text-lg"></i>
+                    </button>
+                </div>
+                <select id="search-target" class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm cursor-pointer">
+                    <option value="all">전체</option>
+                    <option value="name">성함</option>
+                    <option value="phone">연락처</option>
+                </select>
+                <span class="w-px h-6 bg-slate-200 mx-1 flex-shrink-0 hidden sm:block"></span>
+                <select id="sort-select" class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm cursor-pointer">
+                    <option value="att-desc">출석률 높은순</option>
+                    <option value="att-asc">출석률 낮은순</option>
+                    <option value="alert-first">주의 알림순</option>
+                    <option value="first-day">당일 첫날 방문</option>
+                    <option value="name-asc">이름 ㄱ→ㅎ</option>
+                    <option value="name-desc">이름 ㅎ→ㄱ</option>
+                    <option value="age-asc">나이 어린순</option>
+                    <option value="age-desc">나이 많은순</option>
+                    <option value="remain-asc">잔여 적은순</option>
+                    <option value="remain-desc">잔여 많은순</option>
+                    <option value="exp-asc">만료 임박순</option>
+                    <option value="today-first">금일 출석 완료순</option>
+                    <option value="today-last">금일 미출석순</option>
+                </select>
+                <span class="w-px h-6 bg-slate-200 mx-1 flex-shrink-0 hidden sm:block"></span>
+                <select id="membership-filter" class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm cursor-pointer">
+                    <option value="all">멤버십 전체</option>
+                    <option value="VVIP">VVIP</option>
+                    <option value="VIP">VIP</option>
+                    <option value="A+">A+</option>
+                    <option value="H+">H+</option>
+                    <option value="T">T</option>
+                </select>
+                <span class="w-px h-6 bg-slate-200 mx-1 flex-shrink-0 hidden sm:block"></span>
+                <!-- View toggle -->
+                <div class="flex items-center bg-slate-100 rounded-lg p-0.5 gap-0.5">
+                    <button id="view-btn-table" onclick="setViewMode('table')" title="테이블 뷰"
+                        class="w-8 h-8 rounded-md flex items-center justify-center transition-all bg-white shadow-sm text-brand-700">
+                        <i class="ph-bold ph-list-bullets text-base"></i>
+                    </button>
+                    <button id="view-btn-card" onclick="setViewMode('card')" title="카드 그리드 뷰"
+                        class="w-8 h-8 rounded-md flex items-center justify-center transition-all text-slate-500 hover:text-slate-700">
+                        <i class="ph-bold ph-squares-four text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 검색 결과 없음 -->
+            <div id="no-result" class="hidden text-center py-8 text-slate-400">
+                <i class="ph ph-magnifying-glass text-3xl mb-2"></i>
+                <p class="text-sm font-medium">검색 결과가 없습니다</p>
+            </div>
+
+            <!-- Bulk Action Bar -->
+            <div id="bulk-action-bar"
+                class="hidden items-center justify-between p-3 bg-brand-50 border border-brand-200 rounded-lg">
+                <div class="flex items-center gap-2 text-brand-800 font-medium text-sm">
+                    <i class="ph-fill ph-check-circle text-lg"></i> <span id="selected-count">0</span>명 선택됨
+                </div>
+                <div class="flex items-center gap-2">
+                    <button
+                        class="px-3 py-1.5 bg-white border border-brand-200 text-brand-700 text-sm font-medium rounded hover:bg-brand-100 transition-colors flex items-center gap-1">
+                        <i class="ph ph-arrows-left-right"></i> 이동
+                    </button>
+                    <button
+                        class="px-3 py-1.5 bg-white border border-brand-200 text-brand-700 text-sm font-medium rounded hover:bg-brand-100 transition-colors flex items-center gap-1">
+                        <i class="ph ph-envelope-simple"></i> 문자
+                    </button>
+                    <div class="h-4 w-px bg-brand-300 mx-1"></div>
+                    <button class="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors" title="제외"><i
+                            class="ph ph-trash text-lg"></i></button>
+                </div>
+            </div>
+
+            <!-- List View Section -->
+            <div id="view-list-section">
+                <!-- Level Sections Container -->
+                <div id="levels-container" class="space-y-6">
+                    <!-- Each level section (header + table) injected by JS -->
+                </div>
+            </div>
+
+            <!-- Card Grid Section -->
+            <div id="view-card-section" class="hidden">
+                <div id="levels-card-container" class="space-y-6">
+                    <!-- Each level section (header + card grid) injected by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Block Tooltip -->
+    <div id="global-block-tooltip"
+        class="fixed hidden w-[140px] bg-slate-900 border border-slate-700 text-white rounded p-2 text-left z-[100] shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-4px]">
+        <div id="gbt-date" class="text-[10px] text-slate-300 font-semibold mb-1 border-b border-slate-600 pb-1">04.05
+            (월)</div>
+        <div class="flex items-center justify-between mb-0.5 mt-1 text-[10px]"><span>상태:</span> <span id="gbt-status"
+                class="font-bold">출석</span></div>
+        <div class="flex items-center justify-between text-[10px]"><span>담당:</span> <span id="gbt-leader">박선민</span>
+        </div>
+        <!-- Tooltip arrow -->
+        <div
+            class="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-solid border-slate-900 border-b-transparent border-l-transparent border-r-transparent">
+        </div>
+    </div>
+
+
+    <!-- Member Profile Modal -->
+    <div id="profile-modal-overlay"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] hidden opacity-0 transition-opacity duration-300"
+        onclick="closeProfileModal()"></div>
+    <div id="profile-modal"
+        class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] sm:w-[500px] h-[85vh] sm:h-[800px] max-h-[90vh] bg-white rounded-2xl shadow-2xl z-[90] hidden opacity-0 scale-95 transition-all duration-300 flex flex-col overflow-hidden">
+
+        <!-- Header: Profile Summary -->
+        <div class="p-6 bg-slate-900 text-white relative flex-shrink-0">
+            <button onclick="closeProfileModal()"
+                class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+            <div class="flex gap-4 items-center">
+                <div
+                    class="h-16 w-16 bg-gradient-to-tr from-brand-400 to-indigo-500 rounded-full flex items-center justify-center shadow-inner text-2xl font-black border-2 border-white/20">
+                    <span id="pm-initial">김</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <span id="pm-name">김지윤</span>
+                        <span id="pm-level-badge"
+                            class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">LV
+                            2</span>
+                        <span id="pm-membership-badge" class="px-2 py-0.5 rounded text-[10px] font-bold border">VVIP
+                            멤버십</span>
+                    </h2>
+                    <div id="pm-phone" class="text-slate-300 text-sm mt-1 font-mono cursor-pointer hover:text-white active:scale-95 transition-all" onclick="copyPhone(this.innerText)">010-2757-9662</div>
+                    <div id="pm-teams-container" class="flex gap-1.5 mt-2">
+                        <!-- Dynamic teams -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body: Scrollable Content -->
+        <div class="flex-1 overflow-y-auto bg-slate-50 p-6 custom-scrollbar hide-scrollbar">
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <!-- 최초 등록일 -->
+                <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[96px]">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-auto">최초 등록일</div>
+                    <div class="flex flex-col items-start gap-1">
+                        <span id="pm-reg-date" class="font-bold text-slate-800 text-[14px] leading-none">25.10.05</span>
+                        <span class="text-[10px] text-transparent select-none">-</span> <!-- Placeholder for alignment -->
+                    </div>
+                </div>
+                <!-- 멤버십 & 횟수 -->
+                <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[96px]">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-auto">멤버십 & 횟수</div>
+                    <div class="flex flex-col items-start gap-1">
+                        <span id="pm-brand-name" class="font-bold text-slate-800 text-[14px] leading-none">VVIP</span> 
+                        <span id="pm-remain-session" class="bg-brand-50 text-brand-600 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-brand-100 max-w-full truncate">82 / 1040회</span>
+                    </div>
+                </div>
+                <!-- 시작 & 만료일 -->
+                <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[96px]">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-auto">시작 & 만료일</div>
+                    <div class="flex flex-col items-start gap-1">
+                        <span id="pm-start-exp-date" class="font-bold text-slate-800 text-[13px] leading-none">25.10.05 ~ 26.04.09</span>
+                        <span id="pm-exp-note" class="bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-orange-100 max-w-full truncate">주 4회 권한</span>
+                    </div>
+                </div>
+                <!-- 누적 출석률 -->
+                <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[96px]">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-auto">누적 출석률</div>
+                    <div class="flex flex-col items-start gap-1">
+                        <span id="pm-att-rate" class="font-bold text-slate-800 text-[14px] leading-none">25%</span> 
+                        <span id="pm-att-count" class="bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-purple-100 max-w-full truncate">4 / 16회 참석</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Focus Info -->
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl shadow-sm mb-6">
+                <h3 class="text-xs font-bold text-indigo-800 mb-2 flex items-center gap-1"><i
+                        class="ph-fill ph-chat-teardrop text-base"></i> 관리자 상담 코멘트</h3>
+                <p id="pm-message" class="text-sm text-indigo-900 leading-relaxed">
+                    내용...
+                </p>
+            </div>
+
+            <!-- History Timeline -->
+            <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="ph-fill ph-clock-counter-clockwise text-brand-500"></i> 전체 기록 (히스토리)
+            </h3>
+
+            <div id="pm-timeline" class="relative pl-3 border-l-2 border-slate-200 space-y-5 ml-2 mb-6">
+                <!-- Dynamic timeline items -->
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="p-4 border-t border-slate-200 bg-white flex gap-2 justify-end flex-shrink-0">
+            <button
+                class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">정보
+                수정</button>
+            <button
+                class="px-4 py-2 text-sm font-bold text-white bg-brand-600 rounded-lg shadow-sm hover:bg-brand-700 transition-colors flex items-center gap-1.5"><i
+                    class="ph-bold ph-paper-plane-right"></i> 개별 문자</button>
+        </div>
+    </div>
+
+    <!-- Attendance History Detail Modal -->
+    <div id="ah-modal-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300" onclick="closeMemberAttendanceHistory()"></div>
+    <div id="ah-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] sm:w-[500px] max-h-[85vh] bg-slate-50 rounded-2xl shadow-2xl z-[110] hidden opacity-0 translate-y-4 transition-all duration-300 flex flex-col overflow-hidden border border-white">
+        <!-- Header -->
+        <div class="p-5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-brand-50 rounded-xl text-brand-600 shadow-sm border border-brand-100">
+                    <i class="ph-bold ph-calendar-check text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <span id="ah-modal-name"></span>
+                        <span class="text-xs font-normal text-slate-400">멤버</span>
+                    </h3>
+                    <p class="text-[11px] text-brand-600 font-bold uppercase tracking-wider mt-0.5">전체 출석 히스토리</p>
+                </div>
+            </div>
+            <button onclick="closeMemberAttendanceHistory()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors group">
+                <i class="ph ph-x text-xl group-hover:rotate-90 transition-transform"></i>
+            </button>
+        </div>
+
+        <!-- Cumulative Stats Panel -->
+        <div class="px-5 py-4 bg-brand-50/50 border-b border-slate-100 flex items-center justify-around">
+            <div class="text-center">
+                <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">총 누적 %</div>
+                <div id="ah-modal-total-rate" class="text-xl font-black text-brand-700">0%</div>
+            </div>
+            <div class="w-px h-8 bg-slate-200"></div>
+            <div class="text-center">
+                <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">진행 횟수</div>
+                <div id="ah-modal-total-count" class="text-xl font-black text-slate-800">0/0회</div>
+            </div>
+            <div class="w-px h-8 bg-slate-200"></div>
+            <div class="text-center">
+                <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">상태</div>
+                <div id="ah-modal-status" class="text-[13px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">활동 중</div>
+            </div>
+        </div>
+        
+        <!-- List Body -->
+        <div id="ah-modal-list" class="p-5 space-y-3.5 overflow-y-auto bg-slate-50 custom-scrollbar flex-1">
+            <!-- JS fills -->
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 bg-white border-t border-slate-200 text-center flex-shrink-0">
+            <button onclick="closeMemberAttendanceHistory()" class="w-full py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg active:scale-[0.98]">확인</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ─── DRAWER Toggles ───
+            const hBtn = document.getElementById('hamburger-btn');
+            const cBtn = document.getElementById('close-drawer-btn');
+            const dOverlay = document.getElementById('drawer-overlay');
+            const nDrawer = document.getElementById('nav-drawer');
+            function tDrawer(s) {
+                if (s) { dOverlay.classList.remove('hidden'); setTimeout(() => { dOverlay.classList.remove('opacity-0'); nDrawer.classList.remove('-translate-x-full'); }, 10); }
+                else { dOverlay.classList.add('opacity-0'); nDrawer.classList.add('-translate-x-full'); setTimeout(() => dOverlay.classList.add('hidden'), 300); }
+            }
+            if (hBtn) hBtn.addEventListener('click', () => tDrawer(true));
+            if (cBtn) cBtn.addEventListener('click', () => tDrawer(false));
+            if (dOverlay) dOverlay.addEventListener('click', () => tDrawer(false));
+
+            // ─── DATA GENERATION ───
+            const surnames = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','전','홍','고','문','양','손','배','백','허','유','남','심','노','하','곽','성','차','주','우','구','민','나','진','지','엄','채','원','천','방','공','현'];
+            const femaleNames = ['지윤','서연','하은','수빈','민서','예은','지아','하윤','소율','채원','유나','시은','다은','예린','수아','지은','서윤','민지','하영','은서','채연','보라','소영','미래','소희','다현','예지','은비','수연','현주','유진','미영','정은','혜원','수정','지혜','민아','서영','하연','보영','소연','경희','미선','은주','정민','혜진','수민','지현','서희','민영','하정','경미','소정','혜선','은정','수현','민정','지영','서정','하림','경은'];
+            const maleNames = ['민준','서준','도윤','예준','시우','하준','주원','지호','지훈','준서','건우','현우','선우','서진','유준','연우','은우','정우','승현','동현','태민','성민','준혁','재민','지환','우진','승우','민혁','준영','현민','재현','도현','태현','은호','성준','승민','정호','재윤','지원','세준','민규','한결','정현','승준','원준','민찬','시현','지성','준호','동윤','태우','성현','재호','민수','건호','지완','도영','현서','승호','정윤'];
+            const memos = [
+                '다음 주 레벨테스트 예정','출석률 관리 필요','연장 등록 상담 완료','해외 출장 2주 홀딩 중','프로모션 안내 완료',
+                '스터디 그룹 리더','첫 주 보충 수업 안내 요망','전화 상담 후 재등록 의사 확인','주말반 이동 희망','레벨업 테스트 준비 중',
+                '다음 달 멤버십 만료 예정','VIP 프로모션 대상자','화상수업 병행 중','그룹 스터디 참여 활발','개인 사정으로 잠시 휴식 예정',
+                '출석 우수 회원 - 칭찬 메모','영어/일어 병행 수강 중','수업 시간 변경 요청','보충 수업 2회 예정','학습 목표 재설정 필요',
+                '원어민 수업 추가 희망','교재 추가 구매 안내','장기 회원 감사 이벤트 대상','이번 달 출석률 80% 달성','다음 분기 커리큘럼 안내 완료',
+                '개별 피드백 전달 완료','시험 준비 집중 코스 상담','친구 소개 이벤트 참여','홀딩 해제 후 복귀 예정','수강료 결제 확인 필요',
+                '그룹 변경 요청 (시간대)','특별 할인 적용 완료','학습 진도 점검 필요','다음 주 보강 수업 안내','온라인 수업 전환 요청',
+                '멤버십 갱신 안내 발송','출석 패턴 불규칙 - 확인 필요','우수 학생 포상 대상','커리큘럼 만족도 조사 완료','보강 일정 조율 중',
+                '수업 피드백 긍정적','장기 플랜 상담 예정','이벤트 참여 확인 완료','수업 자료 추가 요청','학습 목표 달성률 높음',
+                '시간표 조정 요청 접수','워크숍 참여 안내','스피킹 테스트 일정 확인','문법 보강 필요','리스닝 강화 프로그램 안내',
+                '다음 학기 등록 상담 완료','교재 변경 안내','소그룹 스터디 배정 완료','발음 교정 수업 추천'
+            ];
+            const leaders = [
+                { name: '박선민', ext: '1001' }, { name: '제인', ext: '1002' }, { name: '유미', ext: '1003' },
+                { name: '사라', ext: '1004' }, { name: '켄', ext: '1005' }, { name: '마이크', ext: '1006' },
+                { name: '하나', ext: '1007' }, { name: '리사', ext: '1008' }, { name: '톰', ext: '1009' }, { name: '에밀리', ext: '1010' }
+            ];
+            const alertTypes = [
+                { badge: '<span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 animate-pulse"></span>첫 스터디 미체크', cls: 'bg-red-100 text-red-700 border-red-200' },
+                { badge: '<i class="ph-fill ph-clock-countdown mr-1.5"></i>만료 D-7', cls: 'bg-orange-100 text-orange-700 border-orange-200' },
+                { badge: '<i class="ph-fill ph-check-circle mr-1.5"></i>첫 스터디 체크', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+                { badge: '<i class="ph-fill ph-credit-card mr-1.5"></i>결제 확인', cls: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+                { badge: '<i class="ph-fill ph-arrow-u-up-left mr-1.5"></i>홀딩 복귀', cls: 'bg-sky-100 text-sky-700 border-sky-200' },
+            ];
+
+            const teamDefs = [
+                { key: '영_월수_11', lang: '영', schedule: '월수', time: '11', label: '영어 월수 11시', isJapanese: false },
+                { key: '영_월수_8', lang: '영', schedule: '월수', time: '8', label: '영어 월수 8시', isJapanese: false },
+                { key: '영_화목_11', lang: '영', schedule: '화목', time: '11', label: '영어 화목 11시', isJapanese: false },
+                { key: '영_화목_8', lang: '영', schedule: '화목', time: '8', label: '영어 화목 8시', isJapanese: false },
+                { key: '영_토일_11', lang: '영', schedule: '토일', time: '11', label: '영어 토일 11시', isJapanese: false },
+                { key: '일_월수_11', lang: '일', schedule: '월수', time: '11', label: '일어 월수 11시', isJapanese: true },
+                { key: '일_월수_8', lang: '일', schedule: '월수', time: '8', label: '일어 월수 8시', isJapanese: true },
+                { key: '일_화목_11', lang: '일', schedule: '화목', time: '11', label: '일어 화목 11시', isJapanese: true },
+                { key: '일_화목_8', lang: '일', schedule: '화목', time: '8', label: '일어 화목 8시', isJapanese: true },
+                { key: '일_토일_11', lang: '일', schedule: '토일', time: '11', label: '일어 토일 11시', isJapanese: true },
+            ];
+
+            const membershipTypes = [
+                { name: 'VVIP', total: 1040, colorRow: 'bg-purple-50 text-purple-600 border-purple-200', colorModal: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
+                { name: 'VIP', total: 520, colorRow: 'bg-indigo-50 text-indigo-600 border-indigo-200', colorModal: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
+                { name: 'A+', total: 104, colorRow: 'bg-emerald-50 text-emerald-600 border-emerald-200', colorModal: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+                { name: 'H+', total: 52, colorRow: 'bg-orange-50 text-orange-600 border-orange-200', colorModal: 'bg-orange-500/20 text-orange-300 border-orange-500/30' },
+                { name: 'T', total: 24, colorRow: 'bg-slate-50 text-slate-600 border-slate-200', colorModal: 'bg-slate-500/20 text-slate-300 border-slate-500/30' },
+            ];
+
+            const lvColors = {
+                0: { bg: 'bg-slate-500', text: 'text-slate-700', light: 'bg-slate-100', border: 'border-slate-300' },
+                1: { bg: 'bg-emerald-500', text: 'text-emerald-700', light: 'bg-emerald-50', border: 'border-emerald-200' },
+                2: { bg: 'bg-blue-500', text: 'text-blue-700', light: 'bg-blue-50', border: 'border-blue-200' },
+                3: { bg: 'bg-purple-500', text: 'text-purple-700', light: 'bg-purple-50', border: 'border-purple-200' },
+                4: { bg: 'bg-amber-500', text: 'text-amber-700', light: 'bg-amber-50', border: 'border-amber-200' },
+            };
+
+            // Seeded PRNG
+            function mulberry32(a) {
+                return function() {
+                    a |= 0; a = a + 0x6D2B79F5 | 0;
+                    var t = Math.imul(a ^ a >>> 15, 1 | a);
+                    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+                }
+            }
+            function hashStr(s) {
+                let h = 0;
+                for (let i = 0; i < s.length; i++) { h = ((h << 5) - h + s.charCodeAt(i)) | 0; }
+                return Math.abs(h);
+            }
+
+            const usedPhones = new Set();
+            function genPhone(rng) {
+                let phone;
+                do {
+                    const mid = String(Math.floor(rng() * 9000 + 1000));
+                    const end = String(Math.floor(rng() * 9000 + 1000));
+                    phone = `010-${mid}-${end}`;
+                } while (usedPhones.has(phone));
+                usedPhones.add(phone);
+                return phone;
+            }
+
+            const usedNames = new Set();
+            function genName(rng) {
+                let name, attempts = 0;
+                do {
+                    const sn = surnames[Math.floor(rng() * surnames.length)];
+                    const isMale = rng() > 0.5;
+                    const pool = isMale ? maleNames : femaleNames;
+                    const gn = pool[Math.floor(rng() * pool.length)];
+                    name = sn + gn;
+                    attempts++;
+                    if (attempts > 200) {
+                        const sn2 = surnames[Math.floor(rng() * surnames.length)];
+                        const pool2 = isMale ? femaleNames : maleNames;
+                        name = sn2 + pool2[Math.floor(rng() * pool2.length)];
+                    }
+                } while (usedNames.has(name));
+                usedNames.add(name);
+                return name;
+            }
+
+            // ─── BUILD ALL MEMBERS ───
+            const allMembers = {};
+            const memberDataMap = {};
+
+            teamDefs.forEach((td) => {
+                const levels = [0,1,2,3,4];
+                allMembers[td.key] = {};
+                levels.forEach((lv) => {
+                    const seed = hashStr(td.key + '_' + lv);
+                    const rng = mulberry32(seed);
+                    const members = [];
+                    for (let i = 0; i < 30; i++) {
+                        const name = genName(rng);
+                        const phone = genPhone(rng);
+                        const age = Math.floor(rng() * 36) + 20;
+                        const msIdx = Math.floor(rng() * membershipTypes.length);
+                        const ms = membershipTypes[msIdx];
+                        const remaining = Math.floor(rng() * (ms.total * 0.9)) + Math.floor(ms.total * 0.05);
+                        const perWeek = rng() > 0.5 ? 4 : 2;
+                        const startMonth = Math.floor(rng() * 12) + 1;
+                        const startDay = Math.floor(rng() * 28) + 1;
+                        const startYr = rng() > 0.5 ? 25 : 26;
+                        const startDate = `${startYr}.${String(startMonth).padStart(2,'0')}.${String(startDay).padStart(2,'0')}`;
+                        const expMonth = Math.floor(rng() * 6) + 4;
+                        const expDay = Math.floor(rng() * 28) + 1;
+                        const expDate = `26.${String(expMonth).padStart(2,'0')}.${String(expDay).padStart(2,'0')}`;
+                        const memo = memos[Math.floor(rng() * memos.length)];
+                        const timeLabel = td.time === '11' ? '11AM' : '8PM';
+                        const mainBadge = `${td.schedule} ${timeLabel}(${lv})`;
+                        const teamBadges = [{ label: mainBadge, isJapanese: td.isJapanese }];
+                        if (rng() > 0.75) {
+                            const otherTd = teamDefs[Math.floor(rng() * teamDefs.length)];
+                            if (otherTd.key !== td.key) {
+                                const otherTime = otherTd.time === '11' ? '11AM' : '8PM';
+                                const otherLv = otherTd.isJapanese ? Math.floor(rng()*5) : Math.floor(rng()*4)+1;
+                                teamBadges.push({ label: `${otherTd.schedule} ${otherTime}(${otherLv})`, isJapanese: otherTd.isJapanese });
+                            }
+                        }
+                        const blockCount = perWeek === 4 ? 16 : 8;
+                        const attended = Math.floor(rng() * (blockCount + 1));
+                        const attRate = blockCount > 0 ? Math.round((attended / blockCount) * 100) : 0;
+                        const blocks = [];
+                        const days = ['월','화','수','목','금','토','일'];
+                        for (let b = 0; b < blockCount; b++) {
+                            const dayNum = Math.floor(b / (perWeek === 4 ? 4 : 2)) * 7 + (b % (perWeek === 4 ? 4 : 2)) * 2 + 1;
+                            const dayOfWeek = days[dayNum % 7];
+                            const dateStr = `04.${String(Math.min(dayNum, 28)).padStart(2,'0')} (${dayOfWeek})`;
+                            const leaderObj = leaders[Math.floor(rng() * leaders.length)];
+                            const leader = `${leaderObj.name} (${leaderObj.ext})`;
+                            if (b < attended) blocks.push({ date: dateStr, status: '출석', color: 'text-emerald-400', bg: 'bg-emerald-500 shadow-sm border border-emerald-600/30', leader });
+                            else if (b === attended && rng() > 0.7) blocks.push({ date: dateStr, status: '불참', color: 'text-red-400', bg: 'bg-red-300 border border-red-400/30', leader });
+                            else blocks.push({ date: dateStr, status: '미진행', color: 'text-slate-400', bg: 'bg-slate-200 border border-slate-300/30', leader });
+                        }
+                        const todayState = rng() > 0.6 ? 'checked' : 'unchecked';
+                        // Alert flag: low attendance, expiring soon, first visit
+                        let alertType = null;
+                        if (attRate <= 20 && rng() > 0.5) alertType = 2; // 첫 스터디 체크
+                        else if (remaining <= 5 && rng() > 0.4) alertType = 1; // 만료 임박
+                        else if (i < 3 && rng() > 0.6) alertType = 0; // 첫 스터디 미체크
+                        else if (rng() > 0.85) alertType = 3; // 결제 확인
+                        else if (rng() > 0.92) alertType = 4; // 홀딩 복귀
+                        else if (rng() > 0.98) alertType = Math.floor(rng() * alertTypes.length);
+
+                        const member = {
+                            id: `m_${td.key}_${lv}_${i}`,
+                            name, phone, age, level: lv, membership: ms, remaining, perWeek,
+                            startDate, expDate, regDate: startDate, memo, teamBadges, blocks, attRate, todayState,
+                            teamKey: td.key, teamLabel: td.label, alertType, attended, blockCount
+                        };
+                        members.push(member);
+
+                        memberDataMap[name] = {
+                            level: `LV ${lv}`, phone, membership: `${ms.name} 멤버십`, mColor: ms.colorModal,
+                            teams: teamBadges.map(tb => tb.label), regDate: startDate, startDate,
+                            remainSession: String(remaining), totalSession: String(ms.total),
+                            mName: ms.name, expDate, expNote: `주 ${perWeek}회 참석`,
+                            attRate: attRate + '%', attCount: `${attended}/${blockCount}회`,
+                            totalAtt: attended, totalCount: blockCount, blocks: blocks,
+                            attColor: attRate >= 80 ? 'text-emerald-600' : attRate >= 50 ? 'text-slate-500' : 'text-purple-600',
+                            message: memo + '. 관리자 상담 기록: 정기 점검 예정.',
+                            history: [
+                                { date: '2026.04.01', tag: `잔여 ${remaining}/${ms.total}회 • 주 ${perWeek}회`, color: 'indigo', title: '정기 점검', desc: '출석 현황 및 학습 진행 상태 확인 완료.' },
+                                { date: '2026.03.01', tag: `잔여 ${Math.min(remaining+10, ms.total)}/${ms.total}회`, color: 'purple', title: '상담 기록', desc: '학습 목표 재설정 및 스케줄 확인.' },
+                                { date: startDate.replace(/^(\d+)/, '20$1'), tag: `잔여 ${ms.total}/${ms.total}회 • 신규`, color: 'emerald', title: `${ms.name} 멤버십 등록 (${ms.total}회)`, desc: '최초 등록 완료. 오리엔테이션 및 레벨 테스트 진행.' }
+                            ]
+                        };
+                    }
+                    allMembers[td.key][lv] = members;
+                });
+            });
+
+            // ─── STATE ───
+            let currentTeamIdx = 0;
+            let currentSort = 'att-desc';
+            let currentViewMode = 'table';
+            let currentAlertViewMode = 'list';
+
+            let _checkCollapsed = false;
+            window.toggleCheckSection = function() {
+                _checkCollapsed = !_checkCollapsed;
+                const wrap = document.getElementById('check-content-wrap');
+                const icon = document.getElementById('check-collapse-icon');
+                if (_checkCollapsed) {
+                    wrap.style.maxHeight = '0';
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    wrap.style.maxHeight = '2000px';
+                    icon.style.transform = '';
+                }
+            };
+
+            window.setAlertViewMode = function(mode) {
+                currentAlertViewMode = mode;
+                const vList = document.getElementById('alert-list-container');
+                const vCard = document.getElementById('alert-card-container');
+                const btnList = document.getElementById('alert-view-btn-list');
+                const btnCard = document.getElementById('alert-view-btn-card');
+
+                if (mode === 'list') {
+                    vList.classList.remove('hidden');
+                    vCard.classList.add('hidden');
+                    btnList.classList.add('bg-white', 'shadow-sm', 'text-amber-600');
+                    btnList.classList.remove('text-amber-400');
+                    btnCard.classList.remove('bg-white', 'shadow-sm', 'text-amber-600');
+                    btnCard.classList.add('text-amber-400');
+                } else {
+                    vList.classList.add('hidden');
+                    vCard.classList.remove('hidden');
+                    btnCard.classList.add('bg-white', 'shadow-sm', 'text-amber-600');
+                    btnCard.classList.remove('text-amber-400');
+                    btnList.classList.remove('bg-white', 'shadow-sm', 'text-amber-600');
+                    btnList.classList.add('text-amber-400');
+                }
+                renderTeam(currentTeamIdx);
+            };
+
+            window.setViewMode = function(mode) {
+                currentViewMode = mode;
+                const vList = document.getElementById('view-list-section');
+                const vCard = document.getElementById('view-card-section');
+                const btnTable = document.getElementById('view-btn-table');
+                const btnCard = document.getElementById('view-btn-card');
+
+                if (mode === 'table') {
+                    vList.classList.remove('hidden');
+                    vCard.classList.add('hidden');
+                    btnTable.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
+                    btnTable.classList.remove('text-slate-500');
+                    btnCard.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
+                    btnCard.classList.add('text-slate-500');
+                } else {
+                    vList.classList.add('hidden');
+                    vCard.classList.remove('hidden');
+                    btnCard.classList.add('bg-white', 'shadow-sm', 'text-brand-700');
+                    btnCard.classList.remove('text-slate-500');
+                    btnTable.classList.remove('bg-white', 'shadow-sm', 'text-brand-700');
+                    btnTable.classList.add('text-slate-500');
+                }
+                renderTeam(currentTeamIdx);
+
+                // Recalc sticky because layout changed
+                if (window._recalcSticky) setTimeout(window._recalcSticky, 10);
+            };
+
+            function getLevelsForTeam(idx) {
+                return [0,1,2,3,4];
+            }
+
+            // ─── SORT FUNCTION ───
+            function sortMembers(members, sortKey) {
+                const sorted = [...members];
+                switch (sortKey) {
+                    case 'first-day':
+                        sorted.sort((a,b) => {
+                            const aIsFirst = (a.alertType === 0 || a.alertType === 2) ? 1 : 0;
+                            const bIsFirst = (b.alertType === 0 || b.alertType === 2) ? 1 : 0;
+                            return bIsFirst - aIsFirst;
+                        });
+                        break;
+                    case 'att-desc': sorted.sort((a,b) => b.attRate - a.attRate); break;
+                    case 'att-asc': sorted.sort((a,b) => a.attRate - b.attRate); break;
+                    case 'alert-first':
+                        sorted.sort((a,b) => {
+                            const aHas = (a.alertType !== null && a.alertType !== undefined) ? 1 : 0;
+                            const bHas = (b.alertType !== null && b.alertType !== undefined) ? 1 : 0;
+                            if (aHas !== bHas) return bHas - aHas;
+                            return b.attRate - a.attRate; // secondary sort by rate
+                        });
+                        break;
+                    case 'name-asc': sorted.sort((a,b) => a.name.localeCompare(b.name, 'ko')); break;
+                    case 'name-desc': sorted.sort((a,b) => b.name.localeCompare(a.name, 'ko')); break;
+                    case 'age-asc': sorted.sort((a,b) => a.age - b.age); break;
+                    case 'age-desc': sorted.sort((a,b) => b.age - a.age); break;
+                    case 'remain-asc': sorted.sort((a,b) => a.remaining - b.remaining); break;
+                    case 'remain-desc': sorted.sort((a,b) => b.remaining - a.remaining); break;
+                    case 'exp-asc': sorted.sort((a,b) => a.expDate.localeCompare(b.expDate)); break;
+                    case 'today-first': sorted.sort((a,b) => (b.todayState === 'checked' ? 1 : 0) - (a.todayState === 'checked' ? 1 : 0)); break;
+                    case 'today-last': sorted.sort((a,b) => (a.todayState === 'checked' ? 1 : 0) - (b.todayState === 'checked' ? 1 : 0)); break;
+                }
+                return sorted;
+            }
+
+            // ─── TEAM TAB BUTTONS ───
+            const teamButtons = document.querySelectorAll('.team-tab');
+
+            // ─── LEVEL NAV BAR (scroll jump) ───
+            const levelNav = document.getElementById('level-nav');
+            const levelNavContainer = levelNav.querySelector('.flex');
+
+            function renderLevelNav(teamIdx) {
+                const levels = getLevelsForTeam(teamIdx);
+                levelNavContainer.querySelectorAll('button').forEach(b => b.remove());
+                // "전체" total count
+                const totalCount = levels.reduce((sum, lv) => sum + (allMembers[teamDefs[teamIdx].key][lv] || []).length, 0);
+                levels.forEach((lv) => {
+                    const c = lvColors[lv];
+                    const count = (allMembers[teamDefs[teamIdx].key][lv] || []).length;
+                    const btn = document.createElement('button');
+                    btn.className = `flex-shrink-0 px-3 py-1 rounded-full bg-white text-slate-600 border border-slate-200 hover:border-slate-400 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm hover:shadow`;
+                    btn.innerHTML = `<span class="w-2 h-2 rounded-full ${c.bg}"></span>LV ${lv} <span class="text-[9px] text-slate-400 font-normal">(${count})</span>`;
+                    btn.addEventListener('click', () => {
+                        const targetId = currentViewMode === 'table' ? `level-section-${lv}` : `level-section-card-${lv}`;
+                        const target = document.getElementById(targetId);
+                        if (target) {
+                            const headerOffset = 150; 
+                            const elementPosition = target.getBoundingClientRect().top;
+                            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                        }
+                    });
+                    levelNavContainer.appendChild(btn);
+                });
+            }
+
+            // ─── BUILD MEMBER ROW HTML ───
+            function buildRowHtml(m, rowNum) {
+                const levelTeamHtml = m.teamBadges.map(tb => {
+                    const isJp = tb.isJapanese;
+                    const dotColor = isJp ? '#007BFF' : '#9B59B6';
+                    const bgColor = isJp ? '#e6f0ff' : '#f5eafa';
+                    const txtColor = isJp ? '#007BFF' : '#9B59B6';
+                    const borderColor = isJp ? '#007BFF' : '#9B59B6';
+                    const match = tb.label.match(/(.*)\((.*)\)/);
+                    const lvl = match ? match[2] : '';
+                    const tm = match ? match[1] : tb.label;
+                    return `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap cursor-pointer hover:shadow-sm transition-all" style="background:${bgColor};color:${txtColor};border-left:3px solid ${dotColor};" onclick="navigateToTeam('${tm}')" title="${tm} 탭으로 이동"><span style="font-weight:900;">LV${lvl}</span><span style="color:${txtColor};opacity:0.4;">·</span><span>${tm}</span></span>`;
+                }).join('');
+                const ms = m.membership;
+                const blocksHtml = m.blocks.map(b =>
+                    `<div class="attendance-block h-2.5 flex-1 rounded-sm ${b.bg} cursor-pointer" data-date="${b.date}" data-status="${b.status}" data-color="${b.color}" data-leader="${b.leader}"></div>`
+                ).join('');
+                let attRateColor = 'text-slate-500';
+                if (m.attRate >= 80) attRateColor = 'text-emerald-600';
+                else if (m.attRate < 50) attRateColor = 'text-purple-600';
+                const todayBtnCls = m.todayState === 'checked'
+                    ? 'border-emerald-300 bg-emerald-50 text-emerald-600 font-bold shadow-inner'
+                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-100 bg-slate-50 text-slate-400';
+
+                let alertBadgeHtml = '';
+                if (m.alertType !== null && m.alertType !== undefined) {
+                    const alertInfo = alertTypes[m.alertType];
+                    alertBadgeHtml = `<div class="alert-badge-container flex items-center gap-1"><span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[9px] font-bold ${alertInfo.cls} shadow-sm whitespace-nowrap">${alertInfo.badge}</span><button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-0.5 px-1.5 rounded text-amber-700 bg-white border border-amber-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-[9px] font-bold shadow-sm flex items-center gap-0.5"><i class="ph-bold ph-check"></i> 해결</button></div>`;
+                }
+
+                return `<tr class="member-row bg-white" id="member-row-${m.id}">
+                    <td class="px-2 py-1.5">
+                        <div class="flex items-center justify-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
+                            <span class="text-[10px] font-bold text-slate-400 w-3 text-right">${rowNum}</span>
+                            <i class="ph-bold ph-dots-six-vertical drag-handle text-slate-300 cursor-grab text-lg"></i>
+                            <input type="checkbox" class="row-checkbox w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer">
+                        </div>
+                    </td>
+                    <td class="px-2 py-1.5">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button class="font-extrabold text-brand-600 hover:text-brand-800 hover:underline text-left transition-colors text-[14px]" onclick="openProfileModal('${m.name}')">${m.name}</button>
+                            ${alertBadgeHtml}
+                        </div>
+                        <div class="font-mono text-[11px] text-slate-500 mt-1"><span class="cursor-pointer hover:text-brand-600 active:scale-95 transition-all" onclick="event.stopPropagation();copyPhone('${m.phone}')">${m.phone}</span> (${m.age}세)</div>
+                    </td>
+                    <td class="px-2 py-1.5">
+                        <div class="flex flex-wrap gap-1.5">${levelTeamHtml}</div>
+                    </td>
+                    <td class="px-2 py-1.5">
+                        <div class="flex flex-col gap-0.5">
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-1.5 py-0.5 ${ms.colorRow} text-[10px] font-bold rounded border">${ms.name}</span>
+                                <span class="text-xs font-bold text-slate-700">${m.remaining} <span class="text-[10px] text-slate-400 font-normal">/ ${ms.total}회</span></span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-2 py-1.5 group">
+                        <div class="editable-text p-1 text-slate-600 text-xs line-clamp-2 max-w-xs transition-colors relative border border-transparent group-hover:border-slate-200 bg-transparent group-hover:bg-slate-50 rounded">
+                            ${m.memo}
+                            <i class="ph ph-pencil-simple absolute right-2 bottom-1.5 bg-slate-50 opacity-0 group-hover:opacity-100 text-brand-600 p-0.5"></i>
+                        </div>
+                    </td>
+                    <td class="px-2 py-1.5 text-center">
+                        <div class="tooltip-container">
+                            <div class="flex items-center justify-center gap-[1px] w-[120px] mx-auto">${blocksHtml}</div>
+                        </div>
+                        <div class="text-[9px] ${attRateColor} font-bold mt-1 cursor-pointer hover:underline hover:text-brand-600 transition-colors" onclick="openMemberAttendanceHistory('${m.name}')">${m.attRate}% (주 ${m.perWeek}회)</div>
+                    </td>
+                    <td class="px-2 py-1.5 text-center">
+                        <button class="w-7 h-7 rounded border ${todayBtnCls} flex items-center justify-center transition-all mx-auto shadow-sm"><i class="ph-bold ph-check text-xs"></i></button>
+                    </td>
+                </tr>`;
+            }
+
+            // ─── BUILD MEMBER CARD HTML ───
+            function buildCardHtml(m) {
+                const ms = m.membership;
+                const blocksHtml = m.blocks.map(b =>
+                    `<div class="attendance-block h-2 flex-1 rounded-sm ${b.bg} cursor-pointer" data-date="${b.date}" data-status="${b.status}" data-color="${b.color}" data-leader="${b.leader}"></div>`
+                ).join('');
+                
+                const levelCls = lvColors[m.level] || lvColors[0];
+                
+                return `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col p-2.5 transition-all hover:shadow-md hover:border-brand-200 group relative">
+                    <div class="flex items-center justify-between mb-1.5 gap-2">
+                        <div class="flex items-center gap-2 overflow-hidden flex-1">
+                            <button class="font-bold text-slate-800 hover:text-brand-600 text-[14px] truncate" onclick="openProfileModal('${m.name}')">${m.name}</button>
+                            <span class="hidden xl:inline text-[9px] font-mono text-slate-400 cursor-pointer hover:text-brand-600 truncate" onclick="copyPhone('${m.phone}')">${m.phone}</span>
+                            <span class="px-1 py-0.5 ${ms.colorRow} text-[8.5px] font-bold rounded border whitespace-nowrap">${ms.name}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-1 mb-1.5">${m.teamBadges.map(tb => {
+                        const isJp = tb.isJapanese;
+                        const dotColor = isJp ? '#007BFF' : '#9B59B6';
+                        const bgColor = isJp ? '#e6f0ff' : '#f5eafa';
+                        const txtColor = isJp ? '#007BFF' : '#9B59B6';
+                        const match = tb.label.match(/(.*)\((.*)\)/);
+                        const lvl = match ? match[2] : '';
+                        const tm = match ? match[1] : tb.label;
+                        return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold whitespace-nowrap" style="background:${bgColor};color:${txtColor};border-left:2px solid ${dotColor};"><span style="font-weight:900;">LV${lvl}</span><span style="opacity:0.4;">·</span>${tm}</span>`;
+                    }).join('')}</div>
+
+                    <div class="flex items-center justify-between mb-1.5">
+                        <div class="flex items-center gap-1 text-[9px] text-slate-500 font-medium">
+                            <span class="font-bold text-slate-700 text-[10px]">${m.remaining}</span>
+                            <span class="text-slate-400">/ ${ms.total}회</span>
+                        </div>
+                        <span class="text-[10px] font-black ${m.attRate >= 80 ? 'text-emerald-600' : m.attRate < 50 ? 'text-purple-600' : 'text-slate-600'} cursor-pointer hover:underline" onclick="openMemberAttendanceHistory('${m.name}')">${m.attRate}%</span>
+                    </div>
+
+                    <div class="mb-1.5">
+                        <input type="text" value="${m.memo || ''}" placeholder="메모 입력..." 
+                            class="w-full bg-slate-50 border-none text-[10px] py-1 px-2 rounded focus:ring-1 focus:ring-brand-400 outline-none text-slate-500 placeholder:text-slate-300 transition-all border-transparent hover:border-slate-200">
+                    </div>
+
+                    <div class="flex items-center gap-[1px] w-full tooltip-container">
+                        ${blocksHtml}
+                    </div>
+                </div>`;
+            }
+
+            // ─── BUILD ALERT CARD HTML ───
+            function buildAlertCardHtml(m, a) {
+                const badgeCls = a.alertInfo.cls;
+                const badgeContent = a.alertInfo.badge;
+
+                return `
+                <div class="bg-white rounded-xl p-3 border border-amber-200 shadow-sm hover:shadow-md transition-all group relative flex flex-col justify-between h-full min-h-[165px]" id="alert-card-${m.id}">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${badgeCls} shadow-sm whitespace-nowrap">${badgeContent}</span>
+                             <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold border border-slate-200 uppercase tracking-tighter">LV ${a.level}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                            <button onclick="scrollToMember('${a.rowId}')" class="text-[15px] font-black text-slate-800 hover:text-brand-600 transition-colors flex items-center gap-1">
+                                ${m.name}
+                            </button>
+                            <div class="flex flex-wrap gap-1">
+                                ${m.teamBadges.slice(0, 2).map(tb => {
+                    const cls = tb.isJapanese ? 'color:#007BFF;background:#e6f0ff;border-color:#007BFF' : 'color:#9B59B6;background:#f5eafa;border-color:#9B59B6';
+                    const label = tb.label.split('(')[0];
+                    return `<span class="px-1 py-0.5 text-[8px] rounded font-bold border truncate max-w-[60px]" style="${cls}" title="${tb.label}">${label}</span>`;
+                }).join('')}
+                            </div>
+                            <i class="ph-bold ph-arrow-right text-[10px] text-slate-300 ml-auto group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all"></i>
+                        </div>
+                        <div class="text-[11px] text-slate-500 bg-amber-50/50 p-2 rounded-lg border border-amber-100/50 mb-3 line-clamp-2 min-h-[42px] leading-relaxed">
+                            <i class="ph ph-chat-centered-text text-amber-400 mr-1"></i> ${m.memo || '코멘트가 없습니다.'}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 pt-1">
+                        <span class="text-[10px] font-mono text-slate-400 cursor-pointer hover:text-brand-600 active:scale-95 transition-all truncate" onclick="event.stopPropagation();copyPhone('${m.phone}')" title="${m.phone}">${m.phone}</span>
+                        <button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-1 px-3 rounded-lg text-amber-700 bg-white border border-amber-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center justify-center gap-1">
+                            <i class="ph-bold ph-check"></i> 해결
+                        </button>
+                    </div>
+                </div>`;
+            }
+
+            // ─── RENDER FULL TEAM (all levels) ───
+            function renderTeam(teamIdx) {
+                const levels = getLevelsForTeam(teamIdx);
+                
+                // Update title badges
+                const titleEl = document.getElementById('team-title');
+                
+                const td = teamDefs[teamIdx];
+                const langLabel = td.lang === '영' ? '영어' : '일어';
+                const type = td.lang === '영' ? 'eng' : 'jpn';
+                const badgeText = `${langLabel} ${td.schedule}${td.time}`;
+                
+                const createBadge = (text, type) => {
+                    const colors = {
+                        'eng': 'bg-purple-100 text-purple-700 border-purple-200',
+                        'jpn': 'bg-blue-100 text-blue-700 border-blue-200'
+                    };
+                    const c = colors[type] || 'bg-slate-100 text-slate-700 border-slate-200';
+                    return `<span class="inline-flex items-center px-2 py-0.5 rounded-lg text-sm font-black border shadow-sm transition-all hover:scale-105 ${c}">${text}</span>`;
+                };
+
+                titleEl.innerHTML = `<span class="text-xl font-black text-slate-800 mr-1 italic">Member</span>` + createBadge(badgeText, type);
+
+                const innerFilterVal = document.getElementById('inner-alert-filter')?.value || 'all';
+
+                // Build alerts ensuring diverse levels
+                let displayAlerts = [];
+                levels.forEach(lv => {
+                    const membersInLv = allMembers[td.key][lv] || [];
+                    const foundIdx = membersInLv.findIndex(m => {
+                        if (m.alertType === null || m.alertType === undefined) return false;
+                        if (innerFilterVal !== 'all' && String(m.alertType) !== innerFilterVal) return false;
+                        return true;
+                    });
+                    if (foundIdx !== -1) {
+                        displayAlerts.push({ member: membersInLv[foundIdx], level: lv, alertInfo: alertTypes[membersInLv[foundIdx].alertType], rowId: `member-row-${membersInLv[foundIdx].id}` });
+                    }
+                });
+                
+                // Shuffle displayAlerts
+                displayAlerts.sort(() => Math.random() - 0.5);
+                
+                if (displayAlerts.length > 5) {
+                    displayAlerts = displayAlerts.slice(0, 5);
+                } else {
+                    let attempts = 0;
+                    while (displayAlerts.length < 5 && attempts < 40) {
+                        const randomLv = levels[Math.floor(Math.random() * levels.length)];
+                        const membersInLv = allMembers[td.key][randomLv] || [];
+                        const validMembers = membersInLv.filter(m => {
+                            if (m.alertType === null || m.alertType === undefined) return false;
+                            if (innerFilterVal !== 'all' && String(m.alertType) !== innerFilterVal) return false;
+                            return true;
+                        });
+                        if (validMembers.length > 0) {
+                            const m = validMembers[Math.floor(Math.random() * validMembers.length)];
+                            displayAlerts.push({ member: m, level: randomLv, alertInfo: alertTypes[m.alertType], rowId: `member-row-${m.id}` });
+                        }
+                        attempts++;
+                    }
+                }
+                displayAlerts = displayAlerts.slice(0, 5);
+
+                // Render check-section
+                const checkSection = document.getElementById('check-section');
+                const checkCount = document.getElementById('check-count');
+                const alertListContainer = document.getElementById('alert-list-container');
+                const alertCardContainer = document.getElementById('alert-card-container');
+
+                if (displayAlerts.length > 0) {
+                    checkSection.style.display = '';
+                    checkSection.style.opacity = '1';
+                    checkCount.textContent = displayAlerts.length + '명';
+                    
+                    // Populate List View
+                    alertListContainer.innerHTML = displayAlerts.map((a, i) => {
+                        const m = a.member;
+                        const badgeCls = a.alertInfo.cls;
+                        const badgeContent = a.alertInfo.badge;
+                        
+                        // Generate exact real team badges instead of fake ones
+                        const badgesHtml = m.teamBadges.map(tb => {
+                            const cls = tb.isJapanese
+                                ? 'color:#007BFF;background:#e6f0ff;border-color:#007BFF'
+                                : 'color:#9B59B6;background:#f5eafa;border-color:#9B59B6';
+                            const match = tb.label.match(/(.*)\((.*)\)/);
+                            const tm = match ? match[1] : tb.label;
+                            return `<span class="inline-block w-[88px] text-center px-1 py-0.5 text-[9px] rounded font-semibold border truncate whitespace-nowrap" style="${cls}">${tm}</span>`;
+                        }).join('');
+
+                        return `<div class="p-3 hover:bg-amber-100/50 transition-colors group flex items-center justify-between gap-2 border-b border-amber-100/50" id="alert-${m.id}">
+                            <div class="grid grid-cols-[104px_72px_44px_90px_1fr] items-center gap-3 flex-1 min-w-0">
+                                <span class="inline-flex items-center justify-center w-full px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeCls} shadow-sm whitespace-nowrap">${badgeContent}</span>
+                                <button onclick="scrollToMember('${a.rowId}')" class="text-sm font-bold text-slate-800 hover:text-brand-600 transition-colors flex items-center justify-between gap-1 w-full text-left">
+                                    ${m.name} <i class="ph-bold ph-arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-slate-400"></i>
+                                </button>
+                                <span class="inline-block w-full text-center px-1 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-semibold border border-slate-200">LV ${a.level}</span>
+                                <span class="text-[11px] font-mono text-slate-600 text-center w-full cursor-pointer hover:text-brand-600 active:scale-95 transition-all" onclick="event.stopPropagation();copyPhone('${m.phone}')">${m.phone}</span>
+                                <div class="hidden sm:flex items-center gap-1 overflow-hidden">
+                                    ${badgesHtml}
+                                </div>
+                            </div>
+                            <button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-1 px-2.5 rounded-lg text-amber-700 bg-white border border-amber-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center gap-1">
+                                <i class="ph-bold ph-check"></i> 해결
+                            </button>
+                        </div>`;
+                    }).join('');
+
+                    // Populate Card View
+                    alertCardContainer.innerHTML = displayAlerts.map(a => buildAlertCardHtml(a.member, a)).join('');
+
+                } else {
+                    checkSection.style.display = '';
+                    checkCount.textContent = '0명';
+                    alertListContainer.innerHTML = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                    alertCardContainer.innerHTML = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold w-full col-span-full">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                }
+
+                // Render level sections
+                const container = document.getElementById('levels-container');
+                const cardContainer = document.getElementById('levels-card-container');
+                container.innerHTML = '';
+                cardContainer.innerHTML = '';
+                let globalIdx = 0;
+                let totalVisible = 0;
+
+                const lvFilter = document.getElementById('level-filter')?.value || 'all';
+                let filteredLevels = levels;
+                if (lvFilter !== 'all') {
+                    filteredLevels = levels.filter(l => String(l) === lvFilter);
+                }
+
+                const searchQ = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+                const searchTarget = document.getElementById('search-target')?.value || 'all';
+                const msFilter = document.getElementById('membership-filter')?.value || 'all';
+
+                filteredLevels.forEach(lv => {
+                    const members = sortMembers(allMembers[td.key][lv] || [], currentSort);
+                    const c = lvColors[lv];
+
+                    if (currentViewMode === 'table') {
+                        // Level section wrapper
+                        const section = document.createElement('div');
+                        section.id = `level-section-${lv}`;
+                        section.className = 'scroll-mt-[160px]'; // offset for sticky headers
+
+                        // Level header (sticky)
+                        section.innerHTML = `
+                            <div class="level-sticky-header flex items-center gap-3 px-3 py-2 mb-0 mt-0" style="position:sticky;top:var(--level-header-top);z-index:20;background:rgba(255,255,255,0.98);backdrop-filter:blur(6px);border-bottom:1px solid #e2e8f0;">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full ${c.bg}"></span>
+                                    <h3 class="text-base font-bold ${c.text}">Level ${lv}</h3>
+                                    <span class="px-2 py-0.5 rounded-full ${c.light} ${c.text} ${c.border} border text-xs font-bold">${members.length}명</span>
+                                </div>
+                                <div class="flex-1 h-px bg-slate-200"></div>
+                            </div>
+                        `;
+
+                        // Table
+                        const tableWrap = document.createElement('div');
+                        tableWrap.className = 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4';
+                        tableWrap.innerHTML = `
+                            <div class="overflow-x-auto w-full">
+                                <table class="w-full text-left border-collapse min-w-[1000px]">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                                            <th class="px-2 py-1 font-medium w-16 text-center">
+                                                <div class="flex items-center justify-center gap-1">
+                                                    <span class="text-[10px] text-slate-400 w-3 text-right">No.</span>
+                                                    <input type="checkbox" class="check-all-lv w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer" data-level="${lv}">
+                                                </div>
+                                            </th>
+                                            <th class="px-2 py-1 font-medium min-w-[140px]">회원 정보</th>
+                                            <th class="px-2 py-1 font-medium min-w-[200px]">레벨 / 팀 <span class="inline-flex items-center gap-1.5 ml-1 text-[9px] font-semibold normal-case tracking-normal text-slate-400"><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#9B59B6"></span>영어</span><span class="inline-flex items-center gap-0.5"><span class="w-2 h-2 rounded-full" style="background:#007BFF"></span>일어</span></span></th>
+                                            <th class="px-2 py-1 font-medium min-w-[160px]">멤버십 현황</th>
+                                            <th class="px-2 py-1 font-medium min-w-[180px]">메모 (Click-to-Edit)</th>
+                                            <th class="px-2 py-1 font-medium text-center w-40">최근 출석률</th>
+                                            <th class="px-2 py-1 font-medium text-center w-24">금일 출석</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 text-sm text-slate-700 align-top" id="tbody-lv-${lv}"></tbody>
+                                </table>
+                            </div>
+                        `;
+                        section.appendChild(tableWrap);
+                        container.appendChild(section);
+
+                        // Fill tbody (with search filter)
+                        const tbody = document.getElementById(`tbody-lv-${lv}`);
+                        let visibleIdx = 0;
+                        members.forEach((m) => {
+                            let match = !searchQ;
+                            if (searchQ) {
+                                const name = (m.name || '').toLowerCase();
+                                const phone = (m.phone || '').replace(/-/g, '');
+                                const qNorm = searchQ.replace(/-/g, '');
+                                if (searchTarget === 'name') match = name.includes(searchQ);
+                                else if (searchTarget === 'phone') match = phone.includes(qNorm);
+                                else match = name.includes(searchQ) || phone.includes(qNorm);
+                            }
+                            if (match && msFilter !== 'all') {
+                                match = m.membership && m.membership.name === msFilter;
+                            }
+                            if (match) {
+                                visibleIdx++;
+                                tbody.innerHTML += buildRowHtml(m, visibleIdx);
+                                totalVisible++;
+                            }
+                            globalIdx++;
+                        });
+                    } else {
+                        // Card section wrapper
+                        const section = document.createElement('div');
+                        section.id = `level-section-card-${lv}`;
+                        section.className = 'scroll-mt-[160px]';
+
+                        // Card header (sticky)
+                        section.innerHTML = `
+                            <div class="level-sticky-header flex items-center gap-3 px-3 py-2 mb-3 mt-0" style="position:sticky;top:var(--level-header-top);z-index:20;background:rgba(255,255,255,0.98);backdrop-filter:blur(6px);border-bottom:1px solid #e2e8f0;">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full ${c.bg}"></span>
+                                    <h3 class="text-base font-bold ${c.text}">Level ${lv}</h3>
+                                    <span class="px-2 py-0.5 rounded-full ${c.light} ${c.text} ${c.border} border text-xs font-bold">${members.length}명</span>
+                                </div>
+                                <div class="flex-1 h-px bg-slate-200"></div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-1" id="card-grid-lv-${lv}"></div>
+                        `;
+                        cardContainer.appendChild(section);
+
+                        const grid = document.getElementById(`card-grid-lv-${lv}`);
+                        let visibleIdx = 0;
+                        members.forEach((m) => {
+                            let match = !searchQ;
+                            if (searchQ) {
+                                const name = (m.name || '').toLowerCase();
+                                const phone = (m.phone || '').replace(/-/g, '');
+                                const qNorm = searchQ.replace(/-/g, '');
+                                if (searchTarget === 'name') match = name.includes(searchQ);
+                                else if (searchTarget === 'phone') match = phone.includes(qNorm);
+                                else match = name.includes(searchQ) || phone.includes(qNorm);
+                            }
+                            if (match && msFilter !== 'all') {
+                                match = m.membership && m.membership.name === msFilter;
+                            }
+                            if (match) {
+                                visibleIdx++;
+                                grid.innerHTML += buildCardHtml(m);
+                                totalVisible++;
+                            }
+                        });
+                    }
+                });
+
+                // Show/hide no-result message
+                const noResult = document.getElementById('no-result');
+                noResult.classList.toggle('hidden', totalVisible > 0 || !searchQ);
+
+                // Bind checkboxes & level nav
+                bindCheckboxes();
+                renderLevelNav(teamIdx);
+            }
+
+            // ─── BULK CHECKBOXES ───
+            function bindCheckboxes() {
+                const bBar = document.getElementById('bulk-action-bar');
+                // Per-level check-all
+                document.querySelectorAll('.check-all-lv').forEach(chk => {
+                    chk.checked = false;
+                    chk.onchange = function(e) {
+                        const lv = e.target.dataset.level;
+                        const tbody = document.getElementById(`tbody-lv-${lv}`);
+                        if (tbody) tbody.querySelectorAll('.row-checkbox').forEach(i => i.checked = e.target.checked);
+                        updateBulk();
+                    };
+                });
+                document.querySelectorAll('.row-checkbox').forEach(i => { i.onchange = updateBulk; });
+                function updateBulk() {
+                    const c = Array.from(document.querySelectorAll('.row-checkbox')).filter(i => i.checked).length;
+                    if (c > 0) { bBar.classList.remove('hidden'); bBar.classList.add('flex'); document.getElementById('selected-count').innerText = c; }
+                    else { bBar.classList.add('hidden'); bBar.classList.remove('flex'); }
+                }
+            }
+
+            // ─── SORT SELECT ───
+            const sortSelect = document.getElementById('sort-select');
+            sortSelect.addEventListener('change', () => {
+                currentSort = sortSelect.value;
+                renderTeam(currentTeamIdx);
+            });
+
+            // ─── FILTERS ───
+            const membershipFilter = document.getElementById('membership-filter');
+            membershipFilter.addEventListener('change', () => {
+                renderTeam(currentTeamIdx);
+            });
+            const levelFilter = document.getElementById('level-filter');
+            if(levelFilter) levelFilter.addEventListener('change', () => renderTeam(currentTeamIdx));
+            const innerAlertFilter = document.getElementById('inner-alert-filter');
+            if(innerAlertFilter) innerAlertFilter.addEventListener('change', () => renderTeam(currentTeamIdx));
+
+            // ─── SEARCH FILTERING ───
+            const searchInput = document.getElementById('search-input');
+            const searchTarget = document.getElementById('search-target');
+            const searchClear = document.getElementById('search-clear');
+
+            searchInput.addEventListener('input', () => {
+                searchClear.classList.toggle('hidden', !searchInput.value.trim());
+                renderTeam(currentTeamIdx);
+            });
+            searchTarget.addEventListener('change', () => renderTeam(currentTeamIdx));
+            searchClear.addEventListener('click', () => {
+                searchInput.value = '';
+                searchClear.classList.add('hidden');
+                renderTeam(currentTeamIdx);
+                searchInput.focus();
+            });
+
+            // ─── TEAM TAB CLICK HANDLERS ───
+            
+            function updateMemberTabStyles() {
+                teamButtons.forEach((b, idx) => {
+                    const td = teamDefs[idx];
+                    const isActive = (idx === currentTeamIdx);
+                    const isEng = !td.isJapanese;
+                    
+                    if (isActive) {
+                        if (isEng) b.className = "team-tab flex-shrink-0 px-3 py-1 rounded-full bg-purple-600 text-white text-[13px] font-bold shadow-sm transition-all active:scale-95";
+                        else b.className = "team-tab flex-shrink-0 px-3 py-1 rounded-full bg-blue-600 text-white text-[13px] font-bold shadow-sm transition-all active:scale-95";
+                    } else {
+                        if (isEng) b.className = "team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 text-[13px] font-medium transition-all active:scale-95";
+                        else b.className = "team-tab flex-shrink-0 px-3 py-1 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-[13px] font-medium transition-all active:scale-95";
+                    }
+                });
+            }
+
+            teamButtons.forEach((btn, idx) => {
+                btn.addEventListener('click', () => {
+                    currentTeamIdx = idx;
+                    updateMemberTabStyles();
+                    renderTeam(idx);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+            updateMemberTabStyles(); // initial call
+
+            // ─── NAVIGATE TO TEAM FROM BADGE ───
+            window.navigateToTeam = function(badgeLabel) {
+                // Parse badge label like "영 월수 11AM(2)" → lang="영", schedule="월수", time="11"
+                const match = badgeLabel.match(/^(영|일)\s*(월수|화목|토일)\s*(11|8)/);
+                if (!match) return;
+                const [, lang, schedule, time] = match;
+                const targetIdx = teamDefs.findIndex(td => td.lang === lang && td.schedule === schedule && td.time === time);
+                if (targetIdx < 0) return;
+                // Trigger the team tab click
+                teamButtons[targetIdx]?.click();
+            };
+
+            // ─── PROFILE MODAL ───
+            const pModal = document.getElementById('profile-modal');
+            const pOverlay = document.getElementById('profile-modal-overlay');
+
+            window.openProfileModal = function(name) {
+                const data = memberDataMap[name];
+                if (!data) return;
+                document.getElementById('pm-name').innerText = name;
+                document.getElementById('pm-initial').innerText = name.charAt(0);
+                document.getElementById('pm-level-badge').innerText = data.level;
+                const mBadge = document.getElementById('pm-membership-badge');
+                mBadge.className = `px-2 py-0.5 rounded text-[10px] font-bold border ${data.mColor}`;
+                mBadge.innerText = data.membership;
+                document.getElementById('pm-phone').innerText = data.phone;
+                document.getElementById('pm-teams-container').innerHTML = data.teams.map(t => `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-white/10 text-white border border-white/20">${t}</span>`).join('');
+                document.getElementById('pm-reg-date').innerText = data.regDate;
+                document.getElementById('pm-brand-name').innerText = data.mName;
+                document.getElementById('pm-remain-session').innerText = `${data.remainSession} / ${data.totalSession}회`;
+                document.getElementById('pm-start-exp-date').innerHTML = `${data.startDate} <span class="text-slate-400 font-medium text-[11px] mx-0.5">~</span> ${data.expDate}`;
+                document.getElementById('pm-exp-note').innerText = data.expNote;
+                const attRateEl = document.getElementById('pm-att-rate');
+                attRateEl.innerText = data.attRate;
+                attRateEl.className = `font-bold text-[14px] leading-none ${data.attColor}`;
+                document.getElementById('pm-att-count').innerText = `${data.attCount} 참석`;
+                document.getElementById('pm-message').innerText = data.message;
+                let tHtml = '';
+                data.history.forEach((h, idx) => {
+                    tHtml += `<div class="relative">
+                        <div class="absolute -left-[21px] top-1 w-3 h-3 bg-white border-2 ${idx === 0 ? 'border-brand-500' : 'border-slate-300'} rounded-full"></div>
+                        <div class="text-xs font-mono text-slate-400 mb-0.5 flex flex-wrap items-center gap-2">${h.date} <span class="bg-slate-100 text-slate-500 px-1 rounded text-[9px] font-bold">${h.tag}</span></div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                            <div class="font-bold text-slate-800 text-sm mb-1 text-${h.color}-600">${h.title}</div>
+                            <div class="text-xs text-slate-600">${h.desc}</div>
+                        </div>
+                    </div>`;
+                });
+                document.getElementById('pm-timeline').innerHTML = tHtml;
+                pOverlay.classList.remove('hidden'); pModal.classList.remove('hidden');
+                setTimeout(() => { pOverlay.classList.remove('opacity-0'); pModal.classList.remove('opacity-0', 'scale-95'); }, 10);
+            };
+
+            window.closeProfileModal = function() {
+                pOverlay.classList.add('opacity-0'); pModal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => { pOverlay.classList.add('hidden'); pModal.classList.add('hidden'); }, 300);
+            };
+
+            window.scrollToMember = function(id) {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('bg-brand-100', 'transition-colors', 'duration-500');
+                    setTimeout(() => { el.classList.remove('bg-brand-100'); }, 1500);
+                }
+            };
+
+            window.openMemberAttendanceHistory = function(name) {
+                const data = memberDataMap[name];
+                if (!data) return;
+
+                document.getElementById('ah-modal-name').innerText = name;
+                document.getElementById('ah-modal-total-rate').innerText = data.attRate;
+                document.getElementById('ah-modal-total-count').innerText = data.attCount;
+                
+                const listContainer = document.getElementById('ah-modal-list');
+                listContainer.innerHTML = '';
+
+                // Reverse to show recent first
+                const historyBlocks = [...data.blocks].reverse().filter(b => b.status !== '미진행');
+                
+                if (historyBlocks.length === 0) {
+                    listContainer.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs italic">최근 출석 기록이 없습니다.</div>`;
+                } else {
+                    historyBlocks.forEach(b => {
+                        const statusColor = b.status === '출석' ? 'text-emerald-600' : 'text-red-500';
+                        const statusBg = b.status === '출석' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200';
+                        
+                        listContainer.innerHTML += `
+                            <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm transition-all hover:border-brand-200">
+                                <div class="flex items-center justify-between mb-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <i class="ph-bold ph-calendar text-slate-400"></i>
+                                        <span class="text-sm font-bold text-slate-700">${b.date}</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black border ${statusBg} ${statusColor}">${b.status}</span>
+                                </div>
+                                <div class="flex items-center gap-3 pt-2.5 border-t border-slate-100">
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-500 font-bold border border-slate-200">
+                                            <i class="ph ph-user"></i>
+                                        </div>
+                                        <span class="text-xs font-semibold text-slate-600">리더: ${b.leader}</span>
+                                    </div>
+                                    <div class="flex-1 text-right text-[10px] text-slate-400 italic">
+                                        기본 세션
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                const modal = document.getElementById('ah-modal');
+                const overlay = document.getElementById('ah-modal-overlay');
+                overlay.classList.remove('hidden');
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    modal.classList.remove('opacity-0', 'translate-y-4');
+                }, 10);
+            };
+
+            window.closeMemberAttendanceHistory = function() {
+                const modal = document.getElementById('ah-modal');
+                const overlay = document.getElementById('ah-modal-overlay');
+                overlay.classList.add('opacity-0');
+                modal.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    modal.classList.add('hidden');
+                }, 300);
+            };
+
+            window.resolveAlert = function(alertId, memberRowId) {
+                const baseId = alertId.replace('alert-card-', '').replace('alert-', '');
+                const listEl = document.getElementById('alert-' + baseId);
+                const cardEl = document.getElementById('alert-card-' + baseId);
+                
+                const removeWithAnim = (el) => {
+                    if (!el) return;
+                    el.style.opacity = '0'; 
+                    el.style.transform = 'translateY(10px)'; 
+                    el.style.transition = 'all 0.3s ease';
+                    setTimeout(() => el.remove(), 300);
+                };
+
+                removeWithAnim(listEl);
+                removeWithAnim(cardEl);
+
+                setTimeout(() => {
+                    const checkSection = document.getElementById('check-section');
+                    const countSpan = document.getElementById('check-count');
+                    const listContainer = document.getElementById('alert-list-container');
+                    const cardContainer = document.getElementById('alert-card-container');
+                    
+                    if (countSpan) {
+                        let current = parseInt(countSpan.innerText);
+                        if (!isNaN(current) && current > 0) {
+                            current--; 
+                            countSpan.innerText = current + '명';
+                            if (current === 0) {
+                                const emptyMsg = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold w-full col-span-full">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                                if (listContainer) listContainer.innerHTML = emptyMsg;
+                                if (cardContainer) cardContainer.innerHTML = emptyMsg;
+                            }
+                        }
+                    }
+                }, 300);
+                
+                if (memberRowId) {
+                    const row = document.getElementById(memberRowId);
+                    if (row) {
+                        const badgeContainer = row.querySelector('.alert-badge-container');
+                        if (badgeContainer) badgeContainer.remove();
+                    }
+                }
+            };
+
+            // ─── GLOBAL BLOCK TOOLTIP ───
+            const globalTooltip = document.getElementById('global-block-tooltip');
+            const gbtDate = document.getElementById('gbt-date');
+            const gbtStatus = document.getElementById('gbt-status');
+            const gbtLeader = document.getElementById('gbt-leader');
+            document.addEventListener('mouseover', function(e) {
+                if (e.target.classList.contains('attendance-block')) {
+                    const rect = e.target.getBoundingClientRect();
+                    gbtDate.textContent = e.target.getAttribute('data-date') || '미정';
+                    gbtStatus.textContent = e.target.getAttribute('data-status') || '미진행';
+                    gbtStatus.className = `font-bold ${e.target.getAttribute('data-color') || 'text-slate-400'}`;
+                    gbtLeader.textContent = e.target.getAttribute('data-leader') || '-';
+                    globalTooltip.style.left = `${rect.left + (rect.width / 2)}px`;
+                    globalTooltip.style.top = `${rect.top - 8}px`;
+                    globalTooltip.classList.remove('hidden');
+                }
+            });
+            document.addEventListener('mouseout', function(e) {
+                if (e.target.classList.contains('attendance-block')) globalTooltip.classList.add('hidden');
+            });
+
+            window.openSmsModal = window.openSmsModal || function() { alert('일괄 문자 기능 (준비 중)'); };
+
+            // ─── INITIAL RENDER ───
+            renderTeam(0);
+        });
+    </script>
+<!-- 맨 위로 가기 버튼 -->
+<button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+    class="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-brand-600 text-white shadow-lg hover:bg-brand-700 transition-all duration-300 flex items-center justify-center opacity-0 pointer-events-none"
+    style="transition: opacity 0.3s, transform 0.3s;" aria-label="맨 위로 가기">
+    <i class="ph-bold ph-arrow-up text-lg"></i>
+</button>
+<script>
+(function(){
+    const btn = document.getElementById('scrollTopBtn');
+    window.addEventListener('scroll', function(){
+        if(window.scrollY > 300){
+            btn.style.opacity='1'; btn.style.pointerEvents='auto';
+        } else {
+            btn.style.opacity='0'; btn.style.pointerEvents='none';
+        }
+    });
+})();
+
+function copyPhone(phone) {
+    const clean = phone.replace(/[^0-9-]/g, '').trim();
+    navigator.clipboard.writeText(clean).then(() => {
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-[9999] transition-opacity duration-300';
+        toast.innerText = clean + ' 복사됨';
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 1500);
+    });
+}
+
+/* ── DYNAMIC STICKY POSITIONS ── */
+(function fixStickyPositions(){
+    function calc() {
+        const header = document.querySelector('header');
+        const tabsNav = document.getElementById('team-tabs-nav');
+        const levelNav = document.getElementById('level-nav');
+        if (!header || !tabsNav) return;
+
+        const headerH = header.getBoundingClientRect().height;
+        const tabsH   = tabsNav.getBoundingClientRect().height;
+        const levelNavH = (levelNav && !levelNav.classList.contains('hidden'))
+                          ? levelNav.getBoundingClientRect().height : 0;
+
+        // Force a 1px overlap to eliminate sub-pixel gaps caused by borders/anti-aliasing
+        const tabsTop      = headerH - 1; 
+        const levelNavTop  = headerH + tabsH - 2; 
+        const levelHeaderTop = headerH + tabsH + levelNavH - 3; 
+
+        const root = document.documentElement;
+        root.style.setProperty('--tabs-top',      tabsTop + 'px');
+        root.style.setProperty('--level-nav-top', levelNavTop + 'px');
+        root.style.setProperty('--level-header-top', levelHeaderTop + 'px');
+    }
+
+    // Run multiple times to catch layout settled state
+    calc();
+    window.addEventListener('scroll', calc, { passive: true });
+    window.addEventListener('resize', calc);
+    document.addEventListener('DOMContentLoaded', calc);
+    window.addEventListener('load', calc);
+    window._recalcSticky = calc;
+})();
+</script>
+</body>
+</html>
