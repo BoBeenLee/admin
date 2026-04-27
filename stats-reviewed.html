@@ -30,12 +30,22 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
 
     <style>
-        body { background-color: #f8fafc; color: #0f172a; }
+        body { background-color: #f8fafc; color: #0f172a; font-feature-settings: "ss01", "ss02"; }
+        h1, h2, h3, h4 { text-wrap: balance; word-break: keep-all; }
+        p { text-wrap: pretty; word-break: keep-all; }
+        .num, time, .font-mono { font-variant-numeric: tabular-nums; }
         .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+
+        /* A11y: prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            .stat-card { transition: none; }
+            .stat-card:hover { transform: none; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+            * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen pb-24">
