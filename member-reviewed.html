@@ -330,28 +330,28 @@
 
             <!-- Action Needed / Alerts Section (CHECK) -->
             <div id="check-section"
-                class="bg-amber-50 rounded-xl shadow-sm border border-amber-200 overflow-hidden mb-4">
-                <button onclick="toggleCheckSection()" class="w-full px-4 py-3 border-b border-amber-200 bg-amber-100/50 flex justify-between items-center cursor-pointer hover:bg-amber-100/80 transition-colors">
-                    <h3 class="text-sm font-bold text-amber-800 flex items-center gap-2">
-                        <i class="ph-fill ph-warning-circle text-lg"></i> 주의 알림 (CHECK)
+                class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4">
+                <button onclick="toggleCheckSection()" class="w-full px-4 py-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition-colors">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="ph-fill ph-warning-circle text-lg text-amber-500"></i> 주의 알림 (CHECK)
                         <span id="check-count"
-                            class="px-2 py-0.5 bg-amber-200 text-amber-800 rounded-full text-xs font-bold shadow-inner border border-amber-300">5명</span>
+                            class="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs font-bold border border-slate-300">5명</span>
                     </h3>
-                    <i class="ph ph-caret-down text-amber-400 text-sm transition-transform" id="check-collapse-icon"></i>
+                    <i class="ph ph-caret-down text-slate-400 text-sm transition-transform" id="check-collapse-icon"></i>
                 </button>
                 <div id="check-content-wrap" style="max-height:2000px;overflow:hidden;transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1);">
-                <div class="px-4 py-2 border-b border-amber-200 bg-amber-50 flex items-center gap-3">
-                    <div class="flex items-center bg-white/50 rounded-lg p-0.5 gap-0.5 border border-amber-200">
+                <div class="px-4 py-2 border-b border-slate-200 bg-slate-50/60 flex items-center gap-3">
+                    <div class="flex items-center bg-white rounded-lg p-0.5 gap-0.5 border border-slate-200">
                         <button id="alert-view-btn-list" onclick="setAlertViewMode('list')" title="리스트 보기"
-                            class="w-7 h-7 rounded-md flex items-center justify-center transition-all bg-white shadow-sm text-amber-600">
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-colors bg-slate-900 text-white">
                             <i class="ph-bold ph-list-bullets text-sm"></i>
                         </button>
                         <button id="alert-view-btn-card" onclick="setAlertViewMode('card')" title="카드 보기"
-                            class="w-7 h-7 rounded-md flex items-center justify-center transition-all text-amber-400 hover:text-amber-600">
+                            class="w-7 h-7 rounded-md flex items-center justify-center transition-colors text-slate-500 hover:text-slate-800">
                             <i class="ph-bold ph-squares-four text-sm"></i>
                         </button>
                     </div>
-                    <select id="inner-alert-filter" class="px-2 py-1 bg-white border border-amber-300 rounded text-xs font-medium text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none cursor-pointer">
+                    <select id="inner-alert-filter" class="px-2 py-1 bg-white border border-slate-300 rounded text-xs font-medium text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none cursor-pointer">
                         <option value="all">전체 유형</option>
                         <option value="0">첫 스터디 미체크</option>
                         <option value="1">만료 D-7</option>
@@ -360,9 +360,9 @@
                         <option value="4">홀딩 복귀</option>
                     </select>
                 </div>
-                <div id="alert-list-container" class="divide-y divide-amber-100">
+                <div id="alert-list-container" class="divide-y divide-slate-100">
                     <!-- Alert Item 1 -->
-                    <div class="p-3 hover:bg-amber-100/50 transition-colors group flex items-center justify-between gap-2 border-b border-amber-100/50"
+                    <div class="p-3 hover:bg-slate-50 transition-colors group flex items-center justify-between gap-2 border-b border-slate-100"
                         id="alert-1">
                         <div class="grid grid-cols-[104px_72px_44px_90px_1fr] items-center gap-3 flex-1 min-w-0">
                             <!-- Badge -->
@@ -399,12 +399,12 @@
 
                         <!-- Resolve Button -->
                         <button onclick="resolveAlert('alert-1')"
-                            class="shrink-0 p-1 px-2.5 rounded-lg text-amber-700 bg-white border border-amber-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center gap-1">
+                            class="shrink-0 p-1 px-2.5 rounded-lg text-slate-700 bg-white border border-slate-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-400 transition-colors text-xs font-bold flex items-center gap-1">
                             <i class="ph-bold ph-check"></i> 해결
                         </button>
                     </div>
                     <!-- Alert Item 2 -->
-                    <div class="p-3 hover:bg-amber-100/50 transition-colors group flex items-center justify-between gap-2"
+                    <div class="p-3 hover:bg-slate-50 transition-colors group flex items-center justify-between gap-2"
                         id="alert-2">
                         <div class="grid grid-cols-[104px_72px_44px_90px_1fr] items-center gap-3 flex-1 min-w-0">
                             <!-- Badge -->
@@ -437,7 +437,7 @@
 
                         <!-- Resolve Button -->
                         <button onclick="resolveAlert('alert-2')"
-                            class="shrink-0 p-1 px-2.5 rounded-lg text-amber-700 bg-white border border-amber-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center gap-1">
+                            class="shrink-0 p-1 px-2.5 rounded-lg text-slate-700 bg-white border border-slate-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-400 transition-colors text-xs font-bold flex items-center gap-1">
                             <i class="ph-bold ph-check"></i> 해결
                         </button>
                     </div>
@@ -959,17 +959,17 @@
                 if (mode === 'list') {
                     vList.classList.remove('hidden');
                     vCard.classList.add('hidden');
-                    btnList.classList.add('bg-white', 'shadow-sm', 'text-amber-600');
-                    btnList.classList.remove('text-amber-400');
-                    btnCard.classList.remove('bg-white', 'shadow-sm', 'text-amber-600');
-                    btnCard.classList.add('text-amber-400');
+                    btnList.classList.add('bg-slate-900', 'text-white');
+                    btnList.classList.remove('text-slate-500');
+                    btnCard.classList.remove('bg-slate-900', 'text-white');
+                    btnCard.classList.add('text-slate-500');
                 } else {
                     vList.classList.add('hidden');
                     vCard.classList.remove('hidden');
-                    btnCard.classList.add('bg-white', 'shadow-sm', 'text-amber-600');
-                    btnCard.classList.remove('text-amber-400');
-                    btnList.classList.remove('bg-white', 'shadow-sm', 'text-amber-600');
-                    btnList.classList.add('text-amber-400');
+                    btnCard.classList.add('bg-slate-900', 'text-white');
+                    btnCard.classList.remove('text-slate-500');
+                    btnList.classList.remove('bg-slate-900', 'text-white');
+                    btnList.classList.add('text-slate-500');
                 }
                 renderTeam(currentTeamIdx);
             };
@@ -1099,7 +1099,7 @@
                 let alertBadgeHtml = '';
                 if (m.alertType !== null && m.alertType !== undefined) {
                     const alertInfo = alertTypes[m.alertType];
-                    alertBadgeHtml = `<div class="alert-badge-container flex items-center gap-1"><span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[9px] font-bold ${alertInfo.cls} shadow-sm whitespace-nowrap">${alertInfo.badge}</span><button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-0.5 px-1.5 rounded text-amber-700 bg-white border border-amber-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-[9px] font-bold shadow-sm flex items-center gap-0.5"><i class="ph-bold ph-check"></i> 해결</button></div>`;
+                    alertBadgeHtml = `<div class="alert-badge-container flex items-center gap-1"><span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[9px] font-bold ${alertInfo.cls} shadow-sm whitespace-nowrap">${alertInfo.badge}</span><button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-0.5 px-1.5 rounded text-slate-700 bg-white border border-slate-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-400 transition-colors text-[9px] font-bold flex items-center gap-0.5"><i class="ph-bold ph-check"></i> 해결</button></div>`;
                 }
 
                 return `<tr class="member-row bg-white" id="member-row-${m.id}">
@@ -1200,7 +1200,7 @@
                 const badgeContent = a.alertInfo.badge;
 
                 return `
-                <div class="bg-white rounded-xl p-3 border border-amber-200 shadow-sm hover:shadow-md transition-all group relative flex flex-col justify-between h-full min-h-[165px]" id="alert-card-${m.id}">
+                <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-sm hover:shadow-md transition-shadow group relative flex flex-col justify-between h-full min-h-[165px]" id="alert-card-${m.id}">
                     <div>
                         <div class="flex items-center justify-between mb-2">
                              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${badgeCls} shadow-sm whitespace-nowrap">${badgeContent}</span>
@@ -1219,13 +1219,13 @@
                             </div>
                             <i class="ph-bold ph-arrow-right text-[10px] text-slate-300 ml-auto group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all"></i>
                         </div>
-                        <div class="text-[11px] text-slate-500 bg-amber-50/50 p-2 rounded-lg border border-amber-100/50 mb-3 line-clamp-2 min-h-[42px] leading-relaxed">
-                            <i class="ph ph-chat-centered-text text-amber-400 mr-1"></i> ${m.memo || '코멘트가 없습니다.'}
+                        <div class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100 mb-3 line-clamp-2 min-h-[42px] leading-relaxed">
+                            <i class="ph ph-chat-centered-text text-slate-400 mr-1"></i> ${m.memo || '코멘트가 없습니다.'}
                         </div>
                     </div>
                     <div class="flex items-center justify-between gap-2 pt-1">
                         <span class="text-[10px] font-mono text-slate-400 cursor-pointer hover:text-brand-600 active:scale-95 transition-all truncate" onclick="event.stopPropagation();copyPhone('${m.phone}')" title="${m.phone}">${m.phone}</span>
-                        <button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-1 px-3 rounded-lg text-amber-700 bg-white border border-amber-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center justify-center gap-1">
+                        <button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-1 px-3 rounded-lg text-slate-700 bg-white border border-slate-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-400 transition-colors text-xs font-bold flex items-center justify-center gap-1">
                             <i class="ph-bold ph-check"></i> 해결
                         </button>
                     </div>
@@ -1322,7 +1322,7 @@
                             return `<span class="inline-block w-[88px] text-center px-1 py-0.5 text-[9px] rounded font-semibold border truncate whitespace-nowrap" style="${cls}">${tm}</span>`;
                         }).join('');
 
-                        return `<div class="p-3 hover:bg-amber-100/50 transition-colors group flex items-center justify-between gap-2 border-b border-amber-100/50" id="alert-${m.id}">
+                        return `<div class="p-3 hover:bg-slate-50 transition-colors group flex items-center justify-between gap-2 border-b border-slate-100" id="alert-${m.id}">
                             <div class="grid grid-cols-[104px_72px_44px_90px_1fr] items-center gap-3 flex-1 min-w-0">
                                 <span class="inline-flex items-center justify-center w-full px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeCls} shadow-sm whitespace-nowrap">${badgeContent}</span>
                                 <button onclick="scrollToMember('${a.rowId}')" class="text-sm font-bold text-slate-800 hover:text-brand-600 transition-colors flex items-center justify-between gap-1 w-full text-left">
@@ -1334,7 +1334,7 @@
                                     ${badgesHtml}
                                 </div>
                             </div>
-                            <button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-1 px-2.5 rounded-lg text-amber-700 bg-white border border-amber-300 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-300 transition-all text-xs font-bold shadow-sm flex items-center gap-1">
+                            <button onclick="resolveAlert('alert-${m.id}', 'member-row-${m.id}')" class="shrink-0 p-1 px-2.5 rounded-lg text-slate-700 bg-white border border-slate-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-400 transition-colors text-xs font-bold flex items-center gap-1">
                                 <i class="ph-bold ph-check"></i> 해결
                             </button>
                         </div>`;
@@ -1346,8 +1346,8 @@
                 } else {
                     checkSection.style.display = '';
                     checkCount.textContent = '0명';
-                    alertListContainer.innerHTML = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold">선택하신 유형의 알림 대상자가 없습니다.</div>`;
-                    alertCardContainer.innerHTML = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold w-full col-span-full">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                    alertListContainer.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-bold">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                    alertCardContainer.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-bold w-full col-span-full">선택하신 유형의 알림 대상자가 없습니다.</div>`;
                 }
 
                 // Render level sections
@@ -1740,7 +1740,7 @@
                             current--; 
                             countSpan.innerText = current + '명';
                             if (current === 0) {
-                                const emptyMsg = `<div class="p-6 text-center text-amber-700/60 text-xs font-bold w-full col-span-full">선택하신 유형의 알림 대상자가 없습니다.</div>`;
+                                const emptyMsg = `<div class="p-6 text-center text-slate-500 text-xs font-bold w-full col-span-full">선택하신 유형의 알림 대상자가 없습니다.</div>`;
                                 if (listContainer) listContainer.innerHTML = emptyMsg;
                                 if (cardContainer) cardContainer.innerHTML = emptyMsg;
                             }
