@@ -493,7 +493,7 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
           </div>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col">
             <div class="flex items-center justify-between mb-4">
               <span class="text-xs font-bold text-slate-600">시간대별 실시간 현황</span>
@@ -554,11 +554,8 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
             <div class="flex items-center justify-between mb-3">
               <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">유입 경로 분석</span>
               <select id="b-source-sort" class="text-[10px] font-bold border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-600 outline-none cursor-pointer hover:border-brand-300 transition-colors">
-                <option value="count-desc">지원자 많은순</option>
-                <option value="count-asc">지원자 적은순</option>
-                <option value="rate-desc">성공률 높은순</option>
-                <option value="rate-asc">성공률 낮은순</option>
                 <option value="default">기본 순서</option>
+                <option value="count-desc">높은순</option>
               </select>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -572,6 +569,22 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
                   <span id="b-source-success-overall" class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100" title="회신 기록(통화 로그)이 1건 이상 남은 지원자 비율">0%</span>
                 </div>
                 <div id="b-source-success-wrap" class="space-y-2"></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-200/60">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5"><i class="ph-fill ph-map-pin text-brand-500"></i> 유입 경로별 방문율</span>
+                  <span id="b-source-visit-overall" class="text-[9px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded-full border border-brand-100">0%</span>
+                </div>
+                <div id="b-source-visit-wrap" class="space-y-2"></div>
+              </div>
+              <div class="sm:border-l sm:border-slate-200/60 sm:pl-4">
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-xs font-bold text-slate-600 flex items-center gap-1.5"><i class="ph-fill ph-currency-krw text-amber-500"></i> 유입 경로별 매출</span>
+                  <span id="b-source-revenue-overall" class="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-100">₩0</span>
+                </div>
+                <div id="b-source-revenue-wrap" class="space-y-2"></div>
               </div>
             </div>
           </div>
@@ -1391,7 +1404,7 @@ function renderBoard(){
     });
   }
 
-  // 유입 경로별 회신 성공률 — 채널별로 callLogs가 1건 이상 남은 지원자 비율 (동일 정렬 적용)
+  // 유입 경로별 회신 성공률
   const succWrap = document.getElementById('b-source-success-wrap');
   if (succWrap) {
     succWrap.innerHTML = '';
@@ -1403,13 +1416,82 @@ function renderBoard(){
         succWrap.innerHTML += `<div class="flex items-center gap-2"><span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span><div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${rate}%"></div></div><span class="text-[10px] font-black text-slate-500 w-12 text-right tabular-nums">${rep}/${cnt}</span><span class="text-[10px] font-black ${rateColor} w-9 text-right tabular-nums">${rate}%</span></div>`;
       });
     }
-
-    // 전체 회신 성공률 배지 갱신
     const overallEl = document.getElementById('b-source-success-overall');
     if (overallEl) {
       const totalRate = total > 0 ? Math.round((replied / total) * 100) : 0;
       overallEl.textContent = `전체 ${totalRate}%`;
     }
+  }
+
+  // 유입 경로별 방문율
+  const visitWrap = document.getElementById('b-source-visit-wrap');
+  if (visitWrap) {
+    visitWrap.innerHTML = '';
+    const totalVisited = fa.filter(a => visitData[a.id]?.scheduled).length;
+    const maxVisitRate = Math.max(...sourceRows.map(r => {
+      const apps = fa.filter(a => a.source === r.s.id);
+      return apps.length > 0 ? apps.filter(a => visitData[a.id]?.scheduled).length / apps.length * 100 : 0;
+    }), 1);
+    if (sourceRows.length === 0) {
+      visitWrap.innerHTML = `<div class="text-[10px] text-slate-300 italic text-center py-3">데이터가 없습니다</div>`;
+    } else {
+      sourceRows.forEach(({ s, cnt }) => {
+        const apps = fa.filter(a => a.source === s.id);
+        const vis = apps.filter(a => visitData[a.id]?.scheduled).length;
+        const vrate = cnt > 0 ? Math.round(vis / cnt * 100) : 0;
+        const vrateColor = vrate >= 50 ? 'text-brand-600' : vrate >= 25 ? 'text-amber-600' : 'text-slate-400';
+        visitWrap.innerHTML += `<div class="flex items-center gap-2"><span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span><div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${vrate}%"></div></div><span class="text-[10px] font-black text-slate-500 w-10 text-right tabular-nums">${vis}/${cnt}</span><span class="text-[10px] font-black ${vrateColor} w-9 text-right tabular-nums">${vrate}%</span></div>`;
+      });
+    }
+    const visitOverallEl = document.getElementById('b-source-visit-overall');
+    if (visitOverallEl) {
+      const overallVrate = total > 0 ? Math.round(totalVisited / total * 100) : 0;
+      visitOverallEl.textContent = `전체 ${overallVrate}%`;
+    }
+  }
+
+  // 유입 경로별 매출
+  const revenueWrap = document.getElementById('b-source-revenue-wrap');
+  if (revenueWrap) {
+    revenueWrap.innerHTML = '';
+    const fmtM = n => '₩' + n.toLocaleString('ko-KR');
+    const srcRevRows = sourceRows.map(r => {
+      const apps = fa.filter(a => a.source === r.s.id);
+      const enrolled = apps.filter(a => (visitData[a.id]?.amount || 0) > 0);
+      const rev = enrolled.reduce((s, a) => s + (visitData[a.id]?.amount || 0), 0);
+      const avg = enrolled.length > 0 ? Math.round(rev / enrolled.length) : 0;
+      return { ...r, rev, enrolled: enrolled.length, avg };
+    }).sort((a, b) => b.rev - a.rev);
+    const maxRev = Math.max(...srcRevRows.map(r => r.rev), 1);
+    const totalRev = srcRevRows.reduce((s, r) => s + r.rev, 0);
+    const totalEnrolled = srcRevRows.reduce((s, r) => s + r.enrolled, 0);
+    const totalAvg = totalEnrolled > 0 ? Math.round(totalRev / totalEnrolled) : 0;
+    if (srcRevRows.length === 0) {
+      revenueWrap.innerHTML = `<div class="text-[10px] text-slate-300 italic text-center py-3">데이터가 없습니다</div>`;
+    } else {
+      srcRevRows.forEach(({ s, rev, enrolled, avg }, idx) => {
+        const pct = Math.round(rev / maxRev * 100);
+        const detailId = `rev-detail-${s.id}`;
+        revenueWrap.innerHTML += `
+          <div class="${enrolled > 0 ? 'cursor-pointer hover:bg-slate-50 rounded-lg px-1 -mx-1' : ''} transition-colors" onclick="${enrolled > 0 ? `(function(){const d=document.getElementById('${detailId}');const open=d.style.maxHeight==='32px';d.style.maxHeight=open?'0':'32px';d.style.opacity=open?'0':'1';})()` : ''}">
+            <div class="flex items-center gap-2 py-0.5">
+              <span class="pill-src border ${s.cls} min-w-[70px] text-center">${s.label}</span>
+              <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all duration-700" style="background:${s.color};width:${pct}%"></div></div>
+              <span class="text-[9px] text-slate-400 tabular-nums w-7 text-right">${enrolled}명</span>
+              <span class="text-[10px] font-black text-amber-600 tabular-nums font-mono w-20 text-right">${rev > 0 ? fmtM(rev) : '—'}</span>
+              ${enrolled > 0 ? `<i class="ph ph-caret-down text-[9px] text-slate-300"></i>` : `<span class="w-3"></span>`}
+            </div>
+            <div id="${detailId}" style="max-height:0;opacity:0;overflow:hidden;transition:max-height 0.2s ease,opacity 0.15s ease;">
+              <div class="flex items-center gap-1 pb-1 pl-[76px]">
+                <span class="text-[9px] text-slate-400">객단가</span>
+                <span class="text-[10px] font-black text-slate-600 font-mono ml-1">${fmtM(avg)}</span>
+              </div>
+            </div>
+          </div>`;
+      });
+    }
+    const revOverallEl = document.getElementById('b-source-revenue-overall');
+    if (revOverallEl) revOverallEl.textContent = `${fmtM(totalRev)} · 객단가 ${fmtM(totalAvg)}`;
   }
   const empGrid = document.getElementById('b-emp-grid'); empGrid.innerHTML = '';
   employees.forEach(emp => {
@@ -2862,10 +2944,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (i % 2 === 0) {
         callLogs[id] = [{key: STAFF[i % STAFF.length], time: new Date()}];
       }
-      // Add fake visits for some (2명 예약 확정)
-      if ((i === 10 || i === 12) && !app.comment.includes('전화상 안함') && !app.comment.includes('최후 통첩')) {
+      // Add fake visits (약 35% 방문 확정, 방문자 중 일부 등록 매출)
+      const MS_PRICES = [2520000, 1980000, 1188000, 780000, 190000];
+      if (i < 15 && i % 3 === 0 && !app.comment.includes('전화상 안함') && !app.comment.includes('최후 통첩')) {
         const visitDateStr = new Date().toISOString().split('T')[0];
-        visitData[id] = {datetime: `${visitDateStr}T19:00`, scheduled: true};
+        const enrolled = Math.random() > 0.4;
+        const amount = enrolled ? MS_PRICES[Math.floor(Math.random() * MS_PRICES.length)] : 0;
+        visitData[id] = {datetime: `${visitDateStr}T19:00`, scheduled: true, enrolled, amount};
       }
 
       applicants.push(app);

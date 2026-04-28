@@ -86,6 +86,9 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 .settle-method-btn{flex:1;padding:5px;border-radius:6px;font-size:10px;font-weight:700;border:1.5px solid #fde68a;color:#92400e;background:white;cursor:pointer;transition:all 0.12s;text-align:center;}
 .settle-method-btn:hover{background:#fffbeb;}
 .settle-method-btn.active{border-color:#f59e0b;color:#f59e0b;background:#fffbeb;}
+.addpay-method-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px;border-radius:10px;font-size:11px;font-weight:700;border:1.5px solid #e2e8f0;color:#64748b;background:white;cursor:pointer;transition:all 0.15s;}
+.addpay-method-btn:hover{border-color:#bfdbfe;}
+.addpay-method-btn.active{border-color:#3b82f6;color:#3b82f6;background:#eff6ff;}
 
 /* 재무 모드 활성 컬럼 강조 (자료등록일/결제일/스터디 시작일 헤더) */
 .bs-table th.bs-basis-active{background:#fef3c7;color:#92400e;border-bottom:2px solid #f59e0b;position:relative;}
@@ -193,10 +196,22 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
     </div>
   </div>
 
+  <!-- Stats Toggle -->
+  <div class="flex items-center gap-2">
+    <button onclick="toggleBsStats()" id="bs-stats-toggle-btn"
+      class="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-slate-600 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl shadow-sm transition-all select-none">
+      <i id="bs-stats-chevron" class="ph-bold ph-caret-up text-[10px]" style="transition:transform 0.2s;"></i>
+      <span id="bs-stats-label">통계 접기</span>
+    </button>
+  </div>
+
+  <!-- Stats Panel (collapsible) -->
+  <div id="bs-stats-panel" class="space-y-6">
+
   <!-- KPI Cards -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">총 방문자</div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 cursor-pointer hover:border-slate-300 hover:shadow-md transition-all" onclick="openStatsDetail('visitors')">
+      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">총 방문자<i class="ph ph-arrow-square-out text-slate-300"></i></div>
       <div class="text-3xl font-black text-slate-800" id="kpi-total">0</div>
       <div class="flex items-center gap-3 mt-2 text-[10px] font-bold text-slate-400">
         <span><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>멤버 <span id="kpi-member-count" class="text-slate-600">0</span></span>
@@ -205,20 +220,20 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
         <span><span class="inline-block w-2 h-2 rounded-full bg-purple-500 mr-1"></span>스텝 <span id="kpi-step-count" class="text-slate-600">0</span></span>
       </div>
     </div>
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">멤버 가입률</div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 cursor-pointer hover:border-emerald-200 hover:shadow-md transition-all" onclick="openStatsDetail('status','member')">
+      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">멤버 가입률<i class="ph ph-arrow-square-out text-slate-300"></i></div>
       <div class="text-3xl font-black text-emerald-600" id="kpi-rate">0%</div>
       <div class="w-full h-2 bg-slate-100 rounded-full mt-2 overflow-hidden">
         <div class="h-full bg-emerald-500 rounded-full transition-all duration-700" id="kpi-rate-bar" style="width:0%"></div>
       </div>
     </div>
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">총 매출</div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 cursor-pointer hover:border-brand-200 hover:shadow-md transition-all" onclick="openStatsDetail('revenue')">
+      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">총 매출<i class="ph ph-arrow-square-out text-slate-300"></i></div>
       <div class="text-3xl font-black text-brand-600" id="kpi-revenue">₩0</div>
       <div class="text-[10px] text-slate-400 font-bold mt-2" id="kpi-revenue-detail"></div>
     </div>
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">평균 객단가</div>
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 cursor-pointer hover:border-slate-300 hover:shadow-md transition-all" onclick="openStatsDetail('avg')">
+      <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center justify-between">평균 객단가<i class="ph ph-arrow-square-out text-slate-300"></i></div>
       <div class="text-3xl font-black text-slate-800" id="kpi-avg">₩0</div>
       <div class="text-[10px] text-slate-400 font-bold mt-2" id="kpi-avg-detail"></div>
     </div>
@@ -269,6 +284,8 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
     </div>
   </div>
 
+  </div><!-- /bs-stats-panel -->
+
   <!-- Visitor Table -->
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
     <!-- Filters -->
@@ -287,8 +304,8 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
       </div>
       <select id="bs-filter-membership" class="text-[11px] font-bold border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 outline-none" onchange="renderTable()">
         <option value="all">전체 멤버십</option>
+        <option value="VVIP+">VVIP+</option>
         <option value="VVIP">VVIP</option>
-        <option value="VIP">VIP</option>
         <option value="A+">A+</option>
         <option value="H+">H+</option>
         <option value="T">T</option>
@@ -311,6 +328,7 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
         <option value="토스">토스</option>
       </select>
       <span id="bs-table-count" class="text-[10px] font-black text-slate-400 ml-auto">0명</span>
+      <span id="bs-table-total" class="text-[10px] font-black text-brand-600 hidden"></span>
     </div>
     <div class="overflow-x-auto">
       <table class="bs-table">
@@ -485,13 +503,90 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
   </div>
 </div>
 
+<!-- Add Payment Modal -->
+<div id="addpay-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center" style="visibility:hidden;opacity:0;pointer-events:none;transition:opacity 0.15s;" onclick="if(event.target===this)closeAddPayModal()">
+  <div class="bg-white rounded-2xl shadow-2xl w-[460px] max-h-[85vh] overflow-hidden flex flex-col" id="addpay-box" style="transform:scale(0.95) translateY(8px);transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);">
+    <!-- Header -->
+    <div class="px-6 pt-5 pb-3 border-b border-blue-100 bg-blue-50/50">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center">
+          <i class="ph-bold ph-plus-circle text-lg text-blue-500"></i>
+        </div>
+        <div>
+          <h3 class="font-black text-slate-800 text-sm">추가 납부</h3>
+          <p id="addpay-member-name" class="text-[11px] text-blue-500 font-bold"></p>
+        </div>
+        <button onclick="closeAddPayModal()" class="ml-auto text-slate-300 hover:text-slate-500 transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+      </div>
+    </div>
+    <!-- Body -->
+    <div class="px-6 py-4 space-y-4 overflow-y-auto">
+      <!-- 기존 결제 정보 -->
+      <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">기존 결제 정보</div>
+        <div class="grid grid-cols-3 gap-2 text-[11px]">
+          <div><span class="text-slate-400">결제 방식</span><div id="addpay-pay-method" class="font-bold text-slate-700 mt-0.5">-</div></div>
+          <div><span class="text-slate-400">결제 금액</span><div id="addpay-pay-amount" class="font-bold text-slate-700 mt-0.5">-</div></div>
+          <div><span class="text-slate-400">결제일</span><div id="addpay-pay-date" class="font-bold text-slate-700 font-mono mt-0.5">-</div></div>
+        </div>
+      </div>
+      <!-- 추가 납부 금액 -->
+      <div>
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">추가 납부 금액</label>
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">₩</span>
+          <input type="text" id="addpay-amount" class="w-full pl-8 pr-3 py-3 text-[15px] font-black border-2 border-slate-200 rounded-xl bg-slate-50 text-slate-800 outline-none focus:border-blue-400 focus:bg-white transition-all" placeholder="0" oninput="formatAddPayAmount(this)" autocomplete="off">
+        </div>
+      </div>
+      <!-- 결제 방식 -->
+      <div>
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">결제 방식</label>
+        <div class="flex gap-2">
+          <button type="button" onclick="selectAddPayMethod(this,'카드')" class="addpay-method-btn active" data-m="카드"><i class="ph ph-credit-card text-sm"></i> 카드</button>
+          <button type="button" onclick="selectAddPayMethod(this,'계좌이체')" class="addpay-method-btn" data-m="계좌이체"><i class="ph ph-bank text-sm"></i> 계좌이체</button>
+          <button type="button" onclick="selectAddPayMethod(this,'현금')" class="addpay-method-btn" data-m="현금"><i class="ph ph-money text-sm"></i> 현금</button>
+          <button type="button" onclick="selectAddPayMethod(this,'토스')" class="addpay-method-btn" data-m="토스"><i class="ph ph-paper-plane-tilt text-sm"></i> 토스</button>
+        </div>
+      </div>
+      <!-- 납부일 -->
+      <div>
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">납부일</label>
+        <input type="date" id="addpay-date" class="w-full text-[12px] font-bold border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 outline-none focus:border-blue-400 transition-colors">
+      </div>
+      <!-- 메모 -->
+      <div>
+        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">메모 <span class="text-slate-300 font-normal normal-case">(선택)</span></label>
+        <textarea id="addpay-memo" rows="2" class="w-full text-[12px] font-bold border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-700 outline-none focus:border-blue-400 transition-colors resize-none placeholder:text-slate-300" placeholder="추가 납부 사유 또는 메모"></textarea>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-slate-100 flex gap-3">
+      <button onclick="closeAddPayModal()" class="flex-1 py-3 text-sm font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all">취소</button>
+      <button onclick="submitAddPay()" class="flex-1 py-3 text-sm font-bold rounded-xl bg-blue-500 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all">
+        <i class="ph-bold ph-check mr-1"></i>추가 납부 처리
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Detail Modal -->
+<div id="bs-stats-detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center" style="visibility:hidden;opacity:0;pointer-events:none;transition:opacity 0.15s;" onclick="if(event.target===this)closeStatsDetail()">
+  <div class="bg-white rounded-2xl shadow-2xl w-[660px] max-h-[85vh] overflow-hidden flex flex-col" id="bs-stats-detail-box" style="transform:scale(0.95) translateY(8px);transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);">
+    <div class="px-6 pt-5 pb-3 border-b border-slate-100 flex items-center justify-between shrink-0">
+      <div id="bs-stats-detail-title" class="flex items-center gap-2 font-black text-slate-800 text-base"></div>
+      <button onclick="closeStatsDetail()" class="text-slate-300 hover:text-slate-500 transition-colors"><i class="ph-bold ph-x text-lg"></i></button>
+    </div>
+    <div id="bs-stats-detail-body" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+  </div>
+</div>
+
 <!-- Visitor Detail Modal -->
 <div id="bs-detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center" style="visibility:hidden;opacity:0;pointer-events:none;transition:opacity 0.15s;" onclick="if(event.target===this)closeBsDetail()">
   <div class="bg-white rounded-2xl shadow-2xl w-[520px] max-h-[85vh] overflow-hidden flex flex-col" id="bs-detail-box" style="transform:scale(0.95) translateY(8px);transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);">
     <div class="px-6 pt-5 pb-3 border-b border-slate-100">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center"><i class="ph-bold ph-user text-lg text-brand-500"></i></div>
+          <div id="bs-detail-avatar" class="w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center"><i id="bs-detail-avatar-icon" class="ph-bold ph-user text-lg text-brand-500"></i></div>
           <div>
             <h3 id="bs-detail-name" class="font-black text-slate-800 text-base"></h3>
             <p id="bs-detail-phone" class="text-[11px] text-slate-400 font-mono font-bold"></p>
@@ -513,11 +608,11 @@ const STATUSES = [
   {id:'step', label:'스텝', cls:'st-step', color:'#8b5cf6'}
 ];
 const MEMBERSHIPS = [
-  {name:'VVIP', total:1040, cls:'ms-vvip', price:3200000},
-  {name:'VIP', total:520, cls:'ms-vip', price:1800000},
-  {name:'A+', total:104, cls:'ms-aplus', price:480000},
-  {name:'H+', total:52, cls:'ms-hplus', price:260000},
-  {name:'T', total:24, cls:'ms-t', price:130000}
+  {name:'VVIP+', total:1040, cls:'ms-vvip', price:2520000},
+  {name:'VVIP',  total:520,  cls:'ms-vip',  price:1980000},
+  {name:'A+',    total:104,  cls:'ms-aplus', price:1188000},
+  {name:'H+',    total:52,   cls:'ms-hplus', price:780000},
+  {name:'T',     total:24,   cls:'ms-t',     price:190000}
 ];
 const SOURCES = ['카카오','네이버','인스타','지인소개','워크인','전화문의'];
 const PAY_METHODS = ['카드','현금','계좌이체','토스'];
@@ -569,8 +664,12 @@ function genVisitors(){
     // Study history
     const totalSessions = ms ? ms.total : 0;
     const attended = (status.id==='member'||status.id==='step') ? rng(Math.round(totalSessions*0.3), Math.round(totalSessions*0.9)) : 0;
-    const remaining = Math.max(0, totalSessions - attended);
+    const passedSessions = (status.id==='member'||status.id==='step') ? Math.min(totalSessions, attended + rng(0, Math.round((totalSessions-attended)*0.4))) : 0;
+    const absent = Math.max(0, passedSessions - attended);
+    const remaining = Math.max(0, totalSessions - passedSessions);
     const attRate = totalSessions > 0 ? Math.round(attended/totalSessions*100) : 0;
+    // 실제 참석률: 불참 차감 순참석률 (attRate보다 낮음)
+    const realAttRate = totalSessions > 0 ? Math.max(0, Math.round((attended - absent) / totalSessions * 100)) : 0;
     const lastStudy = (status.id==='member'||status.id==='step') ? fmtD(new Date(Date.now() - rng(0,14)*86400000)) : '-';
     const level = (status.id==='member'||status.id==='step') ? rng(0,4) : null;
 
@@ -600,10 +699,16 @@ function genVisitors(){
       history.push({date:fmtD(lvUpDate), type:'레벨업', desc:`LV${level-1} → LV${level}`, color:'amber'});
     }
     // 환불 (미가입자 제외)
+    const extras = [];
     if(status.id!=='unregistered' && Math.random()>0.85){
       const refundDate = new Date(Date.now() - rng(1,10)*86400000);
-      const refundAmt = Math.round(amount * rng(10,30)/100 / 10000)*10000;
-      history.push({date:fmtD(refundDate), type:'환불', desc:`${fmtMoney(refundAmt)} 환불 처리`, color:'red'});
+      const isFullRefund = Math.random()>0.6;
+      const refundAmt = isFullRefund ? amount : Math.round(amount * rng(20,60)/100 / 10000)*10000;
+      const refundKind = isFullRefund ? '전체 취소' : '부분 취소';
+      const refundMethod = rPick(PAY_METHODS);
+      history.push({date:fmtD(refundDate), type:'환불', desc:`${refundKind} ${fmtMoney(refundAmt)} (${refundMethod})`, color:'red'});
+      extras.push({type:'환불', amount:refundAmt, date:fmtD(refundDate), detail:`${refundKind} / ${refundMethod}`});
+      amount -= refundAmt;
     }
     // 지점 이동
     if(Math.random()>0.8){
@@ -638,9 +743,9 @@ function genVisitors(){
       payTime: status.id !== 'unregistered' ? payDate.getTime() : null,
       startTime: startDate ? startDate.getTime() : null,
       memo:'',
-      extras:[],
+      extras,
       // Study & History
-      totalSessions, attended, remaining, attRate, lastStudy, level,
+      totalSessions, attended, absent, remaining, attRate, realAttRate, lastStudy, level,
       history
     });
   }
@@ -664,21 +769,34 @@ function basisLabel(){
   return '자료 등록일';
 }
 
-function filteredVisitors(){
-  const field = basisField();
-  // 결제일/시작일 모드: 해당 timestamp 없는 visitor(미가입자/미시작자) 자동 제외
-  const base = visitors.filter(v => v[field] != null);
-  if(bsPeriod==='custom' && bsCustomFrom && bsCustomTo){
-    return base.filter(v=>v[field]>=bsCustomFrom.getTime()&&v[field]<=bsCustomTo.getTime());
-  }
+function parseDateStr(s){
+  if(!s||s==='-') return 0;
+  const p=s.split('.');
+  return new Date(+p[0],+p[1]-1,+p[2]).getTime();
+}
+function getPeriodRange(){
+  if(bsPeriod==='custom'&&bsCustomFrom&&bsCustomTo)
+    return [bsCustomFrom.getTime(), bsCustomTo.getTime()+86399999];
   if(bsPeriod==='month'){
-    const now=new Date();
-    const start=new Date(now.getFullYear(),now.getMonth(),1).getTime();
-    return base.filter(v=>v[field]>=start);
+    const n=new Date();
+    return [new Date(n.getFullYear(),n.getMonth(),1).getTime(), Date.now()];
   }
-  const days=periodDays(bsPeriod);
-  const cutoff=Date.now()-days*86400000;
-  return base.filter(v=>v[field]>=cutoff);
+  return [Date.now()-periodDays(bsPeriod)*86400000, Date.now()];
+}
+function filteredVisitors(){
+  const field=basisField();
+  const [from,to]=getPeriodRange();
+  const byField=visitors.filter(v=>v[field]!=null&&v[field]>=from&&v[field]<=to);
+  if(bsBasis==='payDate'){
+    // 결제일 모드: 기간 내 환불·정산 트랜잭션이 있는 방문자도 포함
+    const ids=new Set(byField.map(v=>v.id));
+    const byExtra=visitors.filter(v=>
+      !ids.has(v.id)&&
+      v.extras.some(e=>{const t=parseDateStr(e.date);return t>=from&&t<=to;})
+    );
+    return [...byField,...byExtra];
+  }
+  return byField;
 }
 
 // ── Custom Range Picker ──
@@ -793,9 +911,14 @@ function renderKPIs(){
   const unreg=fv.filter(v=>v.status==='unregistered').length;
   const deposit=fv.filter(v=>v.status==='deposit').length;
   const step=fv.filter(v=>v.status==='step').length;
-  const revenue=fv.reduce((s,v)=>s+v.amount,0);
+  const memberRev=fv.filter(v=>v.status==='member').reduce((s,v)=>s+v.amount,0);
+  const depositRev=fv.filter(v=>v.status==='deposit').reduce((s,v)=>s+v.amount,0);
+  const stepRev=fv.filter(v=>v.status==='step').reduce((s,v)=>s+v.amount,0);
+  const refundTotal=fv.reduce((s,v)=>s+v.extras.filter(e=>e.type==='환불').reduce((r,e)=>r+e.amount,0),0);
+  const revenue=memberRev; // 총 매출 = 멤버 결제만, 디파짓/스텝은 별도
+  const memberPaying=fv.filter(v=>v.status==='member'&&v.amount>0).length;
   const paying=fv.filter(v=>v.amount>0).length;
-  const avg=paying>0?Math.round(revenue/paying):0;
+  const avg=memberPaying>0?Math.round(memberRev/memberPaying):0;
   const rate=total>0?Math.round(members/total*100):0;
 
   document.getElementById('kpi-total').textContent=total;
@@ -806,7 +929,10 @@ function renderKPIs(){
   document.getElementById('kpi-rate').textContent=rate+'%';
   document.getElementById('kpi-rate-bar').style.width=rate+'%';
   document.getElementById('kpi-revenue').textContent=fmtMoney(revenue);
-  document.getElementById('kpi-revenue-detail').textContent=`결제 건수: ${paying}건`;
+  document.getElementById('kpi-revenue-detail').innerHTML=
+    `<span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 mr-0.5 align-middle"></span>디파짓 ${fmtMoney(depositRev)}`+
+    `&ensp;<span class="inline-block w-1.5 h-1.5 rounded-full bg-purple-500 mr-0.5 align-middle"></span>스텝 ${fmtMoney(stepRev)}`+
+    (refundTotal>0?`&ensp;<span class="inline-block w-1.5 h-1.5 rounded-full bg-red-400 mr-0.5 align-middle"></span>환불 −${fmtMoney(refundTotal)}`:'');
   document.getElementById('kpi-avg').textContent=fmtMoney(avg);
   document.getElementById('kpi-avg-detail').textContent=`결제자 ${paying}명 기준`;
 }
@@ -854,10 +980,11 @@ function renderCharts(){
     const items=fv.filter(v=>v.status===st.id);
     const rev=items.reduce((s,v)=>s+v.amount,0);
     const pct=total>0?Math.round(items.length/total*100):0;
-    sbWrap.innerHTML+=`<div class="bg-white rounded-xl p-4 border border-slate-100 text-center">
+    sbWrap.innerHTML+=`<div class="bg-white rounded-xl p-4 border border-slate-100 text-center cursor-pointer hover:border-slate-200 hover:shadow-md transition-all" onclick="openStatsDetail('status','${st.id}')">
       <div class="status-pill ${st.cls} justify-center mb-2">${st.label}</div>
       <div class="text-2xl font-black text-slate-800">${items.length}<span class="text-sm text-slate-400 font-bold ml-1">(${pct}%)</span></div>
       <div class="text-[10px] font-bold text-slate-400 mt-1">${fmtMoney(rev)}</div>
+      <div class="text-[9px] text-slate-300 mt-1.5 flex items-center justify-center gap-0.5"><i class="ph ph-arrow-square-out"></i>상세보기</div>
     </div>`;
   });
 
@@ -916,6 +1043,10 @@ function renderTable(){
   }
 
   document.getElementById('bs-table-count').textContent=`${list.length}명`;
+  const totalEl=document.getElementById('bs-table-total');
+  const listTotal=list.reduce((s,v)=>s+v.amount,0);
+  if(listTotal>0){totalEl.textContent='합계 '+fmtMoney(listTotal);totalEl.classList.remove('hidden');}
+  else{totalEl.classList.add('hidden');}
   const tbody=document.getElementById('bs-tbody');
   const empty=document.getElementById('bs-empty');
 
@@ -940,19 +1071,20 @@ function renderTable(){
         <span class="text-[8px] text-slate-400 font-mono ml-auto">${e.date}</span>
       </div>`;
     }).join('') : '';
-    return `<tr>
+    const hasRefund = v.history.some(h=>h.type==='환불');
+    const refundSum = v.extras.filter(e=>e.type==='환불').reduce((s,e)=>s+e.amount, 0);
+    const origTableAmt = v.amount + refundSum;
+    return `<tr class="${hasRefund?'bg-red-50':''}">
     <td>
       <div class="flex items-center gap-1.5">
-        <button class="text-[13px] font-black text-brand-600 hover:text-brand-800 hover:underline transition-colors" onclick="openBsDetail('${v.id}')">${v.name}</button>
-        ${v.history.some(h=>h.type==='환불')?'<span class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" title="환불 이력"></span>':''}
+        <button class="text-[13px] font-black ${hasRefund?'text-red-500 hover:text-red-700':'text-brand-600 hover:text-brand-800'} hover:underline transition-colors" onclick="openBsDetail('${v.id}')">${v.name}</button>
         ${v.history.some(h=>h.type==='멤버십 변경')?'<span class="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" title="멤버십 변경"></span>':''}
       </div>
       <div class="text-[9px] font-mono text-slate-400 mt-0.5">${v.id}</div>
     </td>
     <td><span class="text-[12px] font-mono text-slate-600 cursor-pointer hover:text-brand-600" onclick="navigator.clipboard.writeText('${v.phone}');toast('복사됨')">${v.phone}</span></td>
     <td>
-      <span class="status-pill ${v.statusCls}">${v.statusLabel}</span>
-      ${v.history.some(h=>h.type==='환불')?'<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-black bg-red-100 text-red-600 border border-red-200 ml-1"><i class="ph-bold ph-arrow-counter-clockwise text-[7px]"></i>환불</span>':''}
+      <span class="status-pill ${v.statusCls} ${hasRefund?'opacity-50':''}">${v.statusLabel}</span>
       ${v.history.some(h=>h.type==='멤버십 변경')?'<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-black bg-purple-100 text-purple-600 border border-purple-200 ml-1"><i class="ph-bold ph-arrows-clockwise text-[7px]"></i>변경</span>':''}
     </td>
     <td><span class="text-[10px] font-bold border px-1.5 py-0.5 rounded ${langCls(v.lang)}">${v.lang}</span></td>
@@ -960,7 +1092,12 @@ function renderTable(){
     <td><span class="text-[11px] font-bold text-slate-500">${v.source}</span></td>
     <td><span class="text-[11px] font-bold text-slate-500">${v.payMethod}</span></td>
     <td>
-      <span class="text-[12px] font-black ${v.amount>0?'text-slate-800':'text-slate-300'}">${v.amount>0?fmtMoney(v.amount):'-'}</span>
+      ${refundSum>0
+        ? `<div class="flex items-baseline gap-1.5 flex-wrap">
+            <span class="text-[12px] font-black text-slate-800">${fmtMoney(v.amount)}</span>
+            <span class="text-[9px] text-slate-400 line-through font-mono">${fmtMoney(origTableAmt)}</span>
+           </div>`
+        : `<span class="text-[12px] font-black ${v.amount>0?'text-slate-800':'text-slate-300'}">${v.amount>0?fmtMoney(v.amount):'-'}</span>`}
       ${extrasHtml}
     </td>
     <td><span class="text-[10px] text-slate-400 font-mono">${v.docDate}</span></td>
@@ -1029,21 +1166,10 @@ function addExtra(id, type){
     openRefundModal(id);
     return;
   }
-
-  let amount = 0;
-  const input = prompt(`${type} 금액을 입력하세요 (숫자만):`);
-  if(!input) return;
-  amount = parseInt(input.replace(/[^0-9]/g,''));
-  if(isNaN(amount) || amount <= 0){ toast('올바른 금액을 입력하세요'); return; }
-
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-
-  v.extras.push({ type, amount, date: dateStr });
-  v.amount += amount;
-
-  toast(`${type} ${fmtMoney(amount)} 반영`);
-  renderAll();
+  if(type === '추가납부'){
+    openAddPayModal(id);
+    return;
+  }
 }
 
 // ── Refund Modal ──
@@ -1088,6 +1214,74 @@ function closeRefundModal(){
   modal.style.opacity='0';
   setTimeout(()=>{modal.style.visibility='hidden';modal.style.pointerEvents='none';},150);
   _refundTargetId=null;
+}
+
+// ── Add Payment Modal ──
+let _addPayTargetId = null;
+let _addPayMethod = '카드';
+
+function openAddPayModal(id){
+  const v = visitors.find(x=>x.id===id);
+  if(!v) return;
+  _addPayTargetId = id;
+  _addPayMethod = '카드';
+
+  document.getElementById('addpay-member-name').textContent = `${v.name} (${v.id})`;
+  document.getElementById('addpay-pay-method').textContent = v.payMethod;
+  document.getElementById('addpay-pay-amount').textContent = v.amount>0?fmtMoney(v.amount):'-';
+  document.getElementById('addpay-pay-date').textContent = v.payDate;
+
+  document.getElementById('addpay-amount').value = '';
+  document.getElementById('addpay-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('addpay-memo').value = '';
+  document.querySelectorAll('.addpay-method-btn').forEach(b=>b.classList.toggle('active',b.dataset.m==='카드'));
+
+  const modal=document.getElementById('addpay-modal');
+  const box=document.getElementById('addpay-box');
+  modal.style.visibility='visible';modal.style.opacity='1';modal.style.pointerEvents='auto';
+  setTimeout(()=>{box.style.transform='scale(1) translateY(0)';},10);
+  setTimeout(()=>document.getElementById('addpay-amount').focus(),80);
+}
+
+function closeAddPayModal(){
+  const modal=document.getElementById('addpay-modal');
+  const box=document.getElementById('addpay-box');
+  box.style.transform='scale(0.95) translateY(8px)';
+  modal.style.opacity='0';
+  setTimeout(()=>{modal.style.visibility='hidden';modal.style.pointerEvents='none';},150);
+  _addPayTargetId=null;
+}
+
+function selectAddPayMethod(btn,method){
+  _addPayMethod=method;
+  document.querySelectorAll('.addpay-method-btn').forEach(b=>b.classList.toggle('active',b.dataset.m===method));
+}
+
+function formatAddPayAmount(el){
+  const nums=el.value.replace(/[^0-9]/g,'');
+  el.value=nums?parseInt(nums).toLocaleString('ko-KR'):'';
+}
+
+function submitAddPay(){
+  const v=visitors.find(x=>x.id===_addPayTargetId);
+  if(!v){toast('대상을 찾을 수 없습니다');return;}
+
+  const amtStr=document.getElementById('addpay-amount').value.replace(/[^0-9]/g,'');
+  const amount=parseInt(amtStr)||0;
+  if(amount<=0){toast('금액을 입력하세요');document.getElementById('addpay-amount').focus();return;}
+
+  const dateRaw=document.getElementById('addpay-date').value;
+  const dateStr=dateRaw?dateRaw.replace(/-/g,'.'):(()=>{const t=new Date();return `${t.getFullYear()}.${String(t.getMonth()+1).padStart(2,'0')}.${String(t.getDate()).padStart(2,'0')}`;})();
+  const memo=document.getElementById('addpay-memo').value.trim();
+
+  v.extras.push({type:'추가납부', amount, date:dateStr, detail:`${_addPayMethod}${memo?` — ${memo}`:''}`});
+  v.amount += amount;
+  v.history.push({date:dateStr, type:'추가납부', desc:`${fmtMoney(amount)} (${_addPayMethod})${memo?` — ${memo}`:''}`, color:'blue'});
+  v.history.sort((a,b)=>a.date.localeCompare(b.date));
+
+  closeAddPayModal();
+  toast(`추가 납부 ${fmtMoney(amount)} 처리 완료`);
+  renderAll();
 }
 
 function selectRefundType(type){
@@ -1213,71 +1407,129 @@ function openBsDetail(id){
   if(!v) return;
   const modal = document.getElementById('bs-detail-modal');
   const box = document.getElementById('bs-detail-box');
-  document.getElementById('bs-detail-name').textContent = v.name;
+  const hasRefundInModal = v.history.some(h=>h.type==='환불');
+  const nameEl = document.getElementById('bs-detail-name');
+  nameEl.innerHTML = hasRefundInModal
+    ? `${v.name} <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-600 border border-red-300 align-middle"><i class="ph-bold ph-arrow-counter-clockwise text-[9px]"></i>환불</span>`
+    : v.name;
   document.getElementById('bs-detail-phone').textContent = v.phone;
+  const avatarEl = document.getElementById('bs-detail-avatar');
+  const avatarIconEl = document.getElementById('bs-detail-avatar-icon');
+  if(hasRefundInModal){
+    avatarEl.className = 'w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center';
+    avatarIconEl.className = 'ph-bold ph-user text-lg text-red-400';
+  } else {
+    avatarEl.className = 'w-10 h-10 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center';
+    avatarIconEl.className = 'ph-bold ph-user text-lg text-brand-500';
+  }
 
   const langCls = (l) => l==='영어'?'text-purple-600 bg-purple-50 border-purple-200':l==='일본어'?'text-blue-600 bg-blue-50 border-blue-200':'text-slate-600 bg-slate-50 border-slate-200';
-  const attColor = v.attRate>=80?'emerald':v.attRate>=50?'amber':'red';
+  const attColor = v.realAttRate>=80?'emerald':v.realAttRate>=50?'amber':'red';
 
   let html = '';
 
   // ── 기본 정보 ──
   html += `<div class="grid grid-cols-3 gap-3">
-    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+    <div class="${hasRefundInModal?'bg-red-50 border-red-200':'bg-slate-50 border-slate-100'} rounded-xl p-3 border">
       <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">상태</div>
-      <span class="status-pill ${v.statusCls}">${v.statusLabel}</span>
+      <span class="status-pill ${v.statusCls} ${hasRefundInModal?'opacity-50':''}">${v.statusLabel}</span>
+      ${hasRefundInModal?'<div class="mt-1.5"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-red-100 text-red-600 border border-red-300"><i class="ph-bold ph-arrow-counter-clockwise text-[9px]"></i>환불</span></div>':''}
     </div>
     <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
       <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">언어</div>
       <span class="text-[11px] font-bold border px-2 py-0.5 rounded ${langCls(v.lang)}">${v.lang}</span>
     </div>
     <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
-      <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">멤버십</div>
-      <span class="text-[12px] font-black text-slate-800">${v.membership!=='-'?v.membership:'없음'}</span>
-      ${v.level!==null?`<span class="text-[10px] font-bold text-slate-400 ml-1">LV${v.level}</span>`:''}
+      <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">레벨</div>
+      ${v.level!==null?(()=>{const c=['slate','emerald','blue','purple','amber'][v.level];return `<span class="text-[14px] font-black text-${c}-600">LV${v.level}</span>`;})():'<span class="text-[12px] font-bold text-slate-400">-</span>'}
     </div>
   </div>`;
 
   // ── 결제 정보 ──
+  const modalRefundExtras = v.extras.filter(e=>e.type==='환불');
+  const modalSettleExtras = v.extras.filter(e=>e.type==='정산비용');
+  const modalRefundSum = modalRefundExtras.reduce((s,e)=>s+e.amount, 0);
+  const modalOrigAmt = v.amount + modalRefundSum;
   html += `<div class="grid grid-cols-3 gap-3">
     <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
       <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">결제 방식</div>
       <span class="text-[12px] font-bold text-slate-600">${v.payMethod}</span>
     </div>
-    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
-      <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">결제 금액</div>
-      <span class="text-[14px] font-black ${v.amount>0?'text-slate-800':'text-slate-300'}">${v.amount>0?fmtMoney(v.amount):'-'}</span>
+    <div class="${hasRefundInModal?'bg-red-50 border-red-200':'bg-slate-50 border-slate-100'} rounded-xl p-3 border">
+      <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">${hasRefundInModal?'잔여 금액':'결제 금액'}</div>
+      <span class="text-[14px] font-black ${hasRefundInModal?(v.amount>0?'text-slate-800':'text-red-600'):(v.amount>0?'text-slate-800':'text-slate-300')}">${hasRefundInModal?fmtMoney(v.amount):(v.amount>0?fmtMoney(v.amount):'-')}</span>
+      ${hasRefundInModal?`<div class="text-[9px] text-slate-400 mt-0.5 font-mono">최초 <span class="line-through">${fmtMoney(modalOrigAmt)}</span></div>`:''}
     </div>
     <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
-      <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">유입 경로</div>
-      <span class="text-[12px] font-bold text-slate-600">${v.source}</span>
+      <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">멤버십</div>
+      <span class="text-[12px] font-black text-slate-800">${v.membership!=='-'?v.membership:'없음'}</span>
     </div>
   </div>`;
+  // ── 환불 정산 내역 ──
+  if(hasRefundInModal){
+    const breakdownRows = [];
+    breakdownRows.push(`<div class="flex items-center justify-between py-2 border-b border-red-100">
+      <span class="text-[11px] font-bold text-slate-500 flex items-center gap-1.5"><i class="ph ph-credit-card text-slate-400"></i>최초 결제</span>
+      <span class="text-[13px] font-black text-slate-700 font-mono">${fmtMoney(modalOrigAmt)}</span>
+    </div>`);
+    modalSettleExtras.forEach(e=>{
+      breakdownRows.push(`<div class="flex items-center justify-between py-2 border-b border-red-100">
+        <span class="text-[11px] font-bold text-amber-600 flex items-center gap-1.5"><i class="ph ph-bank text-amber-400"></i>정산비용 납부<span class="text-[9px] text-slate-400 font-mono ml-1">${e.date}</span></span>
+        <span class="text-[12px] font-bold text-amber-600 font-mono">+${fmtMoney(e.amount)}</span>
+      </div>`);
+    });
+    modalRefundExtras.forEach(e=>{
+      breakdownRows.push(`<div class="flex items-center justify-between py-2 border-b border-red-100">
+        <span class="text-[11px] font-bold text-red-500 flex items-center gap-1.5"><i class="ph ph-arrow-counter-clockwise text-red-400"></i>${e.detail||'환불'}<span class="text-[9px] text-slate-400 font-mono ml-1">${e.date}</span></span>
+        <span class="text-[12px] font-bold text-red-500 font-mono">−${fmtMoney(e.amount)}</span>
+      </div>`);
+    });
+    breakdownRows.push(`<div class="flex items-center justify-between pt-2.5">
+      <span class="text-[12px] font-black text-slate-700">잔여 금액</span>
+      <span class="text-[20px] font-black ${v.amount>0?'text-slate-800':'text-red-600'}">${fmtMoney(v.amount)}</span>
+    </div>`);
+    html += `<div class="bg-red-50 rounded-xl p-4 border border-red-200">
+      <div class="text-[9px] font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-arrow-counter-clockwise"></i>환불 정산 내역</div>
+      ${breakdownRows.join('')}
+    </div>`;
+  }
 
   // ── 스터디 현황 ──
   if(v.status==='member'||v.status==='step'){
     html += `<div class="bg-gradient-to-br from-slate-50 to-white rounded-xl p-4 border border-slate-200">
       <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-book-open text-brand-500"></i>스터디 현황</div>
-      <div class="grid grid-cols-4 gap-3 mb-3">
+      <div class="grid grid-cols-3 gap-3 mb-2">
         <div class="text-center">
-          <div class="text-xl font-black text-${attColor}-600">${v.attRate}%</div>
-          <div class="text-[9px] text-slate-400 font-bold">참석률</div>
+          <div class="text-[9px] text-slate-400 font-bold mb-0.5">실제 참석률</div>
+          <div class="text-xl font-black text-${attColor}-600">${v.realAttRate}%</div>
+          <div class="text-[10px] font-black text-${attColor}-400">${v.attended - v.absent}회</div>
+          <div class="text-[9px] text-slate-400 leading-none">불참 ${v.absent}회</div>
         </div>
         <div class="text-center">
+          <div class="text-[9px] text-slate-400 font-bold mb-0.5">참석/전체</div>
           <div class="text-xl font-black text-slate-800">${v.attended}<span class="text-sm text-slate-400">/${v.totalSessions}</span></div>
-          <div class="text-[9px] text-slate-400 font-bold">참석/전체</div>
         </div>
         <div class="text-center">
+          <div class="text-[9px] text-slate-400 font-bold mb-0.5">잔여 횟수</div>
           <div class="text-xl font-black text-brand-600">${v.remaining}</div>
-          <div class="text-[9px] text-slate-400 font-bold">잔여 횟수</div>
-        </div>
-        <div class="text-center">
-          <div class="text-[12px] font-black text-slate-700 mt-1">${v.lastStudy}</div>
-          <div class="text-[9px] text-slate-400 font-bold">마지막 참여</div>
         </div>
       </div>
-      <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-        <div class="h-full bg-${attColor}-500 rounded-full transition-all" style="width:${v.attRate}%"></div>
+      <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
+        <div class="h-full bg-${attColor}-500 rounded-full transition-all" style="width:${v.realAttRate}%"></div>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <div class="text-center">
+          <div class="text-[11px] font-black text-slate-700">${v.startDate}</div>
+          <div class="text-[9px] text-slate-400 font-bold">시작일</div>
+        </div>
+        <div class="text-center">
+          <div class="text-[11px] font-black text-slate-700">${v.lastStudy}</div>
+          <div class="text-[9px] text-slate-400 font-bold">마지막 참여</div>
+        </div>
+        <div class="text-center">
+          <div class="text-[11px] font-black text-${v.endDate!=='-'&&v.endDate<'2026-04-28'?'red':'slate'}-700">${v.endDate}</div>
+          <div class="text-[9px] text-slate-400 font-bold">종료일</div>
+        </div>
       </div>
     </div>`;
   }
@@ -1295,9 +1547,9 @@ function openBsDetail(id){
 
   // ── 전체 히스토리 타임라인 ──
   const allHistory = [...v.history];
-  // Add extras to timeline
-  v.extras.forEach(e => {
-    allHistory.push({date:e.date, type:e.type, desc:`${fmtMoney(e.amount)}`, color:e.type==='등록'?'emerald':e.type==='추가납부'?'brand':'red'});
+  // 환불/정산비용은 history에 이미 존재 — 등록/추가납부만 extras에서 추가
+  v.extras.filter(e=>e.type==='등록'||e.type==='추가납부').forEach(e => {
+    allHistory.push({date:e.date, type:e.type, desc:`${fmtMoney(e.amount)}`, color:e.type==='등록'?'emerald':'brand'});
   });
   allHistory.sort((a,b)=>a.date.localeCompare(b.date));
 
@@ -1315,16 +1567,19 @@ function openBsDetail(id){
       ${allHistory.map(h => {
         const icon = typeIcons[h.type] || 'ph-circle';
         const c = colorMap[h.color] || '#94a3b8';
-        return `<div class="relative flex items-start gap-3 mb-3 last:mb-0">
-          <div class="absolute left-[-20px] w-[15px] h-[15px] rounded-full border-2 bg-white flex items-center justify-center" style="border-color:${c};top:2px;">
-            <i class="ph-bold ${icon}" style="font-size:7px;color:${c};"></i>
+        const isRefund = h.type==='환불'||h.type==='환불 이체';
+        return `<div class="relative flex items-start gap-3 mb-2.5 last:mb-0 ${isRefund?'bg-red-50 border border-red-200 rounded-lg px-2 py-2 -mx-1':''}">
+          <div class="absolute left-[-20px] w-[17px] h-[17px] rounded-full border-2 bg-white flex items-center justify-center flex-shrink-0" style="border-color:${c};top:${isRefund?'10px':'2px'};">
+            <i class="ph-bold ${icon}" style="font-size:8px;color:${c};"></i>
           </div>
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="text-[11px] font-black" style="color:${c};">${h.type}</span>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black" style="background:${c}22;color:${c};border:1px solid ${c}40;">
+                <i class="ph-bold ${icon}" style="font-size:8px;"></i>${h.type}
+              </span>
               <span class="text-[10px] text-slate-400 font-mono ml-auto">${h.date}</span>
             </div>
-            <div class="text-[10px] text-slate-500 mt-0.5">${h.desc}</div>
+            <div class="text-[11px] text-slate-600 mt-1 font-medium">${h.desc}</div>
           </div>
         </div>`;
       }).join('')}
@@ -1435,7 +1690,299 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   genVisitors();
   renderAll();
+  applyBsStatsState(false);
 });
+
+// ── Stats Detail Modal ──
+function openStatsDetail(type, subId){
+  const fv = filteredVisitors();
+  const modal = document.getElementById('bs-stats-detail-modal');
+  const box = document.getElementById('bs-stats-detail-box');
+  const titleEl = document.getElementById('bs-stats-detail-title');
+  const body = document.getElementById('bs-stats-detail-body');
+  const totalVisitors = fv.length;
+
+  function barRow(label, cls, value, maxVal, rightA, rightB){
+    const pct = maxVal>0?Math.round(value/maxVal*100):0;
+    return `<div class="flex items-center gap-2.5 py-1">
+      <span class="text-[10px] font-bold text-slate-600 w-20 shrink-0">${label}</span>
+      <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full ${cls} rounded-full" style="width:${pct}%"></div></div>
+      <span class="text-[10px] font-black text-slate-700 font-mono w-10 text-right shrink-0">${rightA}</span>
+      ${rightB!==undefined?`<span class="text-[9px] text-slate-400 font-mono w-24 text-right shrink-0">${rightB}</span>`:''}
+    </div>`;
+  }
+
+  let titleHtml='', html='';
+
+  if(type==='revenue'){
+    titleHtml='<i class="ph-fill ph-chart-line text-brand-500 mr-1"></i>매출 상세 분석';
+    const grossRev=fv.reduce((s,v)=>s+v.amount+v.extras.filter(e=>e.type==='환불').reduce((r,e)=>r+e.amount,0),0);
+    const refundAmt=fv.reduce((s,v)=>s+v.extras.filter(e=>e.type==='환불').reduce((r,e)=>r+e.amount,0),0);
+    const netRev=fv.reduce((s,v)=>s+v.amount,0);
+    const settleAmt=fv.reduce((s,v)=>s+v.extras.filter(e=>e.type==='정산비용').reduce((r,e)=>r+e.amount,0),0);
+    const refundList=fv.filter(v=>v.extras.some(e=>e.type==='환불'));
+    const refundRate=grossRev>0?(refundAmt/grossRev*100).toFixed(1):'0.0';
+    const paying=fv.filter(v=>v.amount>0||v.extras.some(e=>e.type==='환불')).length;
+    const avgNet=paying>0?Math.round(netRev/paying):0;
+
+    const payBreak={};
+    fv.forEach(v=>{if(v.payMethod!=='-'){if(!payBreak[v.payMethod])payBreak[v.payMethod]={c:0,r:0};payBreak[v.payMethod].c++;payBreak[v.payMethod].r+=v.amount;}});
+    const maxPay=Math.max(...Object.values(payBreak).map(d=>d.r),1);
+
+    const msBreak=MEMBERSHIPS.map(ms=>{const it=fv.filter(v=>v.membership===ms.name);return{name:ms.name,cls:ms.cls,c:it.length,r:it.reduce((s,v)=>s+v.amount,0)};}).filter(d=>d.c>0);
+    const maxMs=Math.max(...msBreak.map(d=>d.r),1);
+
+    html=`
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">총 결제 금액</div>
+        <div class="text-[17px] font-black text-slate-700">${fmtMoney(grossRev)}</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">환불 전 기준</div>
+      </div>
+      <div class="bg-red-50 rounded-xl p-4 border border-red-200">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">환불 금액</div>
+        <div class="text-[17px] font-black text-red-600">−${fmtMoney(refundAmt)}</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">${refundList.length}건 · ${refundRate}%</div>
+      </div>
+      <div class="bg-brand-50 rounded-xl p-4 border border-brand-100">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">순 매출</div>
+        <div class="text-[17px] font-black text-brand-600">${fmtMoney(netRev)}</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">평균 객단가 ${fmtMoney(avgNet)}</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-white rounded-xl p-3 border border-slate-200 text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">환불률</div>
+        <div class="text-2xl font-black text-red-500">${refundRate}%</div>
+        <div class="text-[9px] text-slate-400">금액 기준</div>
+      </div>
+      <div class="bg-white rounded-xl p-3 border border-slate-200 text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">환불 건수</div>
+        <div class="text-2xl font-black text-slate-700">${refundList.length}<span class="text-sm font-bold text-slate-400 ml-0.5">건</span></div>
+        <div class="text-[9px] text-slate-400">전체 ${fv.length}명 중</div>
+      </div>
+      <div class="bg-white rounded-xl p-3 border border-slate-200 text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">정산 수입</div>
+        <div class="text-2xl font-black text-amber-600">${fmtMoney(settleAmt)}</div>
+        <div class="text-[9px] text-slate-400">환불 정산 비용</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-credit-card text-slate-400"></i>결제 방식별</div>
+      <div class="space-y-1">${Object.entries(payBreak).sort((a,b)=>b[1].r-a[1].r).map(([m,d])=>barRow(m,'bg-brand-400',d.r,maxPay,d.c+'건',fmtMoney(d.r))).join('')}</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-medal text-slate-400"></i>멤버십별 매출</div>
+      <div class="space-y-1">${msBreak.map(d=>`<div class="flex items-center gap-2.5 py-1"><span class="text-[10px] font-bold border px-1.5 py-0.5 rounded ${d.cls} w-14 text-center shrink-0">${d.name}</span><div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-brand-400 rounded-full" style="width:${Math.round(d.r/maxMs*100)}%"></div></div><span class="text-[9px] text-slate-400 w-6 text-right shrink-0">${d.c}명</span><span class="text-[10px] font-black text-slate-700 font-mono w-28 text-right shrink-0">${fmtMoney(d.r)}</span></div>`).join('')}</div>
+    </div>
+    ${refundList.length>0?`<div class="bg-red-50 rounded-xl p-4 border border-red-200">
+      <div class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-arrow-counter-clockwise"></i>환불 내역 (${refundList.length}건)</div>
+      <div class="divide-y divide-red-100">${refundList.map(v=>{const ra=v.extras.filter(e=>e.type==='환불').reduce((s,e)=>s+e.amount,0);const rd=v.extras.find(e=>e.type==='환불');return`<div class="flex items-center gap-2 py-1.5"><button class="text-[12px] font-black text-red-500 hover:underline" onclick="closeStatsDetail();openBsDetail('${v.id}')">${v.name}</button><span class="text-[9px] text-slate-400 font-mono">${rd?rd.detail:''}</span><span class="text-[10px] text-slate-400 font-mono ml-auto">${rd?rd.date:''}</span><span class="text-[11px] font-bold text-red-500 font-mono">−${fmtMoney(ra)}</span></div>`;}).join('')}</div>
+    </div>`:''}`;
+
+  } else if(type==='status'){
+    const st=STATUSES.find(s=>s.id===subId);
+    titleHtml=`<span class="status-pill ${st.cls}">${st.label}</span><span class="ml-2 font-black text-slate-700">상세</span>`;
+    const items=fv.filter(v=>v.status===subId);
+    const stRev=items.reduce((s,v)=>s+v.amount,0);
+    const refItems=items.filter(v=>v.extras.some(e=>e.type==='환불'));
+    const refAmt=items.reduce((s,v)=>s+v.extras.filter(e=>e.type==='환불').reduce((r,e)=>r+e.amount,0),0);
+    const grossRev=stRev+refAmt;
+    const refRate=grossRev>0?(refAmt/grossRev*100).toFixed(1):'0.0';
+    const stPct=totalVisitors>0?Math.round(items.length/totalVisitors*100):0;
+    const avgAmt=items.filter(v=>v.amount>0).length>0?Math.round(stRev/items.filter(v=>v.amount>0).length):0;
+
+    const msBreak=MEMBERSHIPS.map(ms=>{const it=items.filter(v=>v.membership===ms.name);return{name:ms.name,cls:ms.cls,c:it.length,r:it.reduce((s,v)=>s+v.amount,0)};}).filter(d=>d.c>0);
+    const maxMs=Math.max(...msBreak.map(d=>d.c),1);
+    const langMap={'영어':'bg-purple-400','일본어':'bg-blue-400','영어+일본어':'bg-slate-400'};
+    const langBreak=['영어','일본어','영어+일본어'].map(l=>({l,c:items.filter(v=>v.lang===l).length})).filter(d=>d.c>0);
+    const maxLang=Math.max(...langBreak.map(d=>d.c),1);
+    const srcBreak=SOURCES.map(s=>({s,c:items.filter(v=>v.source===s).length})).filter(d=>d.c>0).sort((a,b)=>b.c-a.c);
+    const maxSrc=Math.max(...srcBreak.map(d=>d.c),1);
+
+    html=`
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">인원</div>
+        <div class="text-2xl font-black text-slate-800">${items.length}<span class="text-sm font-bold text-slate-400 ml-1">명</span></div>
+        <div class="text-[9px] text-slate-400 mt-0.5">전체의 ${stPct}%</div>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">순 매출</div>
+        <div class="text-[16px] font-black text-brand-600">${fmtMoney(stRev)}</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">평균 ${fmtMoney(avgAmt)}</div>
+      </div>
+      <div class="bg-${refItems.length>0?'red-50 border-red-200':'slate-50 border-slate-100'} rounded-xl p-4 border text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">환불률</div>
+        <div class="text-2xl font-black text-${refItems.length>0?'red-500':'slate-300'}">${refRate}%</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">${refItems.length}건 · −${fmtMoney(refAmt)}</div>
+      </div>
+    </div>
+    ${msBreak.length>0?`<div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-medal text-slate-400"></i>멤버십 구성</div>
+      <div class="space-y-1">${msBreak.map(d=>`<div class="flex items-center gap-2.5 py-1"><span class="text-[10px] font-bold border px-1.5 py-0.5 rounded ${d.cls} w-14 text-center shrink-0">${d.name}</span><div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-brand-400 rounded-full" style="width:${Math.round(d.c/maxMs*100)}%"></div></div><span class="text-[9px] text-slate-400 w-6 text-right shrink-0">${d.c}명</span><span class="text-[10px] font-black text-slate-700 font-mono w-28 text-right shrink-0">${fmtMoney(d.r)}</span></div>`).join('')}</div>
+    </div>`:''}
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-translate text-slate-400"></i>언어</div>
+        <div class="space-y-1">${langBreak.map(d=>barRow(d.l,langMap[d.l]||'bg-slate-400',d.c,maxLang,d.c+'명',undefined)).join('')}</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-funnel text-slate-400"></i>유입 경로</div>
+        <div class="space-y-1">${srcBreak.map(d=>barRow(d.s,'bg-brand-400',d.c,maxSrc,d.c+'명',undefined)).join('')}</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><i class="ph-fill ph-users text-slate-400"></i>멤버 목록</div>
+        <span class="text-[9px] font-bold text-slate-400">${items.length}명</span>
+      </div>
+      <div class="divide-y divide-slate-50 max-h-48 overflow-y-auto">${items.map(v=>{const hasRef=v.extras.some(e=>e.type==='환불');return`<div class="flex items-center gap-2 px-4 py-2 hover:bg-slate-50 ${hasRef?'bg-red-50/50':''}"><button class="text-[12px] font-black text-brand-600 hover:underline shrink-0" onclick="closeStatsDetail();openBsDetail('${v.id}')">${v.name}</button>${hasRef?'<span class="text-[8px] font-black bg-red-100 text-red-500 px-1 py-0.5 rounded">환불</span>':''}<span class="text-[10px] text-slate-400 font-mono ml-auto">${v.membership!=='-'?v.membership:''}</span><span class="text-[11px] font-bold text-slate-600 font-mono w-24 text-right">${v.amount>0?fmtMoney(v.amount):'-'}</span></div>`;}).join('')}</div>
+    </div>`;
+
+  } else if(type==='visitors'){
+    titleHtml='<i class="ph-fill ph-users text-slate-600 mr-1"></i>방문자 상세';
+    const srcBreak=SOURCES.map(s=>({s,c:fv.filter(v=>v.source===s).length})).filter(d=>d.c>0).sort((a,b)=>b.c-a.c);
+    const maxSrc=Math.max(...srcBreak.map(d=>d.c),1);
+    const langBreak=['영어','일본어','영어+일본어'].map(l=>({l,c:fv.filter(v=>v.lang===l).length})).filter(d=>d.c>0);
+    const maxLang=Math.max(...langBreak.map(d=>d.c),1);
+    const langMap={'영어':'bg-purple-400','일본어':'bg-blue-400','영어+일본어':'bg-slate-400'};
+
+    html=`
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-chart-pie text-slate-400"></i>상태별 분포</div>
+        <div class="space-y-1">${STATUSES.map(st=>{const c=fv.filter(v=>v.status===st.id).length;return barRow(st.label,'bg-brand-400',c,totalVisitors,c+'명',undefined);}).join('')}</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-translate text-slate-400"></i>언어별 분포</div>
+        <div class="space-y-1">${langBreak.map(d=>barRow(d.l,langMap[d.l]||'bg-slate-400',d.c,maxLang,d.c+'명',undefined)).join('')}</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-funnel text-slate-400"></i>유입 경로별</div>
+      <div class="space-y-1">${srcBreak.map(d=>barRow(d.s,'bg-brand-400',d.c,maxSrc,d.c+'명',undefined)).join('')}</div>
+    </div>
+    <div class="grid grid-cols-4 gap-3">${STATUSES.map(st=>{const it=fv.filter(v=>v.status===st.id);const pct=totalVisitors>0?Math.round(it.length/totalVisitors*100):0;return`<div class="bg-white rounded-xl p-4 border border-slate-100 text-center cursor-pointer hover:shadow-md transition-all" onclick="closeStatsDetail();openStatsDetail('status','${st.id}')"><div class="status-pill ${st.cls} justify-center mb-2">${st.label}</div><div class="text-2xl font-black text-slate-800">${it.length}</div><div class="text-[9px] text-slate-400 mt-0.5">${pct}%</div></div>`;}).join('')}</div>`;
+
+  } else if(type==='avg'){
+    titleHtml='<i class="ph-fill ph-coins text-slate-600 mr-1"></i>평균 객단가 분석';
+
+    const memberItems=fv.filter(v=>v.status==='member'&&v.amount>0);
+    const depositItems=fv.filter(v=>v.status==='deposit'&&v.amount>0);
+    const stepItems=fv.filter(v=>v.status==='step'&&v.amount>0);
+    const avgMember=memberItems.length?Math.round(memberItems.reduce((s,v)=>s+v.amount,0)/memberItems.length):0;
+    const avgDeposit=depositItems.length?Math.round(depositItems.reduce((s,v)=>s+v.amount,0)/depositItems.length):0;
+    const avgStep=stepItems.length?Math.round(stepItems.reduce((s,v)=>s+v.amount,0)/stepItems.length):0;
+
+    // 멤버십 등급별 평균
+    const msAvg=MEMBERSHIPS.map(ms=>{
+      const it=memberItems.filter(v=>v.membership===ms.name);
+      return{name:ms.name,cls:ms.cls,count:it.length,avg:it.length?Math.round(it.reduce((s,v)=>s+v.amount,0)/it.length):0};
+    }).filter(d=>d.count>0);
+    const maxMsAvg=Math.max(...msAvg.map(d=>d.avg),1);
+
+    // 언어별 평균
+    const langAvg=['영어','일본어','영어+일본어'].map(l=>{
+      const it=memberItems.filter(v=>v.lang===l);
+      return{l,count:it.length,avg:it.length?Math.round(it.reduce((s,v)=>s+v.amount,0)/it.length):0};
+    }).filter(d=>d.count>0);
+    const maxLangAvg=Math.max(...langAvg.map(d=>d.avg),1);
+    const langCls={'영어':'bg-purple-400','일본어':'bg-blue-400','영어+일본어':'bg-slate-400'};
+
+    // 유입 경로별 평균
+    const srcAvg=SOURCES.map(s=>{
+      const it=memberItems.filter(v=>v.source===s);
+      return{s,count:it.length,avg:it.length?Math.round(it.reduce((s2,v)=>s2+v.amount,0)/it.length):0};
+    }).filter(d=>d.count>0).sort((a,b)=>b.avg-a.avg);
+    const maxSrcAvg=Math.max(...srcAvg.map(d=>d.avg),1);
+
+    // 최고/최저
+    const sorted=[...memberItems].sort((a,b)=>b.amount-a.amount);
+    const topItems=sorted.slice(0,3);
+    const botItems=sorted.slice(-3).reverse();
+
+    html=`
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-200 text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">멤버 평균</div>
+        <div class="text-[17px] font-black text-emerald-700">${fmtMoney(avgMember)}</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">${memberItems.length}명 기준</div>
+      </div>
+      <div class="bg-amber-50 rounded-xl p-4 border border-amber-200 text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">디파짓 평균</div>
+        <div class="text-[17px] font-black text-amber-700">${fmtMoney(avgDeposit)}</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">${depositItems.length}명 기준</div>
+      </div>
+      <div class="bg-purple-50 rounded-xl p-4 border border-purple-200 text-center">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">스텝 평균</div>
+        <div class="text-[17px] font-black text-purple-700">${fmtMoney(avgStep)}</div>
+        <div class="text-[9px] text-slate-400 mt-0.5">${stepItems.length}명 기준</div>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-slate-200">
+      <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-medal text-slate-400"></i>멤버십 등급별 평균 객단가</div>
+      <div class="space-y-1.5">${msAvg.map(d=>`<div class="flex items-center gap-2.5"><span class="text-[10px] font-bold border px-1.5 py-0.5 rounded ${d.cls} w-14 text-center shrink-0">${d.name}</span><div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-brand-400 rounded-full" style="width:${Math.round(d.avg/maxMsAvg*100)}%"></div></div><span class="text-[9px] text-slate-400 w-6 text-right shrink-0">${d.count}명</span><span class="text-[11px] font-black text-slate-700 font-mono w-28 text-right shrink-0">${fmtMoney(d.avg)}</span></div>`).join('')}</div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-translate text-slate-400"></i>언어별 평균</div>
+        <div class="space-y-1.5">${langAvg.map(d=>`<div class="flex items-center gap-2"><span class="text-[10px] font-bold text-slate-600 w-20 shrink-0">${d.l}</span><div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full ${langCls[d.l]||'bg-slate-400'} rounded-full" style="width:${Math.round(d.avg/maxLangAvg*100)}%"></div></div><span class="text-[10px] font-black text-slate-700 font-mono w-28 text-right shrink-0">${fmtMoney(d.avg)}</span></div>`).join('')}</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-funnel text-slate-400"></i>유입 경로별 평균</div>
+        <div class="space-y-1.5">${srcAvg.map(d=>`<div class="flex items-center gap-2"><span class="text-[10px] font-bold text-slate-600 w-16 shrink-0">${d.s}</span><div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-brand-400 rounded-full" style="width:${Math.round(d.avg/maxSrcAvg*100)}%"></div></div><span class="text-[10px] font-black text-slate-700 font-mono w-28 text-right shrink-0">${fmtMoney(d.avg)}</span></div>`).join('')}</div>
+      </div>
+    </div>
+    ${topItems.length>0?`<div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><i class="ph-fill ph-trend-up text-emerald-400"></i>최고 객단가</div>
+      <div class="divide-y divide-slate-50">${topItems.map((v,i)=>`<div class="flex items-center gap-2 px-4 py-2 hover:bg-slate-50"><span class="text-[10px] font-black text-slate-300 w-4">${i+1}</span><button class="text-[12px] font-black text-brand-600 hover:underline" onclick="closeStatsDetail();openBsDetail('${v.id}')">${v.name}</button><span class="text-[10px] border px-1.5 py-0.5 rounded ${v.membershipCls} ml-1">${v.membership}</span><span class="text-[11px] font-black text-emerald-600 font-mono ml-auto">${fmtMoney(v.amount)}</span></div>`).join('')}</div>
+    </div>`:''}
+    ${botItems.length>0?`<div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><i class="ph-fill ph-trend-down text-red-400"></i>최저 객단가</div>
+      <div class="divide-y divide-slate-50">${botItems.map((v,i)=>`<div class="flex items-center gap-2 px-4 py-2 hover:bg-slate-50"><span class="text-[10px] font-black text-slate-300 w-4">${i+1}</span><button class="text-[12px] font-black text-brand-600 hover:underline" onclick="closeStatsDetail();openBsDetail('${v.id}')">${v.name}</button><span class="text-[10px] border px-1.5 py-0.5 rounded ${v.membershipCls} ml-1">${v.membership}</span><span class="text-[11px] font-black text-red-400 font-mono ml-auto">${fmtMoney(v.amount)}</span></div>`).join('')}</div>
+    </div>`:''}`;
+
+  }
+
+  titleEl.innerHTML=titleHtml;
+  body.innerHTML=html;
+  modal.style.visibility='visible';modal.style.opacity='1';modal.style.pointerEvents='auto';
+  setTimeout(()=>{box.style.transform='scale(1) translateY(0)';},10);
+}
+function closeStatsDetail(){
+  const modal=document.getElementById('bs-stats-detail-modal');
+  const box=document.getElementById('bs-stats-detail-box');
+  box.style.transform='scale(0.95) translateY(8px)';
+  modal.style.opacity='0';
+  setTimeout(()=>{modal.style.visibility='hidden';modal.style.pointerEvents='none';},150);
+}
+
+let _statsCollapsed = localStorage.getItem('bs-stats-collapsed')==='1';
+function applyBsStatsState(animate=true){
+  const panel=document.getElementById('bs-stats-panel');
+  const chevron=document.getElementById('bs-stats-chevron');
+  const label=document.getElementById('bs-stats-label');
+  if(!panel) return;
+  if(!animate) panel.style.transition='none';
+  if(_statsCollapsed){
+    panel.style.maxHeight='0';panel.style.overflow='hidden';panel.style.opacity='0';
+    if(chevron) chevron.style.transform='rotate(180deg)';
+    if(label) label.textContent='통계 펼치기';
+  } else {
+    panel.style.maxHeight='2000px';panel.style.overflow='';panel.style.opacity='1';
+    if(chevron) chevron.style.transform='';
+    if(label) label.textContent='통계 접기';
+  }
+  if(!animate) requestAnimationFrame(()=>{ panel.style.transition=''; });
+}
+function toggleBsStats(){
+  _statsCollapsed=!_statsCollapsed;
+  localStorage.setItem('bs-stats-collapsed',_statsCollapsed?'1':'0');
+  const panel=document.getElementById('bs-stats-panel');
+  if(panel) panel.style.transition='max-height 0.3s ease,opacity 0.2s';
+  applyBsStatsState(true);
+}
 </script>
 </body>
 </html>

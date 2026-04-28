@@ -1,0 +1,12 @@
+.git
+.claude
+.agent
+.agents
+.gstack
+docs
+old
+node_modules
+.DS_Store
+CLAUDE.md
+DESIGN-REVIEW-NOTES.md
+skills-lock.json
