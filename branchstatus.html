@@ -97,9 +97,58 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 .bs-table td.bs-basis-active{background:#fffbeb;border-left:1px solid #fde68a;border-right:1px solid #fde68a;}
 .bs-table td.bs-basis-active span{color:#92400e !important;font-weight:700 !important;}
 .bs-table tr:hover td.bs-basis-active{background:#fef3c7;}
+
+        /* Persistent side menu */
+        #main-sidebar { transition: width .2s cubic-bezier(.4,0,.2,1); }
+        @media (min-width: 1024px) {
+            body { padding-left: 220px; }
+            body.sb-collapsed { padding-left: 64px; }
+            body.sb-collapsed #main-sidebar { width: 64px; }
+            body.sb-collapsed .sb-text, body.sb-collapsed .sb-label { display: none !important; }
+            body.sb-collapsed #main-sidebar a, body.sb-collapsed #main-sidebar button { justify-content: center !important; padding-left: 8px !important; padding-right: 8px !important; }
+            body.sb-collapsed #sb-toggle-icon { transform: rotate(180deg); }
+            #hamburger-btn { display: none !important; }
+        }
+        body[data-page] .sb-link[href$="branchstatus.html"] { background:#e0f2fe; color:#0369a1; font-weight:700; }
+
+    
+        /* Hide duplicate header brand on desktop (sidebar shows it) */
+        @media (min-width: 1024px) {
+            body > header > div:first-child > div.bg-brand-500,
+            body > header > div:first-child > h1 { display: none !important; }
+        }
 </style>
 </head>
-<body class="antialiased min-h-screen pb-20">
+<body class="antialiased min-h-screen pb-20" data-page="branch">
+<script>(function(){if(localStorage.getItem('admin.sbCollapsed')==='1')document.body.classList.add('sb-collapsed');})();</script>
+
+<aside id="main-sidebar" class="hidden lg:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col border-r border-slate-200 bg-white/95 backdrop-blur-sm z-[55] overflow-y-auto">
+    <div class="px-3 pt-3 pb-2 border-b border-slate-100">
+        <a href="home.html" class="flex items-center gap-2 px-2 py-1.5">
+            <div class="bg-brand-500 text-white p-1.5 rounded-lg shrink-0"><i class="ph-bold ph-buildings text-base"></i></div>
+            <span class="sb-text text-[14px] font-extrabold text-slate-800 leading-tight">하남 지점<br><span class="text-[10px] font-bold text-slate-500">어드민</span></span>
+        </a>
+    </div>
+    <div class="px-3 pt-4 pb-2 flex-1">
+        <div class="px-2 pb-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider sb-label">메인 메뉴</div>
+        <div class="space-y-0.5">
+            <a href="home.html"          class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="대시보드 캘린더"><i class="ph ph-calendar-blank text-base shrink-0"></i><span class="sb-text">대시보드 캘린더</span></a>
+            <a href="member.html"        class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="멤버 팀"><i class="ph ph-users-three text-base shrink-0"></i><span class="sb-text">멤버 팀</span></a>
+            <a href="leader.html"        class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="리더 팀"><i class="ph ph-crown text-base shrink-0"></i><span class="sb-text">리더 팀</span></a>
+            <a href="stats.html"         class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="통계 및 리포트"><i class="ph ph-chart-bar text-base shrink-0"></i><span class="sb-text">통계 및 리포트</span></a>
+            <a href="call.html"          class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="신규 회신"><i class="ph ph-phone-call text-base shrink-0"></i><span class="sb-text">신규 회신</span></a>
+            <a href="branchstatus.html"  class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Branch Status"><i class="ph ph-building-office text-base shrink-0"></i><span class="sb-text">Branch Status</span></a>
+            <a href="workdeck.html"      class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Work Deck"><i class="ph ph-clipboard-text text-base shrink-0"></i><span class="sb-text">Work Deck</span></a>
+        </div>
+    </div>
+    <div class="p-3 border-t border-slate-100">
+        <button id="sb-toggle" onclick="document.body.classList.toggle('sb-collapsed');localStorage.setItem('admin.sbCollapsed',document.body.classList.contains('sb-collapsed')?'1':'0')" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-[11px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors" title="사이드바 접기/펼치기">
+            <i id="sb-toggle-icon" class="ph-bold ph-caret-double-left"></i>
+            <span class="sb-text">접기</span>
+        </button>
+    </div>
+</aside>
+
 
 <!-- Header -->
 <header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
@@ -128,6 +177,7 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
     <a href="stats.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트</a>
     <a href="call.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-phone-call text-lg"></i> 신규 회신</a>
     <a href="branchstatus.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 bg-brand-50 text-brand-700 rounded-lg font-medium transition-colors"><i class="ph ph-building-office text-lg"></i> Branch Status</a>
+    <a href="workdeck.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors"><i class="ph ph-clipboard-text text-lg"></i> Work Deck</a>
   </nav>
 </div>
 
