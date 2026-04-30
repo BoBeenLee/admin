@@ -96,6 +96,12 @@
       "sourceType": "github",
       "computedHash": "27582028cbdd9c81232fba1aafbfa609e4dc1167bff4f2e89ca48a3ecd07049b"
     },
+    "caveman": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "skillPath": "caveman/SKILL.md",
+      "computedHash": "a818cdc41dcfaa50dd891c5cb5e5705968338de02e7e37949ca56e8c30ad4176"
+    },
     "impeccable": {
       "source": "pbakaus/impeccable",
       "sourceType": "github",
