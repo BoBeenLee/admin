@@ -30,69 +30,100 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
 
     <style>
-        body { background-color: #f8fafc; color: #0f172a; }
+        body { background-color: #f8fafc; color: #0f172a; font-feature-settings: "ss01", "ss02"; }
+        h1, h2, h3, h4 { text-wrap: balance; word-break: keep-all; }
+        p { text-wrap: pretty; word-break: keep-all; }
+        .num, time, .font-mono, td.num, .stat-num { font-variant-numeric: tabular-nums; }
+
         .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-    
-        /* Persistent side menu */
-        #main-sidebar { transition: width .2s cubic-bezier(.4,0,.2,1); }
-        @media (min-width: 1024px) {
-            body { padding-left: 220px; }
-            body.sb-collapsed { padding-left: 64px; }
-            body.sb-collapsed #main-sidebar { width: 64px; }
-            body.sb-collapsed .sb-text, body.sb-collapsed .sb-label { display: none !important; }
-            body.sb-collapsed #main-sidebar a, body.sb-collapsed #main-sidebar button { justify-content: center !important; padding-left: 8px !important; padding-right: 8px !important; }
-            body.sb-collapsed #sb-toggle-icon { transform: rotate(180deg); }
-            #hamburger-btn { display: none !important; }
-        }
-        body[data-page] .sb-link[href$="stats.html"] { background:#e0f2fe; color:#0369a1; font-weight:700; }
 
-    
-        /* Hide duplicate header brand on desktop (sidebar shows it) */
-        @media (min-width: 1024px) {
-            body > header > div:first-child > div.bg-brand-500,
-            body > header > div:first-child > h1 { display: none !important; }
+        /* Section anchors with offset for sticky header */
+        .anchor-target { scroll-margin-top: 76px; }
+
+        /* Hypothesis chips */
+        .hypo-chip { transition: background-color .15s, border-color .15s; }
+        .hypo-chip[data-active="true"] {
+            background:#0f172a; color:white; border-color:#0f172a;
         }
-</style>
+        .hypo-chip[data-active="true"] .hypo-num {
+            background:#334155; color:#e2e8f0;
+        }
+
+        /* Cohort matrix cells */
+        .cohort-cell {
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            color: #0f172a;
+            text-align: center;
+            padding: 10px 6px;
+            transition: outline-color .12s;
+            outline: 2px solid transparent;
+            outline-offset: -2px;
+            cursor: default;
+            font-variant-numeric: tabular-nums;
+        }
+        .cohort-cell:hover { outline-color:#0f172a; }
+        .cohort-cell.empty { background:#f8fafc; color:#cbd5e1; font-weight:500; }
+
+        /* Sparkline */
+        .spark { display:block; }
+        .spark path { fill:none; stroke-width:1.5; }
+        .spark .area { fill: rgba(14,165,233,0.08); stroke:none; }
+        .spark .line { stroke:#0284c7; }
+        .spark .dot { fill:#0284c7; }
+
+        /* Bar chart */
+        .bar-track { background:#f1f5f9; border-radius:99px; overflow:hidden; height:8px; }
+        .bar-fill { height:100%; border-radius:99px; transition: width .3s ease; }
+
+        /* Channel pills */
+        .ch-kakao { color:#7c2d12; background:#fef3c7; border-color:#fde68a; }
+        .ch-instagram { color:#9d174d; background:#fce7f3; border-color:#fbcfe8; }
+        .ch-naver { color:#15803d; background:#dcfce7; border-color:#bbf7d0; }
+        .ch-referral { color:#1e40af; background:#dbeafe; border-color:#bfdbfe; }
+        .ch-organic { color:#475569; background:#f1f5f9; border-color:#cbd5e1; }
+
+        .stats-table { width:100%; border-collapse:separate; border-spacing:0; }
+        .stats-table th { background:#f8fafc; padding:10px 12px; font-size:11px; font-weight:800; text-align:left; color:#64748b; border-bottom:1px solid #e2e8f0; letter-spacing:0.02em; white-space:nowrap; }
+        .stats-table td { padding:10px 12px; border-bottom:1px solid #f1f5f9; font-size:13px; color:#0f172a; }
+        .stats-table td.num { text-align:right; font-variant-numeric: tabular-nums; }
+        .stats-table tr:last-child td { border-bottom:none; }
+        .stats-table tr:hover td { background-color:#fbfcfe; }
+        .stats-table tfoot td { background:#f8fafc; font-weight:800; color:#0f172a; border-top:2px solid #e2e8f0; }
+
+        /* A11y: prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+
+        /* Section card */
+        .section-card { background:white; border:1px solid #e2e8f0; border-radius:16px; }
+        .section-card > header { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+        .section-card > header h3 { font-size:15px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; }
+        .section-card > .section-body { padding:20px; }
+
+        /* Subtle key-value list */
+        .kv { display:flex; align-items:baseline; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #e2e8f0; }
+        .kv:last-child { border-bottom:none; }
+        .kv-label { font-size:12px; color:#64748b; font-weight:600; }
+        .kv-value { font-size:14px; font-weight:800; color:#0f172a; font-variant-numeric: tabular-nums; }
+
+        /* Dimension toggle chips */
+        .dim-btn { padding:6px 12px; border-radius:99px; font-size:12px; font-weight:700; border:1px solid #e2e8f0; background:white; color:#64748b; cursor:pointer; transition: background-color .15s, border-color .15s, color .15s; }
+        .dim-btn:hover { border-color:#cbd5e1; color:#0f172a; }
+        .dim-btn[aria-pressed="true"] { background:#0f172a; color:white; border-color:#0f172a; }
+        .dim-btn:focus-visible { outline:2px solid #0ea5e9; outline-offset:2px; }
+    </style>
 </head>
-<body class="antialiased min-h-screen pb-24" data-page="stats">
-<script>(function(){if(localStorage.getItem('admin.sbCollapsed')==='1')document.body.classList.add('sb-collapsed');})();</script>
-
-<aside id="main-sidebar" class="hidden lg:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col border-r border-slate-200 bg-white/95 backdrop-blur-sm z-[55] overflow-y-auto">
-    <div class="px-3 pt-3 pb-2 border-b border-slate-100">
-        <a href="home.html" class="flex items-center gap-2 px-2 py-1.5">
-            <div class="bg-brand-500 text-white p-1.5 rounded-lg shrink-0"><i class="ph-bold ph-buildings text-base"></i></div>
-            <span class="sb-text text-[14px] font-extrabold text-slate-800 leading-tight">하남 지점<br><span class="text-[10px] font-bold text-slate-500">어드민</span></span>
-        </a>
-    </div>
-    <div class="px-3 pt-4 pb-2 flex-1">
-        <div class="px-2 pb-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider sb-label">메인 메뉴</div>
-        <div class="space-y-0.5">
-            <a href="home.html"          class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="대시보드 캘린더"><i class="ph ph-calendar-blank text-base shrink-0"></i><span class="sb-text">대시보드 캘린더</span></a>
-            <a href="member.html"        class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="멤버 팀"><i class="ph ph-users-three text-base shrink-0"></i><span class="sb-text">멤버 팀</span></a>
-            <a href="leader.html"        class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="리더 팀"><i class="ph ph-crown text-base shrink-0"></i><span class="sb-text">리더 팀</span></a>
-            <a href="stats.html"         class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="통계 및 리포트"><i class="ph ph-chart-bar text-base shrink-0"></i><span class="sb-text">통계 및 리포트</span></a>
-            <a href="call.html"          class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="신규 회신"><i class="ph ph-phone-call text-base shrink-0"></i><span class="sb-text">신규 회신</span></a>
-            <a href="branchstatus.html"  class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Branch Status"><i class="ph ph-building-office text-base shrink-0"></i><span class="sb-text">Branch Status</span></a>
-            <a href="workdeck.html"      class="sb-link flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Work Deck"><i class="ph ph-clipboard-text text-base shrink-0"></i><span class="sb-text">Work Deck</span></a>
-        </div>
-    </div>
-    <div class="p-3 border-t border-slate-100">
-        <button id="sb-toggle" onclick="document.body.classList.toggle('sb-collapsed');localStorage.setItem('admin.sbCollapsed',document.body.classList.contains('sb-collapsed')?'1':'0')" class="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-[11px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors" title="사이드바 접기/펼치기">
-            <i id="sb-toggle-icon" class="ph-bold ph-caret-double-left"></i>
-            <span class="sb-text">접기</span>
-        </button>
-    </div>
-</aside>
-
+<body class="antialiased min-h-screen pb-24">
 
     <!-- Top Navigation Header -->
     <header class="glass-panel sticky top-0 z-50 px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-4">
-            <button id="hamburger-btn" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+            <button id="hamburger-btn" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors" aria-label="메뉴 열기">
                 <i class="ph ph-list text-2xl"></i>
             </button>
             <div class="bg-brand-500 text-white p-1.5 rounded-lg">
@@ -100,10 +131,10 @@
             </div>
             <h1 class="text-lg font-bold text-slate-800 tracking-tight">하남 지점 어드민</h1>
         </div>
-        
+
         <div class="flex items-center gap-4">
             <div class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1.5 rounded-lg border border-transparent transition-colors">
-                <img src="https://ui-avatars.com/api/?name=매니저&background=0284c7&color=fff" alt="User" class="w-8 h-8 rounded-full">
+                <img src="https://ui-avatars.com/api/?name=매니저&background=0284c7&color=fff" alt="매니저" class="w-8 h-8 rounded-full">
                 <span class="text-sm font-medium hidden sm:block">지점장 옵션 <i class="ph ph-caret-down text-xs ml-1 font-bold"></i></span>
             </div>
         </div>
@@ -116,7 +147,7 @@
             <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800">
                 <i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴
             </h2>
-            <button id="close-drawer-btn" class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer transition">
+            <button id="close-drawer-btn" class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer transition" aria-label="메뉴 닫기">
                 <i class="ph ph-x"></i>
             </button>
         </div>
@@ -139,266 +170,599 @@
             <a href="branchstatus.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
                 <i class="ph ph-building-office text-lg"></i> Branch Status
             </a>
-            <a href="workdeck.html" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
-                <i class="ph ph-clipboard-text text-lg"></i> Work Deck
-            </a>
         </nav>
     </div>
 
     <!-- MAIN CONTENT -->
     <main class="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
-            <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                STATISTICS
-                <span class="text-sm font-semibold text-brand-600 bg-brand-50 px-2 py-1 rounded-md border border-brand-100">지점 실적 분석</span>
-            </h2>
+
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h2 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                    통계 및 리포트
+                    <span class="text-sm font-semibold text-brand-600 bg-brand-50 px-2 py-1 rounded-md border border-brand-100">하남 지점</span>
+                </h2>
+                <p class="text-sm text-slate-500 mt-1">고객·마케팅·세일즈·코호트 데이터를 가설부터 매출까지 한 화면에서 점검합니다.</p>
+            </div>
             <div class="flex items-center gap-2">
-                <button class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
-                    <i class="ph ph-calendar text-lg"></i> 2026년 4월
-                </button>
-                <button class="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg">
+                <div class="flex items-center bg-white border border-slate-200 rounded-xl overflow-hidden">
+                    <button class="px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50">최근 30일</button>
+                    <button class="px-3 py-2 text-xs font-bold bg-slate-900 text-white">2026년 4월</button>
+                    <button class="px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50">YTD</button>
+                </div>
+                <button class="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">
                     <i class="ph ph-download-simple text-lg"></i> 리포트 다운로드
                 </button>
             </div>
         </div>
 
-        <!-- Key Metrics Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="stat-card bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
-                <div class="absolute -right-6 -top-6 text-slate-50 opacity-50 group-hover:scale-110 transition-transform">
-                    <i class="ph ph-users-three text-8xl"></i>
-                </div>
-                <div class="relative z-10">
-                    <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">전체 활성 멤버</p>
-                    <h3 class="text-3xl font-black text-slate-800">1,248 <span class="text-sm font-semibold text-emerald-500 ml-1">▲ 12%</span></h3>
-                    <p class="text-[11px] text-slate-500 mt-2">지난달 대비 142명 증가</p>
-                </div>
-            </div>
-            <div class="stat-card bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
-                <div class="absolute -right-6 -top-6 text-slate-50 opacity-50 group-hover:scale-110 transition-transform">
-                    <i class="ph ph-chart-line-up text-8xl"></i>
-                </div>
-                <div class="relative z-10">
-                    <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">월 평균 출석률</p>
-                    <h3 class="text-3xl font-black text-brand-600">84.2% <span class="text-sm font-semibold text-emerald-500 ml-1">▲ 3.4%</span></h3>
-                    <p class="text-[11px] text-slate-500 mt-2">멤버 86% / 리더 92%</p>
-                </div>
-            </div>
-            <div class="stat-card bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
-                <div class="absolute -right-6 -top-6 text-slate-50 opacity-50 group-hover:scale-110 transition-transform">
-                    <i class="ph ph-student text-8xl"></i>
-                </div>
-                <div class="relative z-10">
-                    <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">신규 등록 건수</p>
-                    <h3 class="text-3xl font-black text-slate-800">84 <span class="text-sm font-semibold text-amber-500 ml-1">▼ 2%</span></h3>
-                    <p class="text-[11px] text-slate-500 mt-2">영어(52) / 일어(32)</p>
-                </div>
-            </div>
-            <div class="stat-card bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
-                <div class="absolute -right-6 -top-6 text-slate-50 opacity-50 group-hover:scale-110 transition-transform">
-                    <i class="ph ph-trend-up text-8xl"></i>
-                </div>
-                <div class="relative z-10">
-                    <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">예상 매출 달성도</p>
-                    <h3 class="text-3xl font-black text-indigo-600">92.5%</h3>
-                    <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
-                        <div class="bg-indigo-500 h-full rounded-full" style="width: 92.5%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Membership Revenue Section -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                    <i class="ph-fill ph-medal text-amber-500 text-xl"></i>
-                    멤버십별 매출 현황
+        <!-- ───── 1. 가설 라이브러리 ───── -->
+        <section id="sec-hypothesis" class="anchor-target section-card">
+            <header>
+                <h3>
+                    <i class="ph-fill ph-lightbulb text-brand-500"></i>
+                    가설 라이브러리
+                    <span class="text-[11px] font-semibold text-slate-400 ml-1">먼저 가설을 고르면 관련 통계로 안내합니다</span>
                 </h3>
-                <span class="text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">2026년 4월 기준</span>
+                <span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">8개 가설</span>
+            </header>
+            <div class="section-body">
+                <div class="flex flex-wrap gap-2" id="hypothesis-chips">
+                    <button class="hypo-chip group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left" data-target="sec-customer" data-id="H1">
+                        <span class="hypo-num text-[10px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">H1</span>
+                        <span class="text-xs font-semibold text-slate-700">신규 등록 후 30일 환불율이 가장 높다</span>
+                    </button>
+                    <button class="hypo-chip group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left" data-target="sec-marketing" data-id="H2">
+                        <span class="hypo-num text-[10px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">H2</span>
+                        <span class="text-xs font-semibold text-slate-700">카카오 채널 CAC가 가장 낮지만 LTV도 낮다</span>
+                    </button>
+                    <button class="hypo-chip group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left" data-target="sec-sales" data-id="H3">
+                        <span class="hypo-num text-[10px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">H3</span>
+                        <span class="text-xs font-semibold text-slate-700">상담 30분 이상 → VVIP 가입율 2배</span>
+                    </button>
+                    <button class="hypo-chip group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left" data-target="sec-cohort" data-id="H4">
+                        <span class="hypo-num text-[10px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">H4</span>
+                        <span class="text-xs font-semibold text-slate-700">30대 여성 + 해외경험 → 매출 기여도 최상위</span>
+                    </button>
+                    <button class="hypo-chip group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left" data-target="sec-cohort" data-id="H5">
+                        <span class="hypo-num text-[10px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">H5</span>
+                        <span class="text-xs font-semibold text-slate-700">영어 LV3 이상 → 환불율 절반 미만</span>
+                    </button>
+                    <button class="hypo-chip group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left" data-target="sec-cohort" data-id="H6">
+                        <span class="hypo-num text-[10px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">H6</span>
+                        <span class="text-xs font-semibold text-slate-700">직장인 동기 → 출석률 가장 높음</span>
+                    </button>
+                    <button class="hypo-chip group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left" data-target="sec-tier" data-id="H7">
+                        <span class="hypo-num text-[10px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">H7</span>
+                        <span class="text-xs font-semibold text-slate-700">VVIP 1명 매출 = B 등급 12명과 동일</span>
+                    </button>
+                    <button class="hypo-chip group flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left" data-target="sec-customer" data-id="H8">
+                        <span class="hypo-num text-[10px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">H8</span>
+                        <span class="text-xs font-semibold text-slate-700">스터디 만족도 4.5↑ → 환불율 1/3</span>
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-3"><i class="ph ph-info mr-1"></i>가설을 클릭하면 해당 가설을 검증할 수 있는 섹션으로 이동합니다. 자체 가설은 추후 추가 가능합니다.</p>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-6">
-                <div class="bg-purple-50 border border-purple-100 rounded-xl p-4 text-center">
-                    <div class="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">VVIP+</div>
-                    <div class="text-2xl font-black text-purple-700">48<span class="text-sm font-bold ml-0.5">명</span></div>
-                    <div class="text-[11px] font-black text-purple-600 mt-1">₩120,960,000</div>
-                    <div class="text-[9px] text-slate-400 mt-0.5">객단가 ₩2,520,000</div>
-                </div>
-                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-center">
-                    <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">VVIP</div>
-                    <div class="text-2xl font-black text-indigo-700">134<span class="text-sm font-bold ml-0.5">명</span></div>
-                    <div class="text-[11px] font-black text-indigo-600 mt-1">₩265,320,000</div>
-                    <div class="text-[9px] text-slate-400 mt-0.5">객단가 ₩1,980,000</div>
-                </div>
-                <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
-                    <div class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">A+</div>
-                    <div class="text-2xl font-black text-emerald-700">312<span class="text-sm font-bold ml-0.5">명</span></div>
-                    <div class="text-[11px] font-black text-emerald-600 mt-1">₩370,656,000</div>
-                    <div class="text-[9px] text-slate-400 mt-0.5">객단가 ₩1,188,000</div>
-                </div>
-                <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 text-center">
-                    <div class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">H+</div>
-                    <div class="text-2xl font-black text-orange-700">521<span class="text-sm font-bold ml-0.5">명</span></div>
-                    <div class="text-[11px] font-black text-orange-600 mt-1">₩406,380,000</div>
-                    <div class="text-[9px] text-slate-400 mt-0.5">객단가 ₩780,000</div>
-                </div>
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">T</div>
-                    <div class="text-2xl font-black text-slate-700">233<span class="text-sm font-bold ml-0.5">명</span></div>
-                    <div class="text-[11px] font-black text-slate-600 mt-1">₩44,270,000</div>
-                    <div class="text-[9px] text-slate-400 mt-0.5">객단가 ₩190,000</div>
-                </div>
-            </div>
-            <div class="space-y-3">
-                <div class="flex items-center gap-3">
-                    <span class="text-[11px] font-bold text-slate-500 w-12 text-right shrink-0">VVIP+</span>
-                    <div class="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-purple-400 rounded-full" style="width:30%"></div></div>
-                    <span class="text-[11px] font-black text-slate-600 w-8 text-right shrink-0">48명</span>
-                    <span class="text-[11px] font-black text-purple-600 font-mono w-28 text-right shrink-0">₩120,960,000</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-[11px] font-bold text-slate-500 w-12 text-right shrink-0">VVIP</span>
-                    <div class="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-indigo-400 rounded-full" style="width:67%"></div></div>
-                    <span class="text-[11px] font-black text-slate-600 w-8 text-right shrink-0">134명</span>
-                    <span class="text-[11px] font-black text-indigo-600 font-mono w-28 text-right shrink-0">₩265,320,000</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-[11px] font-bold text-slate-500 w-12 text-right shrink-0">A+</span>
-                    <div class="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-400 rounded-full" style="width:93%"></div></div>
-                    <span class="text-[11px] font-black text-slate-600 w-8 text-right shrink-0">312명</span>
-                    <span class="text-[11px] font-black text-emerald-600 font-mono w-28 text-right shrink-0">₩370,656,000</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-[11px] font-bold text-slate-500 w-12 text-right shrink-0">H+</span>
-                    <div class="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-orange-400 rounded-full" style="width:100%"></div></div>
-                    <span class="text-[11px] font-black text-slate-600 w-8 text-right shrink-0">521명</span>
-                    <span class="text-[11px] font-black text-orange-600 font-mono w-28 text-right shrink-0">₩406,380,000</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-[11px] font-bold text-slate-500 w-12 text-right shrink-0">T</span>
-                    <div class="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-slate-400 rounded-full" style="width:11%"></div></div>
-                    <span class="text-[11px] font-black text-slate-600 w-8 text-right shrink-0">233명</span>
-                    <span class="text-[11px] font-black text-slate-600 font-mono w-28 text-right shrink-0">₩44,270,000</span>
-                </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-[11px] font-bold text-slate-400">전체 1,248명</span>
-                <span class="text-sm font-black text-slate-700">총 매출 <span class="text-brand-600 font-mono">₩1,207,586,000</span></span>
-            </div>
-        </div>
+        </section>
 
-        <!-- Charts Mockup Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                        <i class="ph-fill ph-chart-bar text-brand-500 text-xl"></i>
-                        요일별 출석 추이
-                    </h3>
-                    <select class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 outline-none">
-                        <option>최근 4주</option>
-                        <option>최근 3개월</option>
-                    </select>
+        <!-- ───── 2. 고객 관리 통계 ───── -->
+        <section id="sec-customer" class="anchor-target section-card">
+            <header>
+                <h3>
+                    <i class="ph-fill ph-user-list text-brand-500"></i>
+                    고객 관리 통계
+                </h3>
+                <span class="text-[11px] font-bold text-slate-500">스터디 만족도 · 방문율 · 환불율 · 환불 소요기간</span>
+            </header>
+            <div class="section-body grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <p class="text-[11px] font-bold text-slate-500 mb-1">스터디 만족도 (NPS 환산)</p>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">4.62 <span class="text-xs font-bold text-slate-400">/ 5</span></h4>
+                    <p class="text-[11px] text-emerald-700 font-semibold mt-1">▲ 0.18 vs 지난달</p>
+                    <div class="bar-track mt-3"><div class="bar-fill bg-brand-500" style="width:92.4%"></div></div>
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-1.5"><span>응답 142건</span><span>응답율 67%</span></div>
                 </div>
-                <div class="h-[300px] flex items-end justify-between gap-2 px-2">
-                    <div class="flex-1 flex flex-col items-center gap-2 group">
-                        <div class="w-full bg-brand-100 rounded-t-lg group-hover:bg-brand-200 transition-colors" style="height: 60%"></div>
-                        <span class="text-xs font-bold text-slate-400">월</span>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center gap-2 group">
-                        <div class="w-full bg-brand-100 rounded-t-lg group-hover:bg-brand-200 transition-colors" style="height: 75%"></div>
-                        <span class="text-xs font-bold text-slate-400">화</span>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center gap-2 group">
-                        <div class="w-full bg-brand-500 rounded-t-lg group-hover:bg-brand-600 transition-colors shadow-lg" style="height: 90%"></div>
-                        <span class="text-xs font-bold text-slate-800 uppercase">수</span>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center gap-2 group">
-                        <div class="w-full bg-brand-100 rounded-t-lg group-hover:bg-brand-200 transition-colors" style="height: 80%"></div>
-                        <span class="text-xs font-bold text-slate-400">목</span>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center gap-2 group">
-                        <div class="w-full bg-brand-100 rounded-t-lg group-hover:bg-brand-200 transition-colors" style="height: 65%"></div>
-                        <span class="text-xs font-bold text-slate-400">금</span>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center gap-2 group">
-                        <div class="w-full bg-slate-100 rounded-t-lg group-hover:bg-slate-200 transition-colors" style="height: 40%"></div>
-                        <span class="text-xs font-bold text-slate-400">토</span>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center gap-2 group">
-                        <div class="w-full bg-slate-100 rounded-t-lg group-hover:bg-slate-200 transition-colors" style="height: 30%"></div>
-                        <span class="text-xs font-bold text-slate-400">일</span>
-                    </div>
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <p class="text-[11px] font-bold text-slate-500 mb-1">방문율 (예약 → 방문)</p>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">78.4%</h4>
+                    <p class="text-[11px] text-emerald-700 font-semibold mt-1">▲ 4.2%p</p>
+                    <div class="bar-track mt-3"><div class="bar-fill bg-emerald-500" style="width:78.4%"></div></div>
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-1.5"><span>예약 213건</span><span>방문 167건</span></div>
                 </div>
-            </div>
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <p class="text-[11px] font-bold text-slate-500 mb-1">환불율</p>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">6.3%</h4>
+                    <p class="text-[11px] text-red-700 font-semibold mt-1">▲ 0.8%p (악화)</p>
+                    <div class="bar-track mt-3"><div class="bar-fill bg-red-500" style="width:6.3%"></div></div>
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-1.5"><span>전체 1,248명</span><span>환불 79건</span></div>
+                </div>
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <p class="text-[11px] font-bold text-slate-500 mb-1">환불 소요 평균 기간</p>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">23<span class="text-base font-bold text-slate-500 ml-1">일</span></h4>
+                    <p class="text-[11px] text-slate-500 font-semibold mt-1">중앙값 17일 / 최장 86일</p>
+                    <div class="flex items-end gap-1 mt-3 h-[28px]">
+                        <div class="flex-1 bg-brand-100 rounded-t" style="height:35%" title="0~7일"></div>
+                        <div class="flex-1 bg-brand-300 rounded-t" style="height:55%" title="8~14일"></div>
+                        <div class="flex-1 bg-brand-500 rounded-t" style="height:90%" title="15~30일"></div>
+                        <div class="flex-1 bg-brand-300 rounded-t" style="height:40%" title="31~60일"></div>
+                        <div class="flex-1 bg-brand-100 rounded-t" style="height:15%" title="61일↑"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400 mt-1.5"><span>0d</span><span>30d</span><span>60d+</span></div>
+                </div>
 
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                        <i class="ph-fill ph-circles-three-plus text-indigo-500 text-xl"></i>
-                        팀별 분배 현황 (언어/시간)
-                    </h3>
-                </div>
-                <div class="space-y-4">
-                    <div class="flex flex-col gap-2">
-                        <div class="flex justify-between items-end">
-                            <span class="text-sm font-bold text-slate-700">영어 오전 반 (11시)</span>
-                            <span class="text-sm font-black text-indigo-600">423명</span>
-                        </div>
-                        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="bg-indigo-500 h-full rounded-full" style="width: 45%"></div>
-                        </div>
+                <div class="lg:col-span-2 rounded-xl border border-slate-200 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-bold text-slate-800">환불 사유 분포</h4>
+                        <span class="text-[10px] font-bold text-slate-400">79건 기준</span>
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <div class="flex justify-between items-end">
-                            <span class="text-sm font-bold text-slate-700">영어 저녁 반 (8시)</span>
-                            <span class="text-sm font-black text-indigo-600">382명</span>
+                    <div class="space-y-2.5">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-semibold text-slate-700">개인 일정 변경</span><span class="font-black stat-num">31건 · 39%</span></div>
+                            <div class="bar-track"><div class="bar-fill bg-slate-500" style="width:39.2%"></div></div>
                         </div>
-                        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="bg-indigo-400 h-full rounded-full" style="width: 40%"></div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-semibold text-slate-700">스터디 미참여 누적</span><span class="font-black stat-num">22건 · 28%</span></div>
+                            <div class="bar-track"><div class="bar-fill bg-amber-500" style="width:27.8%"></div></div>
                         </div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <div class="flex justify-between items-end">
-                            <span class="text-sm font-bold text-slate-700">일어 오전 반 (11시)</span>
-                            <span class="text-sm font-black text-blue-600">214명</span>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-semibold text-slate-700">난이도 불일치</span><span class="font-black stat-num">14건 · 18%</span></div>
+                            <div class="bar-track"><div class="bar-fill bg-rose-500" style="width:17.7%"></div></div>
                         </div>
-                        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="bg-blue-500 h-full rounded-full" style="width: 25%"></div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-semibold text-slate-700">리더 만족도 낮음</span><span class="font-black stat-num">8건 · 10%</span></div>
+                            <div class="bar-track"><div class="bar-fill bg-red-500" style="width:10.1%"></div></div>
                         </div>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <div class="flex justify-between items-end">
-                            <span class="text-sm font-bold text-slate-700">일어 저녁 반 (8시)</span>
-                            <span class="text-sm font-black text-blue-600">229명</span>
-                        </div>
-                        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="bg-blue-400 h-full rounded-full" style="width: 28%"></div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-semibold text-slate-700">기타</span><span class="font-black stat-num">4건 · 5%</span></div>
+                            <div class="bar-track"><div class="bar-fill bg-slate-300" style="width:5.0%"></div></div>
                         </div>
                     </div>
                 </div>
-                <div class="mt-8 pt-6 border-t border-slate-100 flex justify-center gap-6">
-                    <div class="flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-indigo-500 shadow-sm shadow-indigo-100"></span>
-                        <span class="text-xs font-bold text-slate-500 uppercase">Engineering</span>
+
+                <div class="lg:col-span-2 rounded-xl border border-slate-200 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-bold text-slate-800">월별 만족도 / 환불율 추이</h4>
+                        <div class="flex items-center gap-3 text-[10px] font-semibold text-slate-500">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-brand-500"></span>만족도</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>환불율</span>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-blue-500 shadow-sm shadow-blue-100"></span>
-                        <span class="text-xs font-bold text-slate-500 uppercase">Japanese</span>
+                    <svg viewBox="0 0 320 96" class="spark w-full h-[96px]" preserveAspectRatio="none" aria-label="월별 만족도 환불율 추이 스파크라인">
+                        <path class="area" d="M0,40 L40,32 L80,28 L120,24 L160,20 L200,18 L240,16 L280,14 L320,12 L320,96 L0,96 Z"/>
+                        <path class="line" d="M0,40 L40,32 L80,28 L120,24 L160,20 L200,18 L240,16 L280,14 L320,12"/>
+                        <circle class="dot" cx="320" cy="12" r="3"/>
+                        <path d="M0,72 L40,76 L80,68 L120,72 L160,64 L200,68 L240,60 L280,56 L320,52" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+                        <circle cx="320" cy="52" r="3" fill="#ef4444"/>
+                    </svg>
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-2 stat-num">
+                        <span>'25.08</span><span>09</span><span>10</span><span>11</span><span>12</span><span>'26.01</span><span>02</span><span>03</span><span>04</span>
                     </div>
                 </div>
             </div>
+        </section>
+
+        <!-- ───── 3. 마케팅 & 회신 통계 ───── -->
+        <section id="sec-marketing" class="anchor-target section-card">
+            <header>
+                <h3>
+                    <i class="ph-fill ph-megaphone text-brand-500"></i>
+                    마케팅 & 회신 통계
+                </h3>
+                <span class="text-[11px] font-bold text-slate-500">10명 방문 비용 (CAC) · 기대 매출 (LTV) · 채널별 예약 성공율</span>
+            </header>
+            <div class="section-body">
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>채널</th>
+                                <th class="text-right">유입</th>
+                                <th class="text-right">예약 성공율</th>
+                                <th class="text-right">방문율</th>
+                                <th class="text-right">10명 방문 비용 (CAC)</th>
+                                <th class="text-right">10명 기대 매출 (LTV)</th>
+                                <th class="text-right">ROI</th>
+                                <th class="text-right">실 매출 (월)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="inline-flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-md border ch-kakao"><i class="ph-fill ph-chat-circle"></i> 카카오 채널</span></td>
+                                <td class="num">412명</td>
+                                <td class="num">52.4%</td>
+                                <td class="num">81.2%</td>
+                                <td class="num">₩ 184,000</td>
+                                <td class="num">₩ 2,160,000</td>
+                                <td class="num text-emerald-700 font-bold">×11.7</td>
+                                <td class="num font-bold">₩ 38,420,000</td>
+                            </tr>
+                            <tr>
+                                <td><span class="inline-flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-md border ch-instagram"><i class="ph-fill ph-instagram-logo"></i> 인스타그램</span></td>
+                                <td class="num">328명</td>
+                                <td class="num">38.7%</td>
+                                <td class="num">72.5%</td>
+                                <td class="num">₩ 312,000</td>
+                                <td class="num">₩ 4,080,000</td>
+                                <td class="num text-emerald-700 font-bold">×13.1</td>
+                                <td class="num font-bold">₩ 41,260,000</td>
+                            </tr>
+                            <tr>
+                                <td><span class="inline-flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-md border ch-naver"><i class="ph-fill ph-magnifying-glass"></i> 네이버 검색</span></td>
+                                <td class="num">256명</td>
+                                <td class="num">45.3%</td>
+                                <td class="num">76.8%</td>
+                                <td class="num">₩ 268,000</td>
+                                <td class="num">₩ 3,520,000</td>
+                                <td class="num text-emerald-700 font-bold">×13.1</td>
+                                <td class="num font-bold">₩ 28,940,000</td>
+                            </tr>
+                            <tr>
+                                <td><span class="inline-flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-md border ch-referral"><i class="ph-fill ph-users-three"></i> 지인 추천</span></td>
+                                <td class="num">94명</td>
+                                <td class="num">68.1%</td>
+                                <td class="num">92.4%</td>
+                                <td class="num">₩ 0</td>
+                                <td class="num">₩ 5,420,000</td>
+                                <td class="num text-emerald-700 font-bold">∞</td>
+                                <td class="num font-bold">₩ 14,820,000</td>
+                            </tr>
+                            <tr>
+                                <td><span class="inline-flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-md border ch-organic"><i class="ph ph-globe"></i> 직접 유입</span></td>
+                                <td class="num">158명</td>
+                                <td class="num">31.2%</td>
+                                <td class="num">68.7%</td>
+                                <td class="num">₩ 0</td>
+                                <td class="num">₩ 2,840,000</td>
+                                <td class="num text-emerald-700 font-bold">∞</td>
+                                <td class="num font-bold">₩ 12,180,000</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>합계</td>
+                                <td class="num">1,248명</td>
+                                <td class="num">47.1%</td>
+                                <td class="num">78.4%</td>
+                                <td class="num">평균 ₩ 192,800</td>
+                                <td class="num">평균 ₩ 3,604,000</td>
+                                <td class="num text-emerald-700">×18.7</td>
+                                <td class="num">₩ 135,620,000</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="rounded-xl border border-slate-200 p-3 bg-slate-50/50">
+                        <p class="font-bold text-slate-700 mb-1.5"><i class="ph ph-lightbulb text-amber-500 mr-1"></i> H2 · 카카오 vs 인스타</p>
+                        <p class="text-slate-600 leading-relaxed">카카오 CAC는 인스타 대비 <b class="stat-num">41% 낮음</b>(184k vs 312k). 그러나 LTV도 <b class="stat-num">47% 낮음</b>(2.16M vs 4.08M). ROI는 인스타가 ×13.1로 카카오 ×11.7보다 우위.</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 p-3 bg-slate-50/50">
+                        <p class="font-bold text-slate-700 mb-1.5"><i class="ph ph-trend-up text-emerald-600 mr-1"></i> 가장 효율적인 채널</p>
+                        <p class="text-slate-600 leading-relaxed"><b>지인 추천</b>은 비용 0, 예약 성공율 <b class="stat-num">68.1%</b>로 최상위. 유입량 자체가 적어 확장이 핵심 과제. <b>레퍼럴 인센티브</b> 강화 검토 권장.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ───── 4. 상담 세일즈 통계 ───── -->
+        <section id="sec-sales" class="anchor-target section-card">
+            <header>
+                <h3>
+                    <i class="ph-fill ph-handshake text-brand-500"></i>
+                    상담 세일즈 통계
+                </h3>
+                <span class="text-[11px] font-bold text-slate-500">상담 성공율 · 멤버십별 가입율 · 동기 X 멤버십 매트릭스</span>
+            </header>
+            <div class="section-body grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- 상담 성공율 -->
+                <div class="rounded-xl border border-slate-200 p-4">
+                    <p class="text-[11px] font-bold text-slate-500 mb-1">상담 → 가입 성공율</p>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">64.8%</h4>
+                    <p class="text-[11px] text-emerald-700 font-semibold mt-1">▲ 5.2%p</p>
+                    <div class="space-y-1.5 mt-3 text-xs">
+                        <div class="kv"><span class="kv-label">15분 이내</span><span class="kv-value">38.4%</span></div>
+                        <div class="kv"><span class="kv-label">15~30분</span><span class="kv-value">52.1%</span></div>
+                        <div class="kv"><span class="kv-label">30분 이상</span><span class="kv-value text-emerald-700">81.6%</span></div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2">H3 검증: 30분 이상 상담시 가입율 2배 이상 ✓</p>
+                </div>
+
+                <!-- 멤버십별 가입율 -->
+                <div class="lg:col-span-2 rounded-xl border border-slate-200 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-bold text-slate-800">멤버십별 신규 가입 분포</h4>
+                        <span class="text-[10px] font-bold text-slate-400">월간 84건</span>
+                    </div>
+                    <div class="space-y-2.5">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-bold px-1.5 py-0.5 rounded border" style="background:#faf5ff;color:#7e22ce;border-color:#d8b4fe">VVIP</span><span class="font-black stat-num text-slate-800">6건 · 7.1%</span></div>
+                            <div class="bar-track"><div class="bar-fill" style="width:7.1%;background:#a855f7"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-bold px-1.5 py-0.5 rounded border" style="background:#eef2ff;color:#4338ca;border-color:#a5b4fc">VIP</span><span class="font-black stat-num text-slate-800">14건 · 16.7%</span></div>
+                            <div class="bar-track"><div class="bar-fill" style="width:16.7%;background:#6366f1"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-bold px-1.5 py-0.5 rounded border" style="background:#ecfdf5;color:#065f46;border-color:#6ee7b7">A+</span><span class="font-black stat-num text-slate-800">28건 · 33.3%</span></div>
+                            <div class="bar-track"><div class="bar-fill" style="width:33.3%;background:#10b981"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-bold px-1.5 py-0.5 rounded border" style="background:#fff7ed;color:#c2410c;border-color:#fdba74">H+</span><span class="font-black stat-num text-slate-800">22건 · 26.2%</span></div>
+                            <div class="bar-track"><div class="bar-fill" style="width:26.2%;background:#f97316"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="font-bold px-1.5 py-0.5 rounded border" style="background:#f8fafc;color:#475569;border-color:#e2e8f0">B</span><span class="font-black stat-num text-slate-800">14건 · 16.7%</span></div>
+                            <div class="bar-track"><div class="bar-fill" style="width:16.7%;background:#94a3b8"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 동기 X 멤버십 매트릭스 (3-col 영역 풀 사용) -->
+                <div class="lg:col-span-3 rounded-xl border border-slate-200 p-4">
+                    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <h4 class="text-sm font-bold text-slate-800">상담 동기 × 멤버십 가입 매트릭스 <span class="text-[10px] font-semibold text-slate-400 ml-1">고객 동기를 인적 정보와 결합한 매출 비중</span></h4>
+                        <span class="text-[10px] font-bold text-slate-400">셀: 가입 건수 · 색농도 = 매출 비중</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div class="grid gap-1 min-w-[640px]" style="grid-template-columns: 130px repeat(5, 1fr);">
+                            <div></div>
+                            <div class="text-[10px] font-bold text-slate-500 text-center py-1">VVIP</div>
+                            <div class="text-[10px] font-bold text-slate-500 text-center py-1">VIP</div>
+                            <div class="text-[10px] font-bold text-slate-500 text-center py-1">A+</div>
+                            <div class="text-[10px] font-bold text-slate-500 text-center py-1">H+</div>
+                            <div class="text-[10px] font-bold text-slate-500 text-center py-1">B</div>
+
+                            <div class="text-[11px] font-bold text-slate-700 self-center">직장인 자기개발</div>
+                            <div class="cohort-cell" style="background:#7e22ce;color:white">3</div>
+                            <div class="cohort-cell" style="background:#a78bfa;color:white">7</div>
+                            <div class="cohort-cell" style="background:#ddd6fe">12</div>
+                            <div class="cohort-cell" style="background:#ede9fe">5</div>
+                            <div class="cohort-cell empty">1</div>
+
+                            <div class="text-[11px] font-bold text-slate-700 self-center">학생 (대입/취업)</div>
+                            <div class="cohort-cell empty">0</div>
+                            <div class="cohort-cell" style="background:#ede9fe">2</div>
+                            <div class="cohort-cell" style="background:#a78bfa;color:white">8</div>
+                            <div class="cohort-cell" style="background:#7e22ce;color:white">11</div>
+                            <div class="cohort-cell" style="background:#a78bfa;color:white">7</div>
+
+                            <div class="text-[11px] font-bold text-slate-700 self-center">시험 (TOEIC/JLPT)</div>
+                            <div class="cohort-cell" style="background:#ede9fe">1</div>
+                            <div class="cohort-cell" style="background:#a78bfa;color:white">3</div>
+                            <div class="cohort-cell" style="background:#7e22ce;color:white">5</div>
+                            <div class="cohort-cell" style="background:#a78bfa;color:white">4</div>
+                            <div class="cohort-cell" style="background:#ddd6fe">3</div>
+
+                            <div class="text-[11px] font-bold text-slate-700 self-center">해외 거주/유학 대비</div>
+                            <div class="cohort-cell" style="background:#7e22ce;color:white">2</div>
+                            <div class="cohort-cell" style="background:#a78bfa;color:white">2</div>
+                            <div class="cohort-cell" style="background:#ddd6fe">2</div>
+                            <div class="cohort-cell" style="background:#ede9fe">1</div>
+                            <div class="cohort-cell empty">1</div>
+
+                            <div class="text-[11px] font-bold text-slate-700 self-center">취미 / 자기만족</div>
+                            <div class="cohort-cell empty">0</div>
+                            <div class="cohort-cell empty">0</div>
+                            <div class="cohort-cell" style="background:#ede9fe">1</div>
+                            <div class="cohort-cell" style="background:#ddd6fe">1</div>
+                            <div class="cohort-cell" style="background:#a78bfa;color:white">2</div>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-3 leading-relaxed">
+                        <i class="ph ph-info text-slate-400 mr-1"></i>
+                        <b>해석</b>: 직장인 동기 그룹은 VVIP/VIP에 집중되어 1인당 기여 매출 최상위. 시험 동기는 평균 멤버십이 A+ 수준으로 안정적. 학생 그룹은 H+ 비중이 가장 높아 가격 민감도가 높음.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ───── 5. 인구통계 영향 분석 (Cohort) ───── -->
+        <section id="sec-cohort" class="anchor-target section-card">
+            <header>
+                <h3>
+                    <i class="ph-fill ph-funnel text-brand-500"></i>
+                    인구통계 영향 분석
+                </h3>
+                <span class="text-[11px] font-bold text-slate-500">차원을 토글해 매출 영향을 비교합니다</span>
+            </header>
+            <div class="section-body">
+                <div class="flex items-center gap-2 mb-4 flex-wrap">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">차원</span>
+                    <button class="dim-btn" aria-pressed="true" data-dim="age">나이</button>
+                    <button class="dim-btn" aria-pressed="false" data-dim="gender">성별</button>
+                    <button class="dim-btn" aria-pressed="false" data-dim="level">영어 레벨</button>
+                    <button class="dim-btn" aria-pressed="false" data-dim="motive">동기</button>
+                    <button class="dim-btn" aria-pressed="false" data-dim="abroad">해외 경험</button>
+                    <span class="ml-auto text-[10px] font-semibold text-slate-400">선택한 차원의 매출 기여도와 출석/환불률을 함께 비교</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>구간</th>
+                                <th class="text-right">멤버 수</th>
+                                <th class="text-right">평균 객단가</th>
+                                <th class="text-right">매출 기여</th>
+                                <th class="text-right">출석률</th>
+                                <th class="text-right">환불율</th>
+                                <th>매출 비중</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cohort-tbody">
+                            <tr>
+                                <td><b>20대 (M)</b></td><td class="num">186명</td><td class="num">₩ 1,420,000</td><td class="num font-bold">₩ 26.4M</td><td class="num">82.1%</td><td class="num">7.5%</td>
+                                <td><div class="bar-track"><div class="bar-fill bg-brand-500" style="width:18.4%"></div></div></td>
+                            </tr>
+                            <tr>
+                                <td><b>20대 (F)</b></td><td class="num">214명</td><td class="num">₩ 1,580,000</td><td class="num font-bold">₩ 33.8M</td><td class="num">85.4%</td><td class="num">5.1%</td>
+                                <td><div class="bar-track"><div class="bar-fill bg-brand-500" style="width:23.6%"></div></div></td>
+                            </tr>
+                            <tr>
+                                <td><b>30대 (M)</b></td><td class="num">142명</td><td class="num">₩ 2,210,000</td><td class="num font-bold">₩ 31.4M</td><td class="num">88.7%</td><td class="num">3.9%</td>
+                                <td><div class="bar-track"><div class="bar-fill bg-brand-500" style="width:21.9%"></div></div></td>
+                            </tr>
+                            <tr style="background:#fefce8">
+                                <td><b>30대 (F) <span class="text-[10px] text-amber-700 ml-1">★ H4</span></b></td><td class="num">168명</td><td class="num">₩ 2,640,000</td><td class="num font-bold">₩ 44.4M</td><td class="num">91.2%</td><td class="num">2.4%</td>
+                                <td><div class="bar-track"><div class="bar-fill bg-amber-500" style="width:31.0%"></div></div></td>
+                            </tr>
+                            <tr>
+                                <td><b>40대 (M)</b></td><td class="num">62명</td><td class="num">₩ 1,890,000</td><td class="num font-bold">₩ 11.7M</td><td class="num">79.3%</td><td class="num">8.2%</td>
+                                <td><div class="bar-track"><div class="bar-fill bg-brand-500" style="width:8.2%"></div></div></td>
+                            </tr>
+                            <tr>
+                                <td><b>40대 (F)</b></td><td class="num">81명</td><td class="num">₩ 1,720,000</td><td class="num font-bold">₩ 13.9M</td><td class="num">84.6%</td><td class="num">4.8%</td>
+                                <td><div class="bar-track"><div class="bar-fill bg-brand-500" style="width:9.7%"></div></div></td>
+                            </tr>
+                            <tr>
+                                <td><b>50대+</b></td><td class="num">42명</td><td class="num">₩ 2,180,000</td><td class="num font-bold">₩ 9.2M</td><td class="num">86.1%</td><td class="num">3.6%</td>
+                                <td><div class="bar-track"><div class="bar-fill bg-brand-500" style="width:6.4%"></div></div></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>합계</td><td class="num">895명</td><td class="num">평균 ₩ 1,952k</td><td class="num">₩ 170.8M</td><td class="num">85.4%</td><td class="num">5.1%</td><td>—</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div class="rounded-xl border border-amber-200 bg-amber-50/40 p-3">
+                        <p class="font-bold text-slate-800 mb-1"><i class="ph ph-medal-fill text-amber-600 mr-1"></i>H4 검증 ✓</p>
+                        <p class="text-slate-600 leading-relaxed">30대 여성은 멤버수 168명(전체 19%)이지만 매출 기여 31.0%로 최상위. 평균 객단가 ₩2.64M, 환불율 2.4%로 가장 안정적.</p>
+                    </div>
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/40 p-3">
+                        <p class="font-bold text-slate-800 mb-1"><i class="ph ph-check-fat-fill text-emerald-600 mr-1"></i>H5 검증 ✓ (영어 레벨 차원)</p>
+                        <p class="text-slate-600 leading-relaxed">LV3 이상 환불율 2.8%, LV0~2 환불율 7.4%. 가설 일치 — 레벨 진입 후 학습 몰입도 상승 추정.</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/40 p-3">
+                        <p class="font-bold text-slate-800 mb-1"><i class="ph ph-question-fill text-slate-500 mr-1"></i>H6 추가 분석 필요</p>
+                        <p class="text-slate-600 leading-relaxed">직장인 동기 출석률 88.4%로 평균 대비 +3%p에 그침. "가장 높음"이 아닌 "상위권"으로 가설 수정 권장.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ───── 6. 멤버십별 매출 ───── -->
+        <section id="sec-tier" class="anchor-target section-card">
+            <header>
+                <h3>
+                    <i class="ph-fill ph-medal text-brand-500"></i>
+                    멤버십별 매출 데이터
+                </h3>
+                <span class="text-[11px] font-bold text-slate-500">VVIP / VIP / A+ / H+ / B 5단계 매출 기여 분석</span>
+            </header>
+            <div class="section-body grid grid-cols-1 lg:grid-cols-5 gap-3">
+                <div class="rounded-xl p-4 border" style="background:#faf5ff;border-color:#d8b4fe">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-black px-2 py-0.5 rounded border" style="color:#7e22ce;background:white;border-color:#d8b4fe">VVIP</span>
+                        <span class="text-[10px] text-slate-500 stat-num">1,040회</span>
+                    </div>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">₩ 48.2M</h4>
+                    <p class="text-[11px] text-slate-600 font-semibold mt-1">35.5% 매출 비중</p>
+                    <div class="mt-3 space-y-1 text-[11px]">
+                        <div class="flex justify-between"><span class="text-slate-500">멤버수</span><span class="font-bold stat-num">21명</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">평균 객단가</span><span class="font-bold stat-num">₩ 2.30M</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">월 출석률</span><span class="font-bold stat-num">94.3%</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">환불율</span><span class="font-bold stat-num">0.0%</span></div>
+                    </div>
+                </div>
+                <div class="rounded-xl p-4 border" style="background:#eef2ff;border-color:#a5b4fc">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-black px-2 py-0.5 rounded border" style="color:#4338ca;background:white;border-color:#a5b4fc">VIP</span>
+                        <span class="text-[10px] text-slate-500 stat-num">520회</span>
+                    </div>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">₩ 36.8M</h4>
+                    <p class="text-[11px] text-slate-600 font-semibold mt-1">27.1% 매출 비중</p>
+                    <div class="mt-3 space-y-1 text-[11px]">
+                        <div class="flex justify-between"><span class="text-slate-500">멤버수</span><span class="font-bold stat-num">42명</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">평균 객단가</span><span class="font-bold stat-num">₩ 0.88M</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">월 출석률</span><span class="font-bold stat-num">89.1%</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">환불율</span><span class="font-bold stat-num">2.4%</span></div>
+                    </div>
+                </div>
+                <div class="rounded-xl p-4 border" style="background:#ecfdf5;border-color:#6ee7b7">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-black px-2 py-0.5 rounded border" style="color:#065f46;background:white;border-color:#6ee7b7">A+</span>
+                        <span class="text-[10px] text-slate-500 stat-num">104회</span>
+                    </div>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">₩ 28.4M</h4>
+                    <p class="text-[11px] text-slate-600 font-semibold mt-1">20.9% 매출 비중</p>
+                    <div class="mt-3 space-y-1 text-[11px]">
+                        <div class="flex justify-between"><span class="text-slate-500">멤버수</span><span class="font-bold stat-num">186명</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">평균 객단가</span><span class="font-bold stat-num">₩ 0.15M</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">월 출석률</span><span class="font-bold stat-num">85.6%</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">환불율</span><span class="font-bold stat-num">5.4%</span></div>
+                    </div>
+                </div>
+                <div class="rounded-xl p-4 border" style="background:#fff7ed;border-color:#fdba74">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-black px-2 py-0.5 rounded border" style="color:#c2410c;background:white;border-color:#fdba74">H+</span>
+                        <span class="text-[10px] text-slate-500 stat-num">52회</span>
+                    </div>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">₩ 15.6M</h4>
+                    <p class="text-[11px] text-slate-600 font-semibold mt-1">11.5% 매출 비중</p>
+                    <div class="mt-3 space-y-1 text-[11px]">
+                        <div class="flex justify-between"><span class="text-slate-500">멤버수</span><span class="font-bold stat-num">298명</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">평균 객단가</span><span class="font-bold stat-num">₩ 0.05M</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">월 출석률</span><span class="font-bold stat-num">81.2%</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">환불율</span><span class="font-bold stat-num">8.7%</span></div>
+                    </div>
+                </div>
+                <div class="rounded-xl p-4 border" style="background:#f8fafc;border-color:#e2e8f0">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-black px-2 py-0.5 rounded border" style="color:#475569;background:white;border-color:#e2e8f0">B</span>
+                        <span class="text-[10px] text-slate-500 stat-num">24회</span>
+                    </div>
+                    <h4 class="text-2xl font-black text-slate-800 stat-num">₩ 6.6M</h4>
+                    <p class="text-[11px] text-slate-600 font-semibold mt-1">4.9% 매출 비중</p>
+                    <div class="mt-3 space-y-1 text-[11px]">
+                        <div class="flex justify-between"><span class="text-slate-500">멤버수</span><span class="font-bold stat-num">348명</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">평균 객단가</span><span class="font-bold stat-num">₩ 0.02M</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">월 출석률</span><span class="font-bold stat-num">76.8%</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">환불율</span><span class="font-bold stat-num">11.2%</span></div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 rounded-xl border border-amber-200 bg-amber-50/40 p-4 mt-2">
+                    <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                        <p class="font-bold text-slate-800"><i class="ph ph-lightbulb-fill text-amber-600 mr-1"></i>H7 검증 — VVIP 1명 = B 12명?</p>
+                        <span class="text-[11px] font-bold text-slate-500">매출 환산 기준</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <div class="bg-white rounded-lg p-3 border border-amber-100">
+                            <p class="font-bold text-slate-500 text-[11px] mb-1">VVIP 1명 평균 매출</p>
+                            <p class="text-xl font-black text-slate-800 stat-num">₩ 2,295,238</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border border-amber-100">
+                            <p class="font-bold text-slate-500 text-[11px] mb-1">B 1명 평균 매출</p>
+                            <p class="text-xl font-black text-slate-800 stat-num">₩ 18,966</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 border border-amber-100">
+                            <p class="font-bold text-slate-500 text-[11px] mb-1">VVIP 1명 = B 등급</p>
+                            <p class="text-xl font-black text-emerald-700 stat-num">121명 (가설 약 12 → 실제 121)</p>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-600 mt-3 leading-relaxed">실제 격차는 가설 추정치(×12)의 10배. VVIP 유지·확장이 매출에 미치는 레버리지가 압도적으로 높음. <b>리텐션 우선 자원 배분</b> 권장.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="text-center text-[11px] text-slate-400 pt-4">
+            <i class="ph ph-info mr-1"></i>모든 수치는 2026년 4월 기준입니다. 가설을 추가하려면 데이터 팀에 문의하세요.
         </div>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // DRAWER Toggles
+            // === Drawer ===
             const hBtn = document.getElementById('hamburger-btn');
             const cBtn = document.getElementById('close-drawer-btn');
             const dOverlay = document.getElementById('drawer-overlay');
             const nDrawer = document.getElementById('nav-drawer');
-
             function tDrawer(s) {
                 if (s) {
                     dOverlay.classList.remove('hidden');
@@ -411,6 +775,30 @@
             if (hBtn) hBtn.addEventListener('click', () => tDrawer(true));
             if (cBtn) cBtn.addEventListener('click', () => tDrawer(false));
             if (dOverlay) dOverlay.addEventListener('click', () => tDrawer(false));
+
+            // === Hypothesis chip click → smooth scroll + active state ===
+            const chips = document.querySelectorAll('.hypo-chip');
+            let activeChip = null;
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const targetId = chip.dataset.target;
+                    const target = document.getElementById(targetId);
+                    if (!target) return;
+                    if (activeChip) activeChip.removeAttribute('data-active');
+                    chip.setAttribute('data-active', 'true');
+                    activeChip = chip;
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
+
+            // === Cohort dimension toggle (visual mock) ===
+            const dimBtns = document.querySelectorAll('.dim-btn');
+            dimBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    dimBtns.forEach(b => b.setAttribute('aria-pressed', 'false'));
+                    btn.setAttribute('aria-pressed', 'true');
+                });
+            });
         });
     </script>
 </body>
