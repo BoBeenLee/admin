@@ -3,6 +3,7 @@
 .agent
 .agents
 .gstack
+.code-review-graph/
 docs
 old
 node_modules
