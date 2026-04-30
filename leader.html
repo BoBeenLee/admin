@@ -1037,6 +1037,11 @@
     </div>
 
 
+    <!-- BranchStatus iframe overlay (리더 프로필) -->
+    <div id="bs-iframe-overlay" class="fixed inset-0 z-[100] hidden" onclick="closeBsIframe(event)">
+        <iframe id="bs-iframe" class="w-full h-full border-0" title="리더 프로필"></iframe>
+    </div>
+
     <!-- Member Profile Modal -->
     <div id="profile-modal-overlay"
         class="leader-profile-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] hidden opacity-0 transition-opacity duration-300"
@@ -4358,7 +4363,92 @@
             const pModal = document.getElementById('profile-modal');
             const pOverlay = document.getElementById('profile-modal-overlay');
 
+            // ── BranchStatus iframe 오버레이 (리더는 LEADER 멤버십 / 스텝 상태로 주입) ──
+            window.openBsIframe = function (name) {
+                const overlay = document.getElementById('bs-iframe-overlay');
+                const iframe = document.getElementById('bs-iframe');
+                if (!overlay || !iframe) return false;
+
+                try {
+                    const ld = (typeof leaders !== 'undefined' && Array.isArray(leaders)) ? leaders.find(x => x.name === name) : null;
+                    const lang = (ld && ld.teams && ld.teams[0] && String(ld.teams[0]).startsWith('영')) ? '영어' : '일본어';
+                    const lvNum = ld ? (ld.lv ?? 0) : 0;
+                    const total = ld ? (ld.total || 0) : 0;
+                    const attended = ld ? (ld.att || 0) : 0;
+                    const absent = ld ? (ld.abs || 0) : 0;
+                    const remaining = Math.max(0, total - attended - absent);
+                    const realAttRate = total > 0 ? Math.max(0, Math.round((attended - absent) / total * 100)) : 0;
+                    const today = new Date();
+                    const fmt = (d) => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+                    const docDate = new Date(today.getTime() - 90 * 86400000);
+                    const startDate = new Date(today.getTime() - 80 * 86400000);
+                    const lastStudy = new Date(today.getTime() - 2 * 86400000);
+                    const history = [
+                        { date: fmt(docDate),   type: '자료등록',   desc: '리더 지원서 접수', color: 'slate' },
+                        { date: fmt(docDate),   type: '등록',       desc: `LEADER 등록 (${lang}) — 비용 없음`, color: 'amber' },
+                        { date: fmt(startDate), type: '스터디 시작', desc: `${lang} 리딩 시작`, color: 'emerald' },
+                    ];
+                    if (lvNum > 0) {
+                        const lvUp = new Date(startDate.getTime() + 30 * 86400000);
+                        history.push({ date: fmt(lvUp), type: '레벨업', desc: `LV${Math.max(0,lvNum-1)} → LV${lvNum}`, color: 'amber' });
+                    }
+                    history.sort((a,b)=>a.date.localeCompare(b.date));
+                    const visitor = {
+                        id: 'V_LDR_' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
+                        name,
+                        phone: ld ? (ld.phone || '') : '',
+                        status: 'step',
+                        statusLabel: '스텝 (리더)',
+                        statusCls: 'st-step',
+                        statusColor: '#8b5cf6',
+                        lang,
+                        membership: 'LEADER',
+                        membershipCls: 'ms-leader',
+                        source: '내부 추천',
+                        payMethod: '-',
+                        amount: 0,
+                        extras: [],
+                        totalSessions: total,
+                        attended, absent, remaining,
+                        attRate: total > 0 ? Math.round(attended / total * 100) : 0,
+                        realAttRate,
+                        startDate: fmt(startDate),
+                        lastStudy: fmt(lastStudy),
+                        endDate: '-',
+                        docDate: fmt(docDate),
+                        payDate: '-',
+                        regDate: fmt(docDate),
+                        memo: '리더 직군 — 결제 없이 운영 참여',
+                        level: lvNum,
+                        isLeader: true,
+                        teams: ld && Array.isArray(ld.teams) ? ld.teams.slice() : [],
+                        history,
+                    };
+                    sessionStorage.setItem('bs-injected-member', JSON.stringify(visitor));
+                } catch (e) { try { sessionStorage.removeItem('bs-injected-member'); } catch(_){} }
+
+                iframe.src = `branchstatus.html?modalOnly=${encodeURIComponent(name)}&t=${Date.now()}`;
+                overlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                return true;
+            };
+            window.closeBsIframe = function (ev) {
+                if (ev && ev.target && ev.target.id !== 'bs-iframe-overlay') return;
+                const overlay = document.getElementById('bs-iframe-overlay');
+                const iframe = document.getElementById('bs-iframe');
+                if (overlay) overlay.classList.add('hidden');
+                if (iframe) iframe.src = 'about:blank';
+                document.body.style.overflow = '';
+            };
+            window.addEventListener('message', (e) => {
+                if (e.data && e.data.type === 'bs-detail-close') closeBsIframe();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !document.getElementById('bs-iframe-overlay').classList.contains('hidden')) closeBsIframe();
+            });
+
             window.openProfileModal = function (name) {
+                if (name && openBsIframe(name)) return; // iframe 모달 우선
                 const data = mockMembers[name] || mockMembers['박선민']; // fallback
 
                 // Header

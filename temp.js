@@ -1,13 +1,3 @@
-<!DOCTYPE html>
-<html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>하남 지점 어드민 (통합 캘린더 버전)</title>
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -27,298 +17,6 @@
             }
         }
     </script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" as="style" crossorigin
-        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
-
-    <style>
-        body {
-            background-color: #f8fafc;
-            color: #0f172a;
-        }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        /* CSS variables for dynamic sticky positions — set by JS on load */
-        :root { --header-h: 60px; --tabs-top: 60px; --level-nav-top: 104px; --level-header-top: 147px; }
-
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .editable-text:hover {
-            background-color: #f1f5f9;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .member-row {
-            transition: all 0.2s ease;
-        }
-
-        .member-row:hover {
-            background-color: #f8fafc;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-            z-index: 10;
-            position: relative;
-        }
-
-        .action-dropdown {
-            display: none;
-        }
-
-        .action-menu:hover .action-dropdown,
-        .action-menu:focus-within .action-dropdown {
-            display: block;
-        }
-
-        /* Table Layout Alignment Fixes */
-        tr.member-row>td {
-            vertical-align: top !important;
-            padding-top: 4px !important;
-            padding-bottom: 4px !important;
-        }
-
-        /* Notice Scrolling Animation */
-        @keyframes scroll-up {
-
-            0%,
-            25% {
-                transform: translateY(0);
-            }
-
-            33%,
-            58% {
-                transform: translateY(-50%);
-            }
-
-            66%,
-            91% {
-                transform: translateY(-100%);
-            }
-
-            100% {
-                transform: translateY(0);
-            }
-        }
-
-        .notice-scroller {
-            animation: scroll-up 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        }
-
-        /* Tooltip utilities */
-        .tooltip-container {
-            position: relative;
-        }
-
-        .tooltip-text {
-            visibility: hidden;
-            opacity: 0;
-            position: absolute;
-            bottom: calc(100% + 5px);
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #1e293b;
-            color: white;
-            text-align: left;
-            padding: 8px 12px;
-            border-radius: 6px;
-            z-index: 50;
-            transition: opacity 0.2s, visibility 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            width: max-content;
-            pointer-events: none;
-        }
-
-        .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #1e293b transparent transparent transparent;
-        }
-
-        .tooltip-container:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        /* Calendar Specific utilities */
-        .cal-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-        }
-
-        .cal-day {
-            min-height: 120px;
-            transition: background-color 0.2s;
-        }
-
-        .cal-day:hover {
-            background-color: #f8fafc;
-        }
-
-        .view-hidden {
-            display: none !important;
-        }
-
-        .alert-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-    
-        /* Persistent side menu */
-        #main-sidebar { transition: width .2s cubic-bezier(.4,0,.2,1); }
-        @media (min-width: 1024px) {
-            body { padding-left: 220px; }
-            body.sb-collapsed { padding-left: 64px; }
-            body.sb-collapsed #main-sidebar { width: 64px; }
-            body.sb-collapsed .sb-text, body.sb-collapsed .sb-label { display: none !important; }
-            body.sb-collapsed #main-sidebar a, body.sb-collapsed #main-sidebar button { justify-content: center !important; padding-left: 8px !important; padding-right: 8px !important; }
-            body.sb-collapsed #sb-toggle-icon { transform: rotate(180deg); }
-            #hamburger-btn { display: none !important; }
-        }
-        body[data-page] .sb-link[href$="member.html"] { background:#e0f2fe; color:#0369a1; font-weight:700; }
-
-    
-        /* Hide duplicate header brand on desktop (sidebar shows it) */
-        @media (min-width: 1024px) {
-            body > header > div:first-child > div.bg-brand-500,
-            body > header > div:first-child > h1 { display: none !important; }
-        }
-
-        /* Builder view inputs */
-        .bld-input { background:transparent; border:1px solid transparent; border-radius:6px; padding:5px 7px; outline:none; transition: background-color .12s, border-color .12s, box-shadow .12s; font-size:12px; }
-        .bld-input:hover { background:#f8fafc; }
-        .bld-input:focus { background:#fff; border-color:#0ea5e9; box-shadow:0 0 0 3px rgba(14,165,233,0.12); }
-        select.bld-input { appearance:auto; }
-
-        /* Builder table */
-        .bld-table-card { box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.04); }
-        .bld-table-card table { border-collapse:separate; border-spacing:0; }
-        .bld-table-card thead th {
-            white-space:nowrap;
-            background: linear-gradient(180deg, #fdf2f8 0%, #fce7f3 100%);
-            color:#831843;
-            font-weight:800;
-            font-size:11px;
-            letter-spacing:0.02em;
-            padding:10px 10px;
-            border-bottom:1px solid #fbcfe8;
-            position:sticky; top:0; z-index:1;
-        }
-        .bld-table-card thead th:first-child { border-top-left-radius:0; }
-        .bld-table-card tbody tr { transition: background-color .12s; }
-        .bld-table-card tbody tr:hover { background:#fafafa; }
-        .bld-table-card tbody tr.bld-leader-row { background: linear-gradient(180deg, #fef9c3 0%, #fefce8 100%); }
-        .bld-table-card tbody tr.bld-leader-row:hover { background: #fef9c3; }
-        .bld-table-card tbody td { padding:6px 8px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
-        .bld-table-card tbody tr:last-child td { border-bottom:none; }
-
-        /* Attendance check button — single toggle */
-        .bld-att-cell { display:flex; align-items:center; gap:8px; }
-        .bld-att-btn {
-            flex-shrink:0; width:32px; height:32px; border-radius:50%; border:1.5px solid #cbd5e1;
-            background:#fff; color:#cbd5e1; font-size:15px; font-weight:900;
-            display:inline-flex; align-items:center; justify-content:center;
-            cursor:pointer; transition: all .12s; line-height:1;
-        }
-        .bld-att-btn:hover { border-color:#10b981; color:#10b981; background:#ecfdf5; }
-        .bld-att-btn[data-active="true"] {
-            background:#10b981; border-color:#059669; color:white;
-            box-shadow: 0 2px 6px rgba(16,185,129,0.35);
-        }
-        .bld-att-btn[data-active="true"]:hover { background:#059669; }
-
-        /* Attendance history strip */
-        .bld-att-history { display:flex; align-items:center; gap:6px; min-width:0; flex:1; }
-        .bld-att-count {
-            display:inline-flex; align-items:center; gap:3px;
-            padding:3px 8px; border-radius:99px;
-            background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;
-            font-size:11px; font-weight:800; white-space:nowrap;
-        }
-        .bld-att-count.empty { background:#f8fafc; color:#94a3b8; border-color:#e2e8f0; }
-        .bld-att-dates { display:flex; gap:3px; flex-wrap:wrap; min-width:0; }
-        .bld-att-date {
-            display:inline-block; padding:2px 5px; border-radius:4px;
-            background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;
-            font-family:ui-monospace, monospace; font-size:9.5px; font-weight:700;
-            line-height:1.2; white-space:nowrap;
-        }
-
-        /* Membership pill in select */
-        .bld-membership-cell select.bld-input { font-weight:800; text-align:center; }
-
-        /* Builder table card header */
-        .bld-table-header { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border-bottom:1px solid #e2e8f0; }
-
-        /* Builder compact aggregate cards (전체/영어 전체/일본어 전체) */
-        .bld-cmp-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:8px; }
-        .bld-cmp-card { background:#fff; border:1px solid; border-radius:10px; overflow:hidden; box-shadow:0 1px 2px rgba(15,23,42,0.04); display:flex; flex-direction:column; min-width:0; }
-        .bld-cmp-head { display:flex; align-items:center; gap:6px; padding:5px 8px; border-bottom:1px solid; }
-        .bld-cmp-lv { font-size:11px; font-weight:900; letter-spacing:.02em; }
-        .bld-cmp-team { flex:1; font-size:10px; font-weight:700; color:#475569; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .bld-cmp-att-pill { font-size:10px; font-weight:800; color:#047857; background:#ecfdf5; border:1px solid #a7f3d0; padding:1px 6px; border-radius:99px; white-space:nowrap; }
-        .bld-cmp-list { list-style:none; margin:0; padding:4px 6px; font-size:11px; line-height:1.35; }
-        .bld-cmp-row { display:flex; align-items:center; gap:4px; padding:1px 4px; border-radius:4px; min-width:0; }
-        .bld-cmp-row.is-att-today { background:#dcfce7; }
-        .bld-cmp-row.bld-cmp-leader { background:#fef9c3; font-weight:700; }
-        .bld-cmp-row.bld-cmp-leader.is-att-today { background:#bbf7d0; }
-        .bld-cmp-no { color:#94a3b8; font-weight:700; flex-shrink:0; min-width:14px; }
-        .bld-cmp-name { font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; max-width:64px; }
-        .bld-cmp-phone { color:#64748b; font-family:ui-monospace, monospace; font-size:10px; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right; }
-        .bld-cmp-foot { display:flex; align-items:center; justify-content:space-between; padding:4px 8px; border-top:1px solid #f1f5f9; background:#fafafa; font-size:10px; color:#64748b; }
-        .bld-cmp-open { font-size:10px; font-weight:800; color:#0284c7; padding:1px 4px; border-radius:4px; transition:background-color .12s; cursor:pointer; }
-        .bld-cmp-open:hover { background:#e0f2fe; }
-        /* Quick attendance input per card header */
-        .bld-cmp-quickcheck { display:flex; align-items:center; gap:4px; padding:4px 6px; border-bottom:1px solid #f1f5f9; background:#fafafa; }
-        .bld-cmp-quickcheck-input { flex:1; min-width:0; padding:3px 6px; border:1px solid #e2e8f0; border-radius:5px; background:#fff; font-size:10.5px; font-weight:600; color:#0f172a; outline:none; transition:all .12s; }
-        .bld-cmp-quickcheck-input::placeholder { color:#cbd5e1; font-weight:500; }
-        .bld-cmp-quickcheck-input:focus { border-color:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.15); }
-        .bld-cmp-quickcheck-btn { flex-shrink:0; width:22px; height:22px; border-radius:5px; background:#10b981; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:11px; cursor:pointer; transition:background-color .12s; }
-        .bld-cmp-quickcheck-btn:hover { background:#059669; }
-
-        /* Slot button (entire row clickable to fill/clear) */
-        .bld-cmp-slot-btn { flex:1; display:flex; align-items:center; gap:4px; min-width:0; padding:2px 4px; border-radius:4px; transition:background-color .12s; cursor:pointer; text-align:left; background:transparent; border:none; }
-        .bld-cmp-slot-btn:hover { background:#f1f5f9; }
-        .bld-cmp-slot-btn.empty .bld-cmp-name { color:#94a3b8; font-style:italic; font-weight:600; }
-        .bld-cmp-slot-btn.empty .bld-cmp-phone { color:#cbd5e1; }
-        .bld-cmp-actions-spacer { width:20px; flex-shrink:0; }
-
-        /* Attendance toggle (replaces delete X) — transparent → green when checked today */
-        .bld-cmp-att-toggle {
-            flex-shrink:0; width:20px; height:20px; border-radius:5px;
-            border:1.5px solid #cbd5e1; background:transparent;
-            color:transparent; font-size:11px; font-weight:900;
-            display:inline-flex; align-items:center; justify-content:center;
-            cursor:pointer; transition:all .12s; line-height:1;
-        }
-        .bld-cmp-att-toggle:hover:not(:disabled) { border-color:#10b981; background:#ecfdf5; }
-        .bld-cmp-att-toggle.is-checked { background:#10b981; border-color:#059669; color:white; box-shadow:0 1px 3px rgba(16,185,129,0.3); }
-        .bld-cmp-att-toggle.is-checked:hover { background:#059669; }
-        .bld-cmp-att-toggle:disabled { cursor:not-allowed; opacity:0.25; }
-        .bld-cmp-att-toggle.is-hidden { border-color:transparent; background:transparent; box-shadow:none; }
-        .bld-cmp-att-toggle.is-hidden:hover { border-color:#cbd5e1; background:#f8fafc; }
-
-        /* Popover "비우기" option */
-        .bld-pop-clear { width:100%; padding:8px 12px; text-align:left; background:#fef2f2; color:#b91c1c; font-size:11px; font-weight:800; border-bottom:1px solid #fecaca; transition:background-color .12s; cursor:pointer; display:flex; align-items:center; gap:6px; }
-        .bld-pop-clear:hover { background:#fee2e2; }
-</style>
-</head>
-
-<body class="antialiased min-h-screen pb-24" data-page="member">
 <script>(function(){if(localStorage.getItem('admin.sbCollapsed')==='1')document.body.classList.add('sb-collapsed');})();</script>
 
 <aside id="main-sidebar" class="hidden lg:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col border-r border-slate-200 bg-white/95 backdrop-blur-sm z-[55] overflow-y-auto">
@@ -739,6 +437,11 @@
                 </div>
                 <div id="bld-search-results" class="max-h-[300px] overflow-y-auto divide-y divide-slate-100"></div>
             </div>
+
+            <!-- Floating Clear Button for Builder Slots -->
+            <button id="bld-floating-clear-btn" class="hidden fixed z-[150] bg-red-500 text-white font-bold text-[12px] flex items-center justify-center gap-1 hover:bg-red-600 shadow-md">
+                <i class="ph-bold ph-trash"></i> 삭제하기
+            </button>
         </div>
     </div>
 
@@ -757,11 +460,6 @@
         </div>
     </div>
 
-
-    <!-- BranchStatus iframe overlay (멤버 프로필) -->
-    <div id="bs-iframe-overlay" class="fixed inset-0 z-[100] hidden" onclick="closeBsIframe(event)">
-        <iframe id="bs-iframe" class="w-full h-full border-0" title="멤버 프로필"></iframe>
-    </div>
 
     <!-- Member Profile Modal -->
     <div id="profile-modal-overlay"
@@ -1278,7 +976,20 @@
                 try { return JSON.parse(localStorage.getItem(BLD_KEY) || '{}'); } catch (e) { return {}; }
             }
             function bldSetState(s) {
-                try { localStorage.setItem(BLD_KEY, JSON.stringify(s)); } catch (e) { }
+                try {
+                    Object.values(s).forEach(team => {
+                        if (team && Array.isArray(team.tables)) {
+                            team.tables.forEach(table => {
+                                if (Array.isArray(table.members)) {
+                                    const filled = table.members.filter(m => m.name || m.phone);
+                                    const empty = table.members.filter(m => !(m.name || m.phone));
+                                    table.members = [...filled, ...empty];
+                                }
+                            });
+                        }
+                    });
+                    localStorage.setItem(BLD_KEY, JSON.stringify(s));
+                } catch (e) { }
             }
             function bldGetActiveTeam() {
                 const label = BLD_TEAM_LABELS[currentTeamIdx];
@@ -1376,87 +1087,7 @@
                 };
             }
 
-            function bldRowHtml(tableId, row, rowIdx, isLeader) {
-                const teamCell = isLeader
-                    ? '<td class="text-center"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 shadow-sm">STAFF</span></td>'
-                    : `<td class="text-center"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-[11px] font-black">${rowIdx}</span></td>`;
-                const delBtn = isLeader ? '' : `<button class="bld-row-del p-1 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors" data-table="${tableId}" data-row="${rowIdx - 1}" title="행 삭제"><i class="ph ph-trash text-xs"></i></button>`;
-                const membershipOpts = isLeader ? BLD_MEMBERSHIPS_LEADER : BLD_MEMBERSHIPS_MEMBER;
-                const membershipOptions = membershipOpts.map(m => `<option value="${m}" ${row.membership === m ? 'selected' : ''}>${m}</option>`).join('');
-                const rowKind = isLeader ? 'leader' : 'member';
-                const trClass = isLeader ? 'bld-leader-row' : '';
-                // Attendance: single ✓ toggle. Today's record state.
-                const todayStr = new Date().toISOString().slice(0, 10);
-                const attHistory = Array.isArray(row.attHistory) ? row.attHistory : [];
-                const checkedToday = attHistory.length > 0 && attHistory[attHistory.length - 1].at === todayStr;
-                const recent = attHistory.slice(-6);
-                const datesHtml = recent.length
-                    ? recent.map(h => `<span class="bld-att-date" title="${h.at}">${h.at.slice(5).replace('-', '/')}</span>`).join('')
-                    : '<span class="text-[10px] text-slate-300 italic">기록 없음</span>';
-                const totalCount = attHistory.length;
-                const countClass = totalCount > 0 ? 'bld-att-count' : 'bld-att-count empty';
-                const countHtml = `<span class="${countClass}"><i class="ph-fill ph-check-square"></i> ${totalCount}회</span>`;
-                return `<tr class="${trClass}" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}">
-                    ${teamCell}
-                    <td><button class="bld-name-btn w-full text-left px-2 py-1 rounded hover:bg-white border border-transparent hover:border-slate-200 transition-colors text-[12.5px] font-bold ${row.name ? 'text-slate-800' : 'text-slate-300'}" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}">${row.name ? bldEsc(row.name) : '+ 멤버 검색'}</button></td>
-                    <td><input class="bld-input w-full font-mono text-slate-600" type="text" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}" data-field="phone" value="${bldEsc(row.phone)}" placeholder="010-0000-0000"></td>
-                    <td><input class="bld-input w-full text-center font-bold" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}" data-field="level" value="${bldEsc(row.level)}" placeholder="—"></td>
-                    <td><input class="bld-input w-full" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}" data-field="comment" value="${bldEsc(row.comment)}" placeholder="코멘트"></td>
-                    <td><input class="bld-input w-full text-slate-500" type="text" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}" data-field="startDate" value="${bldEsc(row.startDate)}" placeholder="0000-00-00"></td>
-                    <td><input class="bld-input w-full text-slate-500" type="text" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}" data-field="endDate" value="${bldEsc(row.endDate)}" placeholder="0000-00-00"></td>
-                    <td><input class="bld-input w-full font-mono text-[11px]" type="text" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}" data-field="count" value="${bldEsc(row.count)}" placeholder="0 / 0"></td>
-                    <td class="bld-membership-cell"><select class="bld-input w-full" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}" data-field="membership"><option value="">—</option>${membershipOptions}</select></td>
-                    <td>
-                        <div class="bld-att-cell">
-                            <button class="bld-att-btn" data-active="${checkedToday}" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}" title="오늘 출석 체크">✓</button>
-                            <div class="bld-att-history" data-table="${tableId}" data-row-kind="${rowKind}" data-row-idx="${rowIdx - 1}">
-                                ${countHtml}
-                                <div class="bld-att-dates">${datesHtml}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="text-center">${delBtn}</td>
-                </tr>`;
-            }
-
-            function bldTableHtml(table, idx, lv) {
-                const rows = [bldRowHtml(table.id, table.leader, 0, true)]
-                    .concat(table.members.map((m, i) => bldRowHtml(table.id, m, i + 1, false)))
-                    .join('');
-                return `<div class="bld-table-card rounded-xl border bg-white overflow-hidden" data-table="${table.id}" style="border-color:${lv.border}">
-                    <div class="px-3 py-2 border-b flex items-center justify-between" style="background:linear-gradient(180deg, ${lv.bg} 0%, #fff 100%);border-color:${lv.border}">
-                        <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-white text-[10px] font-black" style="background:${lv.color}">${lv.label}</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-900 text-white text-[10px] font-black">팀${idx}</span>
-                            <input class="bld-table-name bg-transparent text-sm font-bold text-slate-800 outline-none focus:bg-white focus:px-1.5 focus:rounded transition-all" data-table="${table.id}" value="${bldEsc(table.name)}">
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <button class="bld-add-row px-2 py-1 text-[11px] font-bold bg-white border border-slate-200 text-slate-700 rounded hover:bg-brand-50 hover:border-brand-200 hover:text-brand-700 transition-colors flex items-center gap-1" data-table="${table.id}"><i class="ph-bold ph-plus text-[10px]"></i>행 추가</button>
-                            <button class="bld-del-table px-2 py-1 text-[11px] font-bold bg-white border border-slate-200 text-red-600 rounded hover:bg-red-50 hover:border-red-200 transition-colors flex items-center gap-1" data-table="${table.id}"><i class="ph ph-trash text-[10px]"></i>테이블 삭제</button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full min-w-[1320px]">
-                            <thead>
-                                <tr>
-                                    <th class="text-center w-16">팀${idx}</th>
-                                    <th class="text-left min-w-[110px]">이름</th>
-                                    <th class="text-left w-36">연락처</th>
-                                    <th class="text-center w-16">레벨</th>
-                                    <th class="text-left min-w-[160px]">코멘트</th>
-                                    <th class="text-left w-28">시작일</th>
-                                    <th class="text-left w-28">종료일</th>
-                                    <th class="text-left w-32 whitespace-nowrap">횟수</th>
-                                    <th class="text-center w-24">멤버쉽</th>
-                                    <th class="text-left min-w-[260px]">출석체크 · 기록</th>
-                                    <th class="w-8"></th>
-                                </tr>
-                            </thead>
-                            <tbody>${rows}</tbody>
-                        </table>
-                    </div>
-                </div>`;
-            }
+            // --- REMOVED DETAILED VIEW FUNCTIONS (bldRowHtml, bldTableHtml) ---
 
             // Aggregate scope from current DOM tab
             function bldAggregateScope() {
@@ -1488,87 +1119,149 @@
                 const lvByKey = Object.fromEntries(BLD_LEVELS.map(l => [l.key, l]));
 
                 let html = '';
-                BLD_LEVELS.forEach(lv => {
-                    // Collect all tables at this level across in-scope teams
-                    const allAtLevel = [];
-                    scope.teams.forEach(tk => {
-                        (state[tk]?.tables || []).filter(t => t.level === lv.key).forEach(t => allAtLevel.push({ team: tk, table: t }));
-                    });
-                    if (!allAtLevel.length) return;
-
-                    const cards = allAtLevel.map(({ team, table }) => {
-                        const totalRows = table.members.length;
-                        let attendedToday = 0;
-                        const rowItems = [];
-                        // Leader (row 0)
-                        const leaderToday = Array.isArray(table.leader.attHistory) && table.leader.attHistory.length && table.leader.attHistory[table.leader.attHistory.length - 1].at === todayStr;
-                        if (leaderToday) attendedToday++;
-                        const leaderFilled = !!(table.leader.name || table.leader.phone);
-                        rowItems.push(`<li class="bld-cmp-row relative ${leaderToday ? 'is-att-today' : ''} bld-cmp-leader" title="${bldEsc(table.leader.name) || '리더'}">
-                            <button class="bld-cmp-slot-btn ${leaderFilled ? '' : 'empty'}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-kind="leader" title="${leaderFilled ? '리더 변경/비우기' : '리더 추가'}">
-                                <span class="bld-cmp-no">L.</span>
-                                <span class="bld-cmp-name">${leaderFilled ? bldEsc(table.leader.name || '—') : ''}</span>
-                                <span class="bld-cmp-phone">${bldEsc(table.leader.phone) || ''}</span>
-                            </button>
-                            <button class="bld-cmp-att-toggle ${leaderToday ? 'is-hidden' : ''}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-kind="leader" title="${leaderFilled ? '오늘 출석 체크' : '먼저 리더를 추가하세요'}" ${!leaderFilled ? 'disabled' : ''}></button>
-                            <div class="bld-row-actions hidden absolute top-[100%] left-0 w-full bg-white border border-slate-200 rounded-lg shadow-lg z-[60] overflow-hidden flex-col p-1.5 gap-0.5">
-                                <button class="w-full text-left px-3 py-2 text-[12px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2" id="bld-act-delete" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-kind="leader"><i class="ph-bold ph-trash"></i> 삭제</button>
-                            </div>
-                        </li>`);
-                        // Members
-                        table.members.forEach((m, mi) => {
-                            const isToday = Array.isArray(m.attHistory) && m.attHistory.length && m.attHistory[m.attHistory.length - 1].at === todayStr;
-                            if (isToday) attendedToday++;
-                            const totalAtt = Array.isArray(m.attHistory) ? m.attHistory.length : 0;
-                            const isFilled = !!(m.name || m.phone);
-                            const slotClass = isFilled ? '' : 'empty';
-                            const nameDisp = isFilled ? bldEsc(m.name || '—') : '';
-                            rowItems.push(`<li class="bld-cmp-row relative ${isToday ? 'is-att-today' : ''}" title="${bldEsc(m.name) || '빈 슬롯'} · 누적 출석 ${totalAtt}회">
-                                <button class="bld-cmp-slot-btn ${slotClass}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-idx="${mi}" title="${isFilled ? '클릭해서 변경/비우기' : '클릭해서 멤버 추가'}">
-                                    <span class="bld-cmp-no">${mi + 1}.</span>
-                                    <span class="bld-cmp-name">${nameDisp}</span>
-                                    <span class="bld-cmp-phone">${bldEsc(m.phone) || ''}</span>
-                                </button>
-                                <button class="bld-cmp-att-toggle ${isToday ? 'is-hidden' : ''}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-idx="${mi}" title="${isFilled ? '오늘 출석 체크' : '먼저 멤버를 추가하세요'}" ${!isFilled ? 'disabled' : ''}></button>
-                                <div class="bld-row-actions hidden absolute top-[100%] left-0 w-full bg-white border border-slate-200 rounded-lg shadow-lg z-[60] overflow-hidden flex-col p-1.5 gap-0.5">
-                                    <button class="w-full text-left px-3 py-2 text-[12px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2" id="bld-act-delete" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-idx="${mi}"><i class="ph-bold ph-trash"></i> 삭제</button>
-                                    <button class="w-full text-left px-3 py-2 text-[12px] font-bold text-brand-600 hover:bg-brand-50 transition-colors flex items-center gap-2" id="bld-act-insert" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-idx="${mi}"><i class="ph-bold ph-user-plus"></i> 멤버 추가</button>
-                                </div>
-                            </li>`);
-                        });
-
-                        return `<article class="bld-cmp-card" style="border-color:${lv.border}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}">
-                            <header class="bld-cmp-head" style="background:${lv.bg};border-color:${lv.border}">
-                                <span class="bld-cmp-lv" style="color:${lv.color}">${lv.label.replace(' ', '')}</span>
-                                <span class="bld-cmp-team">${bldEsc(team)}</span>
-                                <span class="bld-cmp-att-pill" title="오늘 출석 ${attendedToday}/${totalRows + 1}명">${attendedToday}</span>
-                            </header>
-                            <div class="bld-cmp-quickcheck">
-                                <input type="text" class="bld-cmp-quickcheck-input" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" placeholder="출석 번호 (예: 1, 2, 5)" title="번호를 쉼표/공백으로 입력 후 Enter">
-                                <button class="bld-cmp-quickcheck-btn" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" title="출석체크 적용"><i class="ph-bold ph-check-fat"></i></button>
-                            </div>
-                            <ol class="bld-cmp-list">${rowItems.join('')}</ol>
-                            <footer class="bld-cmp-foot">
-                                <span>출석 <b>${attendedToday}</b> / ${totalRows}</span>
-                            </footer>
-                        </article>`;
-                    }).join('');
-
-                    html += `<section class="scroll-mt-[160px]" data-bld-level="${lv.key}">
-                        <header class="flex items-center gap-2 mb-2 pb-1 border-b" style="border-color:${lv.border}">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-black border" style="background:${lv.bg};color:${lv.color};border-color:${lv.border}">${lv.label}</span>
-                            <span class="text-[11px] font-bold text-slate-400">${allAtLevel.length}개 테이블</span>
-                        </header>
-                        <div class="bld-cmp-grid">${cards}</div>
-                    </section>`;
+                
+                // Group by Language + Day (e.g., '영 월수', '일 월수')
+                const groups = {};
+                scope.teams.forEach(team => {
+                    const match = team.match(/^(영|일)\s+([^\s]+)\s+(\d+)$/);
+                    let key = team;
+                    if (match) {
+                        const langStr = match[1] === '영' ? '영어' : '일본어';
+                        key = `${langStr} ${match[2]}`; // e.g. "영어 월수"
+                    }
+                    if (!groups[key]) groups[key] = [];
+                    groups[key].push(team);
                 });
 
+                Object.entries(groups).forEach(([groupName, teamList]) => {
+                    let groupHtml = '';
+                    teamList.forEach(team => {
+                        let teamHtml = '';
+                        const allTables = state[team]?.tables || [];
+                        if (!allTables.length) return;
+                        
+                        BLD_LEVELS.forEach(lv => {
+                            const tablesAtLevel = allTables.filter(t => t.level === lv.key);
+                            if (!tablesAtLevel.length) return;
+
+                            const cards = tablesAtLevel.map((table, tIdx) => {
+                                const totalRows = table.members.length;
+                                let attendedToday = 0;
+                                const rowItems = [];
+                                
+                                // Leader (row 0)
+                                const leaderToday = Array.isArray(table.leader.attHistory) && table.leader.attHistory.length && table.leader.attHistory[table.leader.attHistory.length - 1].at === todayStr;
+                                if (leaderToday) attendedToday++;
+                                const leaderFilled = !!(table.leader.name || table.leader.phone);
+                                
+                                // Find alert for leader
+                                let leaderAlertHtml = '';
+                                if (leaderFilled) {
+                                    const ldrMatch = bldMemberPool.find(m => m.name === table.leader.name && m.phone === table.leader.phone);
+                                    if (ldrMatch && ldrMatch.alertType !== null && ldrMatch.alertType !== undefined) {
+                                        const aInfo = alertTypes[ldrMatch.alertType];
+                                        if (aInfo) leaderAlertHtml = `<span class="ml-1 px-1 py-[1px] text-[7px] font-bold rounded shadow-sm ${aInfo.cls}">${aInfo.badge}</span>`;
+                                    }
+                                }
+
+                                rowItems.push(`<li class="bld-cmp-row ${leaderToday ? 'is-att-today' : ''} bld-cmp-leader" title="${bldEsc(table.leader.name) || '리더'}">
+                                    <button class="bld-cmp-slot-btn ${leaderFilled ? '' : 'empty'}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-kind="leader" title="${leaderFilled ? '리더 변경/비우기' : '리더 추가'}">
+                                        <span class="bld-cmp-no">L.</span>
+                                        <span class="bld-cmp-name flex items-center">${leaderFilled ? bldEsc(table.leader.name || '—') : '+ 리더 추가'}${leaderAlertHtml}</span>
+                                        <span class="bld-cmp-phone">${bldEsc(table.leader.phone) || ''}</span>
+                                    </button>
+                                    <button class="bld-cmp-att-toggle ${leaderToday ? 'is-hidden' : ''}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-kind="leader" title="${leaderFilled ? '오늘 출석 체크' : '먼저 리더를 추가하세요'}" ${!leaderFilled ? 'disabled' : ''}></button>
+                                </li>`);
+
+                                // Members
+                                table.members.forEach((m, mi) => {
+                                    const isToday = Array.isArray(m.attHistory) && m.attHistory.length && m.attHistory[m.attHistory.length - 1].at === todayStr;
+                                    if (isToday) attendedToday++;
+                                    const totalAtt = Array.isArray(m.attHistory) ? m.attHistory.length : 0;
+                                    const isFilled = !!(m.name || m.phone);
+                                    const slotClass = isFilled ? '' : 'empty';
+                                    
+                                    let alertHtml = '';
+                                    if (isFilled) {
+                                        const mMatch = bldMemberPool.find(x => x.name === m.name && x.phone === m.phone);
+                                        if (mMatch && mMatch.alertType !== null && mMatch.alertType !== undefined) {
+                                            const aInfo = alertTypes[mMatch.alertType];
+                                            if (aInfo) alertHtml = `<span class="ml-1 px-1 py-[1px] text-[7px] font-bold rounded shadow-sm ${aInfo.cls}">${aInfo.badge}</span>`;
+                                        }
+                                    }
+
+                                    const nameDisp = isFilled ? bldEsc(m.name || '—') : '+ 추가';
+                                    rowItems.push(`<li class="bld-cmp-row ${isToday ? 'is-att-today' : ''}" title="${bldEsc(m.name) || '빈 슬롯'} · 누적 출석 ${totalAtt}회">
+                                        <button class="bld-cmp-slot-btn ${slotClass}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-idx="${mi}" title="${isFilled ? '클릭해서 변경/비우기' : '클릭해서 멤버 추가'}">
+                                            <span class="bld-cmp-no">${mi + 1}.</span>
+                                            <span class="bld-cmp-name flex items-center">${nameDisp}${alertHtml}</span>
+                                            <span class="bld-cmp-phone">${bldEsc(m.phone) || ''}</span>
+                                        </button>
+                                        <button class="bld-cmp-att-toggle ${isToday ? 'is-hidden' : ''}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}" data-row-idx="${mi}" title="${isFilled ? '오늘 출석 체크' : '먼저 멤버를 추가하세요'}" ${!isFilled ? 'disabled' : ''}></button>
+                                    </li>`);
+                                });
+
+                                return `<article class="bld-cmp-card" style="border-color:${lv.border}" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}">
+                                    <header class="bld-cmp-head" style="background:${lv.bg};border-color:${lv.border}">
+                                        <div class="flex items-center gap-1 w-full overflow-hidden pr-2">
+                                            <span class="bld-cmp-lv shrink-0" style="color:${lv.color}">${lv.label.replace(' ', '')}</span>
+                                            <i class="ph-bold ph-caret-right text-[8px] text-slate-300 shrink-0"></i>
+                                            <input class="bld-table-name flex-1 min-w-[40px] bg-transparent text-[10px] font-bold text-slate-800 outline-none placeholder-slate-400 focus:bg-white focus:ring-1 focus:ring-slate-300 rounded px-1 transition-all truncate" data-team="${bldEsc(team)}" data-table="${table.id}" value="${bldEsc(table.name)}" placeholder="테이블명 입력">
+                                        </div>
+                                        <span class="bld-cmp-att-pill shrink-0" title="오늘 출석 ${attendedToday}/${totalRows + 1}명">${attendedToday}</span>
+                                        <button class="bld-del-table ml-1 shrink-0 text-slate-300 hover:text-red-500 transition-colors" data-team="${bldEsc(team)}" data-table="${table.id}" title="테이블 삭제"><i class="ph-fill ph-trash text-[13px]"></i></button>
+                                    </header>
+                                    <ul class="bld-cmp-body space-y-[2px]">
+                                        ${rowItems.join('')}
+                                    </ul>
+                                    <button class="bld-add-row mt-1.5 w-full text-[9px] font-bold text-slate-400 bg-slate-50 hover:bg-slate-100 hover:text-slate-600 rounded py-1 transition-colors border border-transparent hover:border-slate-200 flex items-center justify-center gap-1" data-team="${bldEsc(team)}" data-table="${table.id}"><i class="ph-bold ph-plus"></i> 행 추가</button>
+                                    <div class="px-2 py-2 mt-2 border-t border-slate-100 flex items-center gap-1">
+                                        <span class="text-[9px] font-bold text-slate-400 w-7 leading-tight">빠른<br>출석</span>
+                                        <input type="text" class="bld-cmp-quickcheck-input flex-1 bg-slate-50 border border-slate-200 rounded px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-brand-500 transition-all font-mono" placeholder="번호 (1, 2...)" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}">
+                                        <button class="bld-cmp-quickcheck-btn shrink-0 w-6 h-6 bg-white border border-slate-200 hover:border-brand-300 hover:text-brand-600 rounded flex items-center justify-center transition-colors" data-team="${bldEsc(team)}" data-table-id="${bldEsc(table.id)}"><i class="ph-bold ph-check text-xs"></i></button>
+                                    </div>
+                                </article>`;
+                            }).join('');
+
+                            teamHtml += `<div class="mb-4">
+                                <div class="flex items-center gap-2 mb-2 pb-1 border-b" style="border-color:${lv.border}">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-black border" style="background:${lv.bg};color:${lv.color};border-color:${lv.border}">${lv.label}</span>
+                                    <span class="text-[10px] font-bold text-slate-400">${tablesAtLevel.length}개</span>
+                                    <button class="bld-add-table-lv px-2 py-1 text-[9px] font-bold rounded border transition-colors flex items-center gap-1 ml-auto" data-level="${lv.key}" data-team="${bldEsc(team)}" style="background:${lv.bg};color:${lv.color};border-color:${lv.border}"><i class="ph-bold ph-plus"></i> 테이블 추가</button>
+                                </div>
+                                <div class="bld-cmp-grid">${cards}</div>
+                            </div>`;
+                        });
+
+                        if (teamHtml) {
+                            groupHtml += `<div class="flex-1 min-w-[200px] max-w-[500px]">
+                                <header class="flex items-center gap-2 mb-3 pb-1 border-b-2 border-slate-200">
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-black bg-slate-100 text-slate-700 shadow-sm">${bldEsc(team)}</span>
+                                </header>
+                                ${teamHtml}
+                            </div>`;
+                        }
+                    });
+
+                    if (groupHtml) {
+                        const isEnglish = groupName.startsWith('영어');
+                        const themeColor = isEnglish ? 'purple' : 'blue';
+                        html += `<section class="scroll-mt-[160px] mb-8 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+                            <header class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-${themeColor}-100">
+                                <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-black bg-${themeColor}-100 text-${themeColor}-700">${bldEsc(groupName)}</span>
+                            </header>
+                            <div class="flex flex-wrap gap-6 items-start">
+                                ${groupHtml}
+                            </div>
+                        </section>`;
+                    }
+
                 if (!html) {
-                    html = `<div class="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/40 p-10 text-center text-slate-400"><i class="ph ph-table text-4xl mb-2"></i><p class="text-sm font-bold">아직 테이블이 없습니다.</p><p class="text-[11px] mt-1">단일 팀에서 먼저 테이블을 추가하세요.</p></div>`;
+                    html = `<div class="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/40 p-10 text-center text-slate-400"><i class="ph ph-table text-4xl mb-2"></i><p class="text-sm font-bold">아직 테이블이 없습니다.</p><p class="text-[11px] mt-1">테이블을 추가해 보세요.</p></div>`;
                 }
                 wrap.innerHTML = html;
 
-                // Header attendance summary (includes leader)
+                // Header attendance summary
                 let totalFilled = 0, totalChecked = 0;
                 const tally = (row) => {
                     if (row && (row.name || row.phone)) {
@@ -1588,129 +1281,32 @@
 
             window.renderBuilderView = function () {
                 const teamKey = bldGetActiveTeam();
-                const labelEl = document.getElementById('builder-team-label');
                 const wrap = document.getElementById('builder-levels');
                 if (!wrap) return;
+
+                let scope;
                 if (!teamKey) {
-                    const scope = bldAggregateScope();
-                    if (scope) { bldRenderCompactAggregate(scope); return; }
-                    if (labelEl) labelEl.textContent = '단일 팀 선택 필요';
-                    wrap.innerHTML = `<div class="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/40 p-10 text-center text-slate-400"><i class="ph ph-table text-4xl mb-2"></i><p class="text-sm font-bold">단일 팀 (예: 영어 월수11)을 선택하세요.</p></div>`;
+                    scope = bldAggregateScope();
+                } else {
+                    scope = { label: teamKey, teams: [teamKey] };
+                }
+
+                if (!scope) {
+                    wrap.innerHTML = `<div class="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/40 p-10 text-center text-slate-400"><i class="ph ph-table text-4xl mb-2"></i><p class="text-sm font-bold">표시할 팀이 없습니다.</p></div>`;
                     return;
                 }
-                labelEl.textContent = teamKey;
-                const state = bldGetState();
-                if (!state[teamKey] || !Array.isArray(state[teamKey].tables) || state[teamKey].tables.length === 0) {
-                    state[teamKey] = { tables: bldSeedExamples(teamKey) };
-                    bldSetState(state);
-                }
-                // Migrate older tables without level → default LV1
-                state[teamKey].tables.forEach(t => { if (!t.level) t.level = 'LV1'; });
-                bldSetState(state);
-
-                const allTables = state[teamKey].tables;
-                let html = '';
-                BLD_LEVELS.forEach(lv => {
-                    const tablesAtLevel = allTables.filter(t => t.level === lv.key);
-                    const tablesHtml = tablesAtLevel.length
-                        ? tablesAtLevel.map((t, i) => bldTableHtml(t, allTables.indexOf(t) + 1, lv)).join('')
-                        : `<div class="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/40 p-6 text-center text-[12px] text-slate-400">아직 테이블이 없습니다 — 우측 <b>+ 테이블 추가</b> 클릭</div>`;
-                    html += `<section class="bld-level-section scroll-mt-[160px]" data-level="${lv.key}" data-bld-level="${lv.key}">
-                        <header class="flex items-center justify-between mb-3 pb-2 border-b" style="border-color:${lv.border}">
-                            <div class="flex items-center gap-2">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-black border" style="background:${lv.bg};color:${lv.color};border-color:${lv.border}">${lv.label}</span>
-                                <span class="text-[11px] font-bold text-slate-400">${tablesAtLevel.length}개 테이블</span>
-                            </div>
-                            <button class="bld-add-table-lv px-3 py-1.5 text-[11px] font-bold rounded-lg border transition-colors flex items-center gap-1.5" data-level="${lv.key}" style="background:${lv.bg};color:${lv.color};border-color:${lv.border}">
-                                <i class="ph-bold ph-plus text-sm"></i> 테이블 추가
-                            </button>
-                        </header>
-                        <div class="space-y-3">${tablesHtml}</div>
-                    </section>`;
-                });
-                wrap.innerHTML = html;
+                
+                bldRenderCompactAggregate(scope);
             };
-
-            // Builder double click event delegation
-            document.addEventListener('dblclick', (e) => {
-                const builderSec = document.getElementById('view-builder-section');
-                if (!builderSec || builderSec.classList.contains('hidden')) return;
-
-                const slotBtn = e.target.closest('.bld-cmp-slot-btn');
-                if (slotBtn && !slotBtn.classList.contains('empty')) {
-                    // Hide any other open actions
-                    document.querySelectorAll('.bld-row-actions').forEach(el => el.classList.add('hidden'));
-                    
-                    const row = slotBtn.closest('.bld-cmp-row');
-                    if (row) {
-                        const actions = row.querySelector('.bld-row-actions');
-                        if (actions) {
-                            actions.classList.remove('hidden');
-                            actions.classList.add('flex');
-                        }
-                    }
-                    return;
-                }
-            });
 
             // Builder event delegation
             document.addEventListener('click', (e) => {
                 const builderSec = document.getElementById('view-builder-section');
                 if (!builderSec || builderSec.classList.contains('hidden')) return;
 
-                const actDel = e.target.closest('#bld-act-delete');
-                const actIns = e.target.closest('#bld-act-insert');
-                if (actDel || actIns) {
-                    const btn = actDel || actIns;
-                    const state = bldGetState();
-                    const team = btn.dataset.team;
-                    const tableId = btn.dataset.tableId;
-                    const t = state[team]?.tables.find(x => x.id === tableId);
-                    if (t) {
-                        if (btn.dataset.rowKind === 'leader') {
-                            if (actDel) {
-                                t.leader.name = ''; t.leader.phone = ''; t.leader.level = ''; t.leader.comment = '';
-                                t.leader.startDate = ''; t.leader.endDate = ''; t.leader.count = '';
-                                t.leader.attendance = ''; t.leader.attHistory = [];
-                            }
-                        } else {
-                            const rowIdx = parseInt(btn.dataset.rowIdx, 10);
-                            if (!isNaN(rowIdx)) {
-                                if (actDel) {
-                                    t.members.splice(rowIdx, 1);
-                                    t.members.push(bldNewMemberRow());
-                                } else if (actIns) {
-                                    t.members.splice(rowIdx, 0, bldNewMemberRow());
-                                    t.members.pop();
-                                }
-                            }
-                        }
-                        bldSetState(state);
-                        renderBuilderView();
-                        
-                        if (actIns && btn.dataset.rowKind !== 'leader') {
-                            const newBtn = document.querySelector(`.bld-cmp-slot-btn[data-team="${team}"][data-table-id="${tableId}"][data-row-idx="${btn.dataset.rowIdx}"]`);
-                            if (newBtn) {
-                                setTimeout(() => {
-                                    if (typeof bldOpenSearchPopover === 'function') bldOpenSearchPopover(newBtn);
-                                }, 10);
-                            }
-                        }
-                    }
-                    return;
-                }
-
-                // Close inline action dropdowns if clicked outside
-                if (!e.target.closest('.bld-row-actions') && !e.target.closest('.bld-cmp-slot-btn')) {
-                    document.querySelectorAll('.bld-row-actions').forEach(el => {
-                        el.classList.add('hidden');
-                        el.classList.remove('flex');
-                    });
-                }
-
                 const addTableLvBtn = e.target.closest('.bld-add-table-lv');
                 if (addTableLvBtn) {
-                    const teamKey = bldGetActiveTeam();
+                    const teamKey = addTableLvBtn.dataset.team || bldGetActiveTeam();
                     const levelKey = addTableLvBtn.dataset.level;
                     if (!teamKey || !levelKey) return;
                     const state = bldGetState();
@@ -1722,7 +1318,7 @@
                 }
                 const delTableBtn = e.target.closest('.bld-del-table');
                 if (delTableBtn) {
-                    const teamKey = bldGetActiveTeam();
+                    const teamKey = delTableBtn.dataset.team || bldGetActiveTeam();
                     const tableId = delTableBtn.dataset.table;
                     if (!teamKey || !tableId) return;
                     if (!confirm('이 테이블을 삭제할까요?')) return;
@@ -1736,7 +1332,7 @@
                 }
                 const addRowBtn = e.target.closest('.bld-add-row');
                 if (addRowBtn) {
-                    const teamKey = bldGetActiveTeam();
+                    const teamKey = addRowBtn.dataset.team || bldGetActiveTeam();
                     const tableId = addRowBtn.dataset.table;
                     if (!teamKey || !tableId) return;
                     const state = bldGetState();
@@ -1746,7 +1342,7 @@
                 }
                 const delRowBtn = e.target.closest('.bld-row-del');
                 if (delRowBtn) {
-                    const teamKey = bldGetActiveTeam();
+                    const teamKey = delRowBtn.dataset.team || bldGetActiveTeam();
                     const tableId = delRowBtn.dataset.table;
                     const rowIdx = parseInt(delRowBtn.dataset.row, 10);
                     if (!teamKey || !tableId || isNaN(rowIdx)) return;
@@ -1757,6 +1353,16 @@
                 }
                 const nameBtn = e.target.closest('.bld-name-btn');
                 if (nameBtn) { bldOpenSearchPopover(nameBtn); return; }
+
+                const cmpOpen = e.target.closest('.bld-cmp-open');
+                if (cmpOpen) {
+                    const teamLabel = cmpOpen.dataset.team;
+                    const targetIdx = BLD_TEAM_LABELS.indexOf(teamLabel);
+                    if (targetIdx >= 0 && teamButtons[targetIdx]) {
+                        teamButtons[targetIdx].click();
+                    }
+                    return;
+                }
 
                 // Compact view: clicking slot button → open popover (fill/clear)
                 const slotBtn = e.target.closest('.bld-cmp-slot-btn');
@@ -1809,22 +1415,15 @@
                     const state = bldGetState();
                     const t = state[bldSearchCtx.team]?.tables.find(x => x.id === bldSearchCtx.tableId);
                     if (t) {
-                        if (bldSearchCtx.rowKind === 'leader') {
-                            const target = t.leader;
-                            if (target) {
-                                target.name = ''; target.phone = ''; target.level = ''; target.comment = '';
-                                target.startDate = ''; target.endDate = ''; target.count = '';
-                                target.attendance = ''; target.attHistory = [];
-                            }
-                        } else {
-                            const rowIdx = parseInt(bldSearchCtx.rowIdx, 10);
-                            if (!isNaN(rowIdx)) {
-                                t.members.splice(rowIdx, 1);
-                                t.members.push(bldNewMemberRow());
-                            }
+                        const target = bldSearchCtx.rowKind === 'leader' ? t.leader : t.members[bldSearchCtx.rowIdx];
+                        if (target) {
+                            target.name = ''; target.phone = ''; target.level = ''; target.comment = '';
+                            target.startDate = ''; target.endDate = ''; target.count = '';
+                            if (bldSearchCtx.rowKind !== 'leader') target.membership = '';
+                            target.attendance = ''; target.attHistory = [];
+                            bldSetState(state);
+                            renderBuilderView();
                         }
-                        bldSetState(state);
-                        renderBuilderView();
                     }
                     bldCloseSearchPopover();
                     return;
@@ -1871,6 +1470,64 @@
                 }
             });
 
+            // Double click to show delete button
+            let bldClearCtx = null;
+            document.addEventListener('dblclick', (e) => {
+                const builderSec = document.getElementById('view-builder-section');
+                if (!builderSec || builderSec.classList.contains('hidden')) return;
+
+                const btn = e.target.closest('.bld-name-btn, .bld-cmp-slot-btn');
+                if (!btn || btn.classList.contains('empty') || (btn.classList.contains('bld-name-btn') && btn.innerText.includes('멤버 검색'))) return;
+                
+                bldClearCtx = {
+                    team: btn.dataset.team || bldGetActiveTeam(),
+                    tableId: btn.dataset.table || btn.dataset.tableId,
+                    rowKind: btn.dataset.rowKind || 'member',
+                    rowIdx: parseInt(btn.dataset.rowIdx, 10)
+                };
+
+                const clearBtn = document.getElementById('bld-floating-clear-btn');
+                const rect = btn.getBoundingClientRect();
+                clearBtn.style.left = rect.left + 'px';
+                clearBtn.style.top = rect.top + 'px';
+                clearBtn.style.width = rect.width + 'px';
+                clearBtn.style.height = rect.height + 'px';
+                clearBtn.style.borderRadius = window.getComputedStyle(btn).borderRadius;
+                clearBtn.classList.remove('hidden');
+                
+                // Hide search popover if open
+                bldCloseSearchPopover();
+            });
+
+            // Handle actual clear
+            document.getElementById('bld-floating-clear-btn')?.addEventListener('click', () => {
+                if (!bldClearCtx) return;
+                const state = bldGetState();
+                const t = state[bldClearCtx.team]?.tables.find(x => x.id === bldClearCtx.tableId);
+                if (t) {
+                    const target = bldClearCtx.rowKind === 'leader' ? t.leader : t.members[bldClearCtx.rowIdx];
+                    if (target) {
+                        target.name = ''; target.phone = ''; target.level = ''; target.comment = '';
+                        target.startDate = ''; target.endDate = ''; target.count = '';
+                        if (bldClearCtx.rowKind !== 'leader') target.membership = '';
+                        target.attendance = ''; target.attHistory = [];
+                        bldSetState(state);
+                        renderBuilderView();
+                    }
+                }
+                document.getElementById('bld-floating-clear-btn').classList.add('hidden');
+                bldClearCtx = null;
+            });
+
+            // Click outside to hide floating clear button
+            document.addEventListener('click', (e) => {
+                const clearBtn = document.getElementById('bld-floating-clear-btn');
+                if (clearBtn && !clearBtn.classList.contains('hidden') && !e.target.closest('#bld-floating-clear-btn') && !e.target.closest('.bld-name-btn, .bld-cmp-slot-btn')) {
+                    clearBtn.classList.add('hidden');
+                    bldClearCtx = null;
+                }
+            });
+
             document.addEventListener('input', (e) => {
                 const inp = e.target.closest('.bld-input, .bld-table-name');
                 if (!inp) return;
@@ -1895,6 +1552,33 @@
             document.addEventListener('change', (e) => {
                 const sel = e.target.closest('select.bld-input');
                 if (sel) sel.dispatchEvent(new Event('input', { bubbles: true }));
+
+                // Auto-add member when typing phone number
+                const phoneInp = e.target.closest('input[data-field="phone"]');
+                if (phoneInp) {
+                    const val = phoneInp.value.trim().replace(/-/g, '');
+                    if (val.length >= 8) {
+                        const matched = bldMemberPool.find(m => m.phone.replace(/-/g, '') === val);
+                        if (matched) {
+                            const teamKey = bldGetActiveTeam();
+                            const state = bldGetState();
+                            const t = state[teamKey]?.tables.find(x => x.id === phoneInp.dataset.table);
+                            if (t) {
+                                const kind = phoneInp.dataset.rowKind;
+                                const ri = parseInt(phoneInp.dataset.rowIdx, 10);
+                                const target = kind === 'leader' ? t.leader : t.members[ri];
+                                if (target && (!target.name || target.name === '')) { // Only auto-fill if name is empty
+                                    target.name = matched.name;
+                                    target.level = matched.level;
+                                    if (kind !== 'leader') target.membership = matched.membership;
+                                    target.phone = matched.phone;
+                                    bldSetState(state);
+                                    renderBuilderView();
+                                }
+                            }
+                        }
+                    }
+                }
             });
 
             // ── Per-card quick attendance check by slot numbers ──
@@ -1903,7 +1587,10 @@
                 const raw = inputEl.value.trim();
                 if (!raw) return;
                 const nums = Array.from(new Set(
-                    raw.split(/[\s,;.\/|]+/).map(s => parseInt(s, 10)).filter(n => Number.isFinite(n) && n >= 0)
+                    raw.split(/[\s,;.\/|]+/).map(s => {
+                        if (s.toLowerCase() === 'l') return 0;
+                        return parseInt(s, 10);
+                    }).filter(n => Number.isFinite(n) && n >= 0)
                 ));
                 if (!nums.length) return;
                 const todayStr = new Date().toISOString().slice(0, 10);
@@ -1973,22 +1660,19 @@
                 clear.classList.toggle('hidden', !q);
                 const norm = q.trim().toLowerCase();
                 const filtered = norm
-                    ? bldMemberPool.filter(m => m.name.toLowerCase().includes(norm) || m.phone.includes(norm)).slice(0, 30)
+                    ? bldMemberPool.filter(m => m.name.toLowerCase().includes(norm) || m.phone.replace(/-/g, '').includes(norm.replace(/-/g, ''))).slice(0, 30)
                     : bldMemberPool.slice(0, 30);
                 const clearOpt = (bldSearchCtx && bldSearchCtx.mode === 'slot' && bldSearchCtx.isFilled)
                     ? `<button class="bld-pop-clear"><i class="ph ph-eraser"></i> 이 슬롯 비우기 (멤버 제거)</button>`
                     : '';
-                const isPhoneLike = /^[0-9\-]+$/.test(norm);
-                const addNewOpt = q.trim() ? `<button class="bld-pick w-full px-3 py-2 text-left border-t border-slate-100 hover:bg-slate-50 text-brand-600 text-[12px] font-bold flex items-center gap-2" data-name="${isPhoneLike ? '' : bldEsc(q)}" data-phone="${isPhoneLike ? bldEsc(q) : ''}" data-level="1" data-membership="VIP"><i class="ph-bold ph-plus"></i> "${bldEsc(q)}" (으)로 직접 추가</button>` : '';
-
                 if (!filtered.length) {
-                    list.innerHTML = clearOpt + `<div class="px-3 py-6 text-center text-[11px] text-slate-400">검색 결과 없음</div>` + addNewOpt;
+                    list.innerHTML = clearOpt + '<div class="px-3 py-6 text-center text-[11px] text-slate-400">검색 결과 없음</div>';
                     return;
                 }
                 list.innerHTML = clearOpt + filtered.map(m => `<button class="bld-pick w-full px-3 py-2 text-left hover:bg-slate-50 transition-colors flex items-center justify-between gap-2" data-name="${bldEsc(m.name)}" data-phone="${bldEsc(m.phone)}" data-level="${bldEsc(m.level)}" data-membership="${bldEsc(m.membership)}">
                     <div><div class="text-[12px] font-bold text-slate-800">${bldEsc(m.name)}</div><div class="text-[10px] text-slate-400 font-mono">${bldEsc(m.phone)}</div></div>
                     <div class="flex items-center gap-1"><span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">LV ${bldEsc(m.level)}</span><span class="text-[10px] font-black text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">${bldEsc(m.membership)}</span></div>
-                </button>`).join('') + addNewOpt;
+                </button>`).join('');
             }
             document.addEventListener('input', (e) => {
                 if (e.target.id === 'bld-search-input') bldRenderSearchResults(e.target.value);
@@ -2053,7 +1737,7 @@
                     return;
                 }
                 const pop = document.getElementById('bld-search-popover');
-                if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !e.target.closest('.bld-name-btn')) {
+                if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !e.target.closest('.bld-name-btn, .bld-cmp-slot-btn')) {
                     bldCloseSearchPopover();
                 }
             });
@@ -2677,84 +2361,7 @@
             const pModal = document.getElementById('profile-modal');
             const pOverlay = document.getElementById('profile-modal-overlay');
 
-            // ── BranchStatus iframe 오버레이 — 클릭한 멤버 데이터를 sessionStorage 로 전달 ──
-            window.openBsIframe = function(name) {
-                const overlay = document.getElementById('bs-iframe-overlay');
-                const iframe = document.getElementById('bs-iframe');
-                if (!overlay || !iframe) return false;
-
-                // 멤버 데이터를 branchstatus 모달이 쓰는 visitor 형태로 변환해 sessionStorage 에 적재
-                try {
-                    const data = (typeof memberDataMap !== 'undefined') ? memberDataMap[name] : null;
-                    if (data) {
-                        const lang = (data.teams && data.teams[0]) ? (String(data.teams[0]).startsWith('영') ? '영어' : '일본어') : '영어';
-                        const lvNum = parseInt(String(data.level || '0').replace(/[^0-9]/g, ''), 10) || 0;
-                        const attRateNum = parseFloat(String(data.attRate || '0').replace(/[^0-9.]/g, '')) || 0;
-                        const attCountNum = parseInt(String(data.attCount || '0').replace(/[^0-9]/g, ''), 10) || 0;
-                        const totalNum = parseInt(String(data.totalSession || '0').replace(/[^0-9]/g, ''), 10) || 0;
-                        const remainNum = parseInt(String(data.remainSession || '0').replace(/[^0-9]/g, ''), 10) || 0;
-                        // branchstatus 의 MEMBERSHIPS 가격표와 동일하게 매핑
-                        const memberAmt = ({'VVIP+':2520000,'VVIP':1980000,'A+':1188000,'H+':780000,'T':190000,'LEADER':0,'SL':0})[data.membership] || 0;
-                        const visitor = {
-                            id: 'injected-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
-                            name: data.name || name,
-                            phone: data.phone || '',
-                            lang,
-                            level: lvNum,
-                            membership: data.membership || '-',
-                            payMethod: '카드',
-                            amount: memberAmt,
-                            extras: [],
-                            status: 'member',
-                            statusCls: 'st-member',
-                            statusLabel: '멤버',
-                            attended: attCountNum,
-                            absent: Math.max(0, totalNum - remainNum - attCountNum),
-                            totalSessions: totalNum,
-                            realAttRate: attRateNum,
-                            remaining: remainNum,
-                            startDate: data.startDate || '-',
-                            lastStudy: data.startDate || '-',
-                            endDate: data.expDate || '-',
-                            docDate: data.regDate || '-',
-                            payDate: data.regDate || '-',
-                            memo: data.message || '',
-                            history: (data.history || []).map(h => ({
-                                date: h.date || '-',
-                                type: h.tag || h.title || '기록',
-                                desc: h.desc || h.title || '',
-                                color: h.color || 'slate',
-                            })),
-                            teams: Array.isArray(data.teams) ? data.teams.slice() : [],
-                        };
-                        sessionStorage.setItem('bs-injected-member', JSON.stringify(visitor));
-                    } else {
-                        sessionStorage.removeItem('bs-injected-member');
-                    }
-                } catch (e) { try { sessionStorage.removeItem('bs-injected-member'); } catch(_){} }
-
-                iframe.src = `branchstatus.html?modalOnly=${encodeURIComponent(name)}&t=${Date.now()}`;
-                overlay.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-                return true;
-            };
-            window.closeBsIframe = function(ev) {
-                if (ev && ev.target && ev.target.id !== 'bs-iframe-overlay') return;
-                const overlay = document.getElementById('bs-iframe-overlay');
-                const iframe = document.getElementById('bs-iframe');
-                if (overlay) overlay.classList.add('hidden');
-                if (iframe) iframe.src = 'about:blank';
-                document.body.style.overflow = '';
-            };
-            window.addEventListener('message', (e) => {
-                if (e.data && e.data.type === 'bs-detail-close') closeBsIframe();
-            });
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !document.getElementById('bs-iframe-overlay').classList.contains('hidden')) closeBsIframe();
-            });
-
             window.openProfileModal = function(name) {
-                if (name && openBsIframe(name)) return; // iframe 모드 우선
                 const data = memberDataMap[name];
                 if (!data) return;
                 document.getElementById('pm-name').innerText = name;
@@ -2775,40 +2382,18 @@
                 attRateEl.className = `font-bold text-[14px] leading-none ${data.attColor}`;
                 document.getElementById('pm-att-count').innerText = `${data.attCount} 참석`;
                 document.getElementById('pm-message').innerText = data.message;
-                // ── branchstatus 와 동일한 스타일의 전체 히스토리 타임라인 ──
-                const typeIcons = {
-                    '자료등록':'ph-file-text','결제':'ph-credit-card','1차 결제':'ph-credit-card','2차 결제':'ph-credit-card',
-                    '스터디 시작':'ph-play-circle','멤버십 변경':'ph-arrows-clockwise','레벨업':'ph-trend-up',
-                    '환불':'ph-arrow-counter-clockwise','지점 이동':'ph-map-pin','등록':'ph-check-circle','추가납부':'ph-plus-circle',
-                    '출석':'ph-check-circle','상담':'ph-chat-circle-text','결석':'ph-x-circle','홀딩':'ph-pause-circle','복귀':'ph-arrow-u-up-left'
-                };
-                const colorMap = {slate:'#94a3b8',brand:'#0ea5e9',emerald:'#10b981',red:'#ef4444',purple:'#a855f7',amber:'#f59e0b',blue:'#3b82f6',indigo:'#6366f1'};
-                const sorted = [...data.history].sort((a,b) => String(a.date).localeCompare(String(b.date)));
-                const histHtml = `<div class="relative pl-6">
-                    <div class="absolute left-[7px] top-1 bottom-1 w-px bg-slate-200"></div>
-                    ${sorted.map(h => {
-                        const type = h.tag || h.title || '기록';
-                        const icon = typeIcons[type] || 'ph-circle';
-                        const c = colorMap[h.color] || '#94a3b8';
-                        const isRefund = type === '환불' || type === '환불 이체';
-                        return `<div class="relative flex items-start gap-3 mb-2.5 last:mb-0 ${isRefund?'bg-red-50 border border-red-200 rounded-lg px-2 py-2 -mx-1':''}">
-                            <div class="absolute left-[-20px] w-[17px] h-[17px] rounded-full border-2 bg-white flex items-center justify-center flex-shrink-0" style="border-color:${c};top:${isRefund?'10px':'2px'};">
-                                <i class="ph-bold ${icon}" style="font-size:8px;color:${c};"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black" style="background:${c}22;color:${c};border:1px solid ${c}40;">
-                                        <i class="ph-bold ${icon}" style="font-size:8px;"></i>${type}
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 font-mono ml-auto">${h.date || ''}</span>
-                                </div>
-                                ${h.title && h.title !== type ? `<div class="text-[12px] font-bold text-slate-800 mt-1">${h.title}</div>` : ''}
-                                <div class="text-[11px] text-slate-600 mt-0.5 font-medium">${h.desc || ''}</div>
-                            </div>
-                        </div>`;
-                    }).join('')}
-                </div>`;
-                document.getElementById('pm-timeline').innerHTML = histHtml;
+                let tHtml = '';
+                data.history.forEach((h, idx) => {
+                    tHtml += `<div class="relative">
+                        <div class="absolute -left-[21px] top-1 w-3 h-3 bg-white border-2 ${idx === 0 ? 'border-brand-500' : 'border-slate-300'} rounded-full"></div>
+                        <div class="text-xs font-mono text-slate-400 mb-0.5 flex flex-wrap items-center gap-2">${h.date} <span class="bg-slate-100 text-slate-500 px-1 rounded text-[9px] font-bold">${h.tag}</span></div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                            <div class="font-bold text-slate-800 text-sm mb-1 text-${h.color}-600">${h.title}</div>
+                            <div class="text-xs text-slate-600">${h.desc}</div>
+                        </div>
+                    </div>`;
+                });
+                document.getElementById('pm-timeline').innerHTML = tHtml;
                 pOverlay.classList.remove('hidden'); pModal.classList.remove('hidden');
                 setTimeout(() => { pOverlay.classList.remove('opacity-0'); pModal.classList.remove('opacity-0', 'scale-95'); }, 10);
             };
@@ -2962,41 +2547,10 @@
 
             window.openSmsModal = window.openSmsModal || function() { alert('일괄 문자 기능 (준비 중)'); };
 
-            // Auto-fill empty members for testing (slots 1, 2, 3 and leader)
-            const state = bldGetState();
-            let mutated = false;
-            Object.keys(state).forEach(teamKey => {
-                state[teamKey].tables.forEach((t, tidx) => {
-                    let poolIdx = (teamKey.charCodeAt(0) + tidx * 10) % bldMemberPool.length;
-                    if (!t.leader.name && !t.leader.phone) {
-                        const m = bldMemberPool[poolIdx % bldMemberPool.length]; poolIdx++;
-                        t.leader.name = m.name; t.leader.phone = m.phone; t.leader.level = t.level ? t.level.replace('LV', '') + '+' : '1+'; t.leader.membership = 'SL';
-                        mutated = true;
-                    }
-                    t.members.forEach((m, i) => {
-                        if (i < 3 && !m.name && !m.phone) {
-                            const rm = bldMemberPool[poolIdx % bldMemberPool.length]; poolIdx++;
-                            m.name = rm.name; m.phone = rm.phone; m.level = t.level ? t.level.replace('LV', '') : '1'; m.membership = rm.membership;
-                            mutated = true;
-                        }
-                    });
-                });
-            });
-            if (mutated) {
-                bldSetState(state);
-                if (typeof renderBuilderView === 'function') renderBuilderView();
-            }
-
             // ─── INITIAL RENDER ───
             renderTeam(0);
         });
     </script>
-<!-- 맨 위로 가기 버튼 -->
-<button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})"
-    class="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-brand-600 text-white shadow-lg hover:bg-brand-700 transition-all duration-300 flex items-center justify-center opacity-0 pointer-events-none"
-    style="transition: opacity 0.3s, transform 0.3s;" aria-label="맨 위로 가기">
-    <i class="ph-bold ph-arrow-up text-lg"></i>
-</button>
 <script>
 (function(){
     const btn = document.getElementById('scrollTopBtn');
@@ -3052,6 +2606,3 @@ function copyPhone(phone) {
     window.addEventListener('load', calc);
     window._recalcSticky = calc;
 })();
-</script>
-</body>
-</html>

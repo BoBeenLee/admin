@@ -131,16 +131,33 @@
         /* Date picker */
         @keyframes dpIn { from { opacity:0; transform:translateY(-4px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
         #date-picker { animation: dpIn .12s ease-out; }
-        .dp-day { display:flex; align-items:center; justify-content:center; aspect-ratio:1; border-radius:8px; cursor:pointer; transition:background-color .1s, color .1s, transform .1s; font-variant-numeric: tabular-nums; }
-        .dp-day:hover:not(.dp-disabled) { background:#e0f2fe; color:#0369a1; }
-        .dp-day.dp-other-month { color:#cbd5e1; }
-        .dp-day.dp-today { background:#fef3c7; color:#92400e; font-weight:800; }
-        .dp-day.dp-selected { background:#0284c7 !important; color:white !important; box-shadow:0 2px 6px rgba(2,132,199,.3); transform:scale(1.05); }
+        .dp-day {
+            display:flex; align-items:center; justify-content:center;
+            aspect-ratio:1; border-radius:10px; cursor:pointer;
+            transition: background-color .12s, color .12s, transform .08s, box-shadow .12s;
+            font-variant-numeric: tabular-nums; font-weight:600;
+            border:1px solid transparent; background:transparent; color:#334155;
+        }
+        .dp-day:hover:not(.dp-disabled) { background:#f1f5f9; color:#0f172a; transform:translateY(-1px); }
+        .dp-day.dp-other-month { color:#cbd5e1; font-weight:500; }
+        .dp-day.dp-today { background:#fffbeb; color:#92400e; font-weight:800; border-color:#fde68a; }
+        .dp-day.dp-selected {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+            color:white !important; font-weight:800;
+            box-shadow: 0 4px 10px -2px rgba(2,132,199,.5), 0 0 0 2px white;
+            transform:scale(1.04); border-color:transparent;
+        }
+        .dp-day.dp-in-range { background:#e0f2fe; color:#0369a1; border-radius:0; }
+        .dp-day.dp-range-start { border-top-left-radius:10px; border-bottom-left-radius:10px; }
+        .dp-day.dp-range-end { border-top-right-radius:10px; border-bottom-right-radius:10px; }
         .dp-day.dp-weekend { color:#dc2626; }
         .dp-day.dp-weekend.dp-other-month { color:#fca5a5; }
         .dp-day.dp-weekend.dp-saturday { color:#2563eb; }
         .dp-day.dp-weekend.dp-saturday.dp-other-month { color:#93c5fd; }
         .dp-day.dp-disabled { opacity:.4; cursor:not-allowed; }
+        #date-picker { border-radius:16px !important; box-shadow: 0 20px 50px -12px rgba(15,23,42,0.25), 0 0 0 1px rgba(15,23,42,0.05) !important; padding:16px !important; width:320px !important; }
+        #date-picker header button:hover { background:#f1f5f9; transform:scale(1.05); }
+        #date-picker #dp-month-label { letter-spacing:-0.02em; transition: background-color .12s; }
         .dp-trigger { cursor:pointer; transition:border-color .12s, background-color .12s; }
         .dp-trigger:hover { border-color:#0ea5e9; background:#f0f9ff; }
 
@@ -928,7 +945,7 @@ const USERS = [
     { id:'STF_02', name:'티파니', role:'직원',   coverFor:[] },
 ];
 const TODAY = new Date().toISOString().slice(0,10);
-const STORAGE_KEY = 'workdeck.v5';
+const STORAGE_KEY = 'workdeck.v8';
 const STATUSES = ['할일','진행중','완료'];
 const STATUS_ICON = { '할일':'ph-circle', '진행중':'ph-spinner-gap', '완료':'ph-check-circle' };
 
@@ -960,6 +977,23 @@ function seedData() {
             { id:uid(), title:'교재 재고 점검',         body:'레벨 2~3 재고 카운팅 후 발주서 작성',          from:'MGR_01', to:['STF_01'], due:dateStr(4), priority:'normal', status:'할일',   comments:[], createdAt:Date.now()-3600000 },
             { id:uid(), title:'개인 — 5월 일정 정리',     body:'개인 캘린더 정리 및 외부 미팅 시간 블록',     from:'MGR_01', to:['MGR_01'], due:dateStr(2), priority:'low',    status:'진행중', comments:[], createdAt:Date.now()-7200000 },
             { id:uid(), title:'개인 — 회계 자료 검토',    body:'분기별 회계 자료 사전 검토 (대표 보고 전)',    from:'MGR_01', to:['MGR_01'], due:dateStr(0), priority:'high',   status:'할일',   comments:[], createdAt:Date.now()-1800000 },
+            // 받은 업무 추가 (MGR_01 기준 — 할일 / 진행중 / 완료 각 다양한 업무 시드)
+            { id:uid(), title:'주간 매니저 회의 자료 준비',  body:'팀별 KPI 요약 + 안건 정리',                  from:'CEO_01', to:['MGR_01'], due:dateStr(1), priority:'high',   status:'할일',   comments:[], createdAt:Date.now()-3600000 },
+            { id:uid(), title:'신규 강사 면접 일정 잡기',     body:'영어 LV4+ 강사 후보 3명 일정 조율',           from:'CEO_01', to:['MGR_01'], due:dateStr(2), priority:'normal', status:'진행중', comments:[{author:'MGR_01',time:Date.now()-5400000,text:'2명 일정 확정, 1명 회신 대기'}], createdAt:Date.now()-172800000 },
+            { id:uid(), title:'4월 출석률 보고',            body:'영어/일어 팀별 출석률 정리해 대표 보고',      from:'CEO_01', to:['MGR_01'], due:dateStr(-2), priority:'high',   status:'완료', comments:[{author:'MGR_01',time:Date.now()-86400000,text:'완료 보고 드렸습니다.'}], createdAt:Date.now()-432000000 },
+            { id:uid(), title:'멤버 단체 문자 발송',        body:'4월 마지막 주 출석 안내 일괄 발송',           from:'CEO_01', to:['MGR_01'], due:dateStr(-3), priority:'normal', status:'완료', comments:[], createdAt:Date.now()-518400000 },
+            { id:uid(), title:'리더 워크숍 후기 정리',      body:'2주 전 워크숍 피드백 + 개선 사항 정리',       from:'CEO_01', to:['MGR_01'], due:dateStr(-5), priority:'normal', status:'완료', comments:[{author:'MGR_01',time:Date.now()-345600000,text:'문서 공유 완료'}], createdAt:Date.now()-864000000 },
+
+            // 할일 추가 (이번 주 마감)
+            { id:uid(), title:'5월 시간표 초안',             body:'영어/일어 통합 시간표 1차 안 작성',           from:'CEO_01', to:['MGR_01'], due:dateStr(0), priority:'high',   status:'할일',   comments:[], createdAt:Date.now()-1800000 },
+            { id:uid(), title:'외부 제휴 제안 검토',         body:'근처 카페 제휴 — 멤버 할인 쿠폰 협업 안',       from:'CEO_01', to:['MGR_01'], due:dateStr(1), priority:'normal', status:'할일',   comments:[], createdAt:Date.now()-7200000 },
+            { id:uid(), title:'홈페이지 4월 후기 업데이트',  body:'학부모 후기 3건 정리 후 디자이너에게 전달',    from:'CEO_01', to:['MGR_01'], due:dateStr(1), priority:'low',    status:'할일',   comments:[], createdAt:Date.now()-10800000 },
+            { id:uid(), title:'환불 사유 분석 정리',         body:'4월 환불 79건 사유별 분류 보고',                from:'CEO_01', to:['MGR_01'], due:dateStr(2), priority:'normal', status:'할일',   comments:[], createdAt:Date.now()-14400000 },
+
+            // 진행중 추가 (이번 주 마감)
+            { id:uid(), title:'리더 평가 시범 적용',         body:'영어 월수 11시 팀 대상 시범 평가',              from:'CEO_01', to:['MGR_01'], due:dateStr(0), priority:'high',   status:'진행중', comments:[{author:'MGR_01',time:Date.now()-7200000,text:'초기 데이터 수집 중'}], createdAt:Date.now()-216000000 },
+            { id:uid(), title:'CRM 신규 회신 자동 알림 설정', body:'24시간 미응답 자동 슬랙 알림 연동',             from:'CEO_01', to:['MGR_01'], due:dateStr(2), priority:'normal', status:'진행중', comments:[{author:'MGR_01',time:Date.now()-3600000,text:'API 연동 50% 완료'}], createdAt:Date.now()-259200000 },
+            { id:uid(), title:'학부모 오픈데이 안내장 디자인 검토', body:'시안 2종 픽 후 인쇄 발주 결정',          from:'MGR_01', to:['MGR_01'], due:dateStr(1), priority:'high',   status:'진행중', comments:[], createdAt:Date.now()-43200000 },
         ],
         projects: [
             { id:uid(), title:'봄 신규 등록 캠페인', type:'세일즈',  description:'4-5월 봄 학기 신규 회원 100명 모집 목표. 학부모 설명회 + 추천 프로그램 + SNS 광고 병행.', leader:'CEO_01', members:['CEO_01','MGR_01','MGR_02','STF_01','STF_02'], status:'진행중', progress:65,
@@ -1044,13 +1078,23 @@ function tasksScoped() {
 }
 function timeRangeSelectHtml() {
     const v = state.timeRange || 'thisMonth';
-    return `<select onchange="onTimeRangeChange(this.value)" class="text-[11px] font-bold rounded-lg border border-slate-200 bg-white px-2 py-1 cursor-pointer hover:border-slate-300 focus:outline-none focus:border-brand-500 shadow-sm" title="기간">
-        <option value="thisWeek"  ${v==='thisWeek'?'selected':''}>📅 이번 주</option>
-        <option value="thisMonth" ${v==='thisMonth'?'selected':''}>📅 이번 달</option>
-        <option value="quarter"   ${v==='quarter'?'selected':''}>📅 분기</option>
-        <option value="all"       ${v==='all'?'selected':''}>📅 전체</option>
-        <option value="custom"    ${v==='custom'?'selected':''}>📅 직접 선택…</option>
-    </select>`;
+    const sd = state.timeRangeStart || '';
+    const ed = state.timeRangeEnd || '';
+    return `<div class="inline-flex items-center gap-1 flex-wrap">
+        <select onchange="onTimeRangeChange(this.value)" class="text-[11px] font-bold rounded-lg border border-slate-200 bg-white px-2 py-1 cursor-pointer hover:border-slate-300 focus:outline-none focus:border-brand-500 shadow-sm" title="기간">
+            <option value="thisWeek"  ${v==='thisWeek'?'selected':''}>📅 이번 주</option>
+            <option value="thisMonth" ${v==='thisMonth'?'selected':''}>📅 이번 달</option>
+            <option value="quarter"   ${v==='quarter'?'selected':''}>📅 분기</option>
+            <option value="all"       ${v==='all'?'selected':''}>📅 전체</option>
+            <option value="custom"    ${v==='custom'?'selected':''}>📅 직접 선택…</option>
+        </select>
+        <span class="${v==='custom'?'inline-flex':'hidden'} items-center gap-1 bg-white border border-slate-200 rounded-lg px-1 py-0.5 shadow-sm">
+            <input id="pj-tr-start" type="text" readonly placeholder="시작일" value="${sd}" onclick="openDatePicker(this, event)" oninput="onCustomRangeChange()" onchange="onCustomRangeChange()" class="dp-trigger w-[100px] px-2 py-1 text-[11px] font-bold text-slate-700 placeholder:text-slate-300 border border-transparent rounded cursor-pointer focus:outline-none focus:border-brand-300 bg-transparent">
+            <span class="text-slate-300 text-[10px] px-0.5">→</span>
+            <input id="pj-tr-end"   type="text" readonly placeholder="종료일" value="${ed}" onclick="openDatePicker(this, event)" oninput="onCustomRangeChange()" onchange="onCustomRangeChange()" class="dp-trigger w-[100px] px-2 py-1 text-[11px] font-bold text-slate-700 placeholder:text-slate-300 border border-transparent rounded cursor-pointer focus:outline-none focus:border-brand-300 bg-transparent">
+            <button onclick="clearCustomRange()" class="text-slate-400 hover:text-slate-700 px-1" title="초기화"><i class="ph ph-x text-[10px]"></i></button>
+        </span>
+    </div>`;
 }
 function getTimeRange() {
     const now = new Date(TODAY);
@@ -1082,7 +1126,7 @@ window.onTimeRangeChange = function(v) {
     state.timeRange = v;
     const wrap = document.getElementById('time-range-custom');
     if (v === 'custom') {
-        wrap.classList.remove('hidden'); wrap.classList.add('inline-flex');
+        if (wrap) { wrap.classList.remove('hidden'); wrap.classList.add('inline-flex'); }
         // default range: this month if not set
         if (!state.timeRangeStart || !state.timeRangeEnd) {
             const now = new Date(TODAY);
@@ -1090,16 +1134,25 @@ window.onTimeRangeChange = function(v) {
             const last = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
             state.timeRangeEnd = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(last).padStart(2,'0')}`;
         }
-        document.getElementById('tr-start').value = state.timeRangeStart;
-        document.getElementById('tr-end').value = state.timeRangeEnd;
+        const trS = document.getElementById('tr-start'); if (trS) trS.value = state.timeRangeStart;
+        const trE = document.getElementById('tr-end');   if (trE) trE.value = state.timeRangeEnd;
     } else {
-        wrap.classList.add('hidden'); wrap.classList.remove('inline-flex');
+        if (wrap) { wrap.classList.add('hidden'); wrap.classList.remove('inline-flex'); }
     }
     render();
+    // Custom 선택 시: 인라인 입력칸이 렌더된 직후 캘린더 popover 자동 오픈
+    if (v === 'custom') {
+        setTimeout(() => {
+            const startInput = document.getElementById('pj-tr-start') || document.getElementById('tr-start');
+            if (startInput && typeof openDatePicker === 'function') openDatePicker(startInput);
+        }, 30);
+    }
 };
 window.onCustomRangeChange = function() {
-    const s = document.getElementById('tr-start').value;
-    const e = document.getElementById('tr-end').value;
+    const sEl = document.getElementById('pj-tr-start') || document.getElementById('tr-start');
+    const eEl = document.getElementById('pj-tr-end')   || document.getElementById('tr-end');
+    const s = sEl ? sEl.value : '';
+    const e = eEl ? eEl.value : '';
     if (s) state.timeRangeStart = s;
     if (e) state.timeRangeEnd = e;
     if (s && e && e < s) { showToast('종료일이 시작일보다 이전입니다'); return; }
@@ -1108,8 +1161,8 @@ window.onCustomRangeChange = function() {
 window.clearCustomRange = function() {
     state.timeRangeStart = null; state.timeRangeEnd = null;
     state.timeRange = 'thisMonth';
-    document.getElementById('time-range').value = 'thisMonth';
-    document.getElementById('time-range-custom').classList.add('hidden');
+    const sel = document.getElementById('time-range'); if (sel) sel.value = 'thisMonth';
+    const wrap = document.getElementById('time-range-custom'); if (wrap) wrap.classList.add('hidden');
     render();
 };
 
@@ -1699,6 +1752,8 @@ function noticeRowHtml(n, isRead) {
     const cfg = sevCfg[n.severity] || sevCfg.info;
     const author = getUser(n.author);
     const isMine = n.author === state.currentUserId;
+    const myRole = (typeof me === 'function' ? (me().role || '') : '');
+    const canManage = isMine || myRole === '대표';
     const aud = n.audience || ['ALL'];
     const audLabel = aud.includes('ALL') ? '전체' : `${aud.length}명`;
     const readCount = (n.readBy||[]).length;
@@ -1720,12 +1775,16 @@ function noticeRowHtml(n, isRead) {
                 ${readCount?`<span class="text-slate-300">·</span><span class="text-emerald-600 font-bold"><i class="ph ph-check"></i> ${readCount}명 확인</span>`:''}
             </div>
         </div>
-        <div class="flex items-center gap-1 shrink-0">
-            ${!isRead?`<button onclick="markNoticeRead('${n.id}')" class="px-2 py-1 text-[10px] font-extrabold text-white bg-emerald-500 hover:bg-emerald-600 rounded-md shadow-sm transition-all"><i class="ph-bold ph-check"></i> 확인</button>`:`<button onclick="unmarkNoticeRead('${n.id}')" class="px-2 py-1 text-[10px] font-bold text-slate-500 hover:bg-slate-200 rounded-md transition-all"><i class="ph ph-arrow-counter-clockwise"></i> 되돌리기</button>`}
-            ${(isMine || me().role === '대표') ? `<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+        <div class="flex items-center gap-1 shrink-0 self-start mt-0.5 justify-end" style="min-width:140px;">
+            <div style="width:68px;display:flex;justify-content:flex-end;">
+                ${!isRead
+                    ? `<button onclick="markNoticeRead('${n.id}')" class="px-2 py-1 text-[10px] font-extrabold text-white bg-emerald-500 hover:bg-emerald-600 rounded-md shadow-sm transition-all whitespace-nowrap"><i class="ph-bold ph-check"></i> 확인</button>`
+                    : `<button onclick="unmarkNoticeRead('${n.id}')" class="px-2 py-1 text-[10px] font-bold text-slate-500 hover:bg-slate-200 rounded-md transition-all whitespace-nowrap"><i class="ph ph-arrow-counter-clockwise"></i> 되돌리기</button>`}
+            </div>
+            <div class="flex items-center gap-0.5 transition-opacity ${canManage ? 'opacity-0 group-hover:opacity-100' : 'invisible'}" style="width:60px;justify-content:flex-end;">
                 <button onclick="toggleNoticePin('${n.id}')" class="p-1 hover:bg-white/60 rounded text-slate-500"><i class="ph${n.pinned?'-fill':''} ph-push-pin text-[12px]"></i></button>
                 <button onclick="deleteNotice('${n.id}')" class="p-1 hover:bg-red-100 hover:text-red-600 rounded text-slate-500"><i class="ph ph-trash text-[12px]"></i></button>
-            </div>`:''}
+            </div>
         </div>
     </div>`;
 }
@@ -3264,14 +3323,20 @@ function openTaskModal() {
     setQuickDate(0);
 
     const wrap = document.getElementById('t-assignees');
+    // 본인 포함 — 본인 할일로 직접 부여 가능
     let cands = [];
-    if (u.role === '대표') cands = USERS.filter(x => x.id !== u.id);
-    else if (u.role === '매니저') cands = USERS.filter(x => x.role === '직원' || (x.role === '매니저' && x.id !== u.id));
-    if (cands.length === 0) { cands = [u]; } // self-assign for staff
+    if (u.role === '대표') cands = USERS.slice();
+    else if (u.role === '매니저') cands = USERS.filter(x => x.role !== '대표');
+    else cands = [u]; // 직원: 본인만
+    // 본인이 누락됐다면 항상 추가
+    if (!cands.find(c => c.id === u.id)) cands.unshift(u);
+    // 본인을 맨 앞으로
+    cands = [u, ...cands.filter(c => c.id !== u.id)];
     wrap.innerHTML = cands.map(c => {
         const onL = state.onLeave[c.id];
-        return `<button data-aid="${c.id}" onclick="this.classList.toggle('!bg-brand-100');this.classList.toggle('!border-brand-500');this.classList.toggle('!text-brand-700');this.classList.toggle('!shadow-sm');updateAssigneeCount()" class="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border border-slate-200 bg-white text-[11px] font-bold hover:bg-slate-50 transition-all ${onL?'opacity-70':''}">
-            <span class="av av-${c.role} inline-flex items-center justify-center rounded-full w-5 h-5 text-[9px] text-white" data-uid="${c.id}">${initial(c.name)}</span>${c.name}<span class="text-[9px] text-slate-400">${c.role}</span>${onL?'<i class="ph-fill ph-airplane-tilt text-amber-500 text-[10px]"></i>':''}
+        const isSelf = c.id === u.id;
+        return `<button data-aid="${c.id}" onclick="this.classList.toggle('!bg-brand-100');this.classList.toggle('!border-brand-500');this.classList.toggle('!text-brand-700');this.classList.toggle('!shadow-sm');updateAssigneeCount()" class="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border ${isSelf?'border-brand-300 bg-brand-50/40':'border-slate-200 bg-white'} text-[11px] font-bold hover:bg-slate-50 transition-all ${onL?'opacity-70':''}">
+            <span class="av av-${c.role} inline-flex items-center justify-center rounded-full w-5 h-5 text-[9px] text-white" data-uid="${c.id}">${initial(c.name)}</span>${c.name}${isSelf?'<span class="text-[9px] font-extrabold text-brand-600 ml-0.5">나</span>':''}<span class="text-[9px] text-slate-400">${c.role}</span>${onL?'<i class="ph-fill ph-airplane-tilt text-amber-500 text-[10px]"></i>':''}
         </button>`;
     }).join('');
     updateAssigneeCount();

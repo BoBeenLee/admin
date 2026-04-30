@@ -4,6 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>하남 지점 어드민 - Branch Status</title>
+<!-- iframe modalOnly 모드: 페이지 크롬을 즉시 숨겨 깜빡임 방지 -->
+<script>
+    try { if (new URLSearchParams(location.search).get('modalOnly')) document.documentElement.classList.add('bs-modal-only'); } catch(e) {}
+</script>
+<style>
+    html.bs-modal-only, html.bs-modal-only body { background: transparent !important; padding-left: 0 !important; }
+    html.bs-modal-only #main-sidebar,
+    html.bs-modal-only body > header,
+    html.bs-modal-only #drawer-overlay,
+    html.bs-modal-only #nav-drawer,
+    html.bs-modal-only main,
+    html.bs-modal-only footer,
+    html.bs-modal-only .bs-toast-container,
+    html.bs-modal-only #bs-stats-detail-modal { display: none !important; }
+    html.bs-modal-only #bs-detail-modal { background: rgba(15,23,42,0.45) !important; }
+    html.bs-modal-only #bs-detail-box { max-height: 90vh !important; }
+</style>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
@@ -56,6 +73,31 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 .ms-aplus{background:#ecfdf5;border-color:#6ee7b7;color:#065f46;}
 .ms-hplus{background:#fff7ed;border-color:#fdba74;color:#c2410c;}
 .ms-t{background:#f8fafc;border-color:#e2e8f0;color:#475569;}
+.ms-leader{background:#fef3c7;border-color:#fcd34d;color:#92400e;}
+
+/* 스터디 현황 — 세션 별 출석 도트 */
+.bs-att-dot { display:inline-block; width:13px; height:13px; border-radius:4px; border:1px solid rgba(15,23,42,0.08); cursor:default; transition: transform .12s, box-shadow .12s; }
+.bs-att-dot:hover { transform: scale(1.4); box-shadow: 0 2px 6px rgba(15,23,42,0.18); z-index:1; position:relative; }
+.bs-att-dot.bs-att-o { background:#10b981; }
+.bs-att-dot.bs-att-x { background:#ef4444; }
+.bs-att-dot.bs-att-r { background:#e2e8f0; }
+
+/* Custom tooltip for session dots */
+#bs-att-tip {
+    position: fixed; z-index: 200; pointer-events: none;
+    background: #0f172a; color: white; border-radius: 8px;
+    padding: 8px 10px; font-size: 11px; line-height: 1.4;
+    box-shadow: 0 8px 20px -4px rgba(15,23,42,0.4);
+    opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s;
+    max-width: 220px; white-space: nowrap;
+}
+#bs-att-tip.is-visible { opacity: 1; transform: translateY(0); }
+#bs-att-tip .tip-date { font-family: ui-monospace, monospace; font-size: 10.5px; color: #cbd5e1; font-weight: 600; }
+#bs-att-tip .tip-team { font-weight: 800; margin-top: 2px; color: #fff; }
+#bs-att-tip .tip-status { display:inline-block; margin-top: 4px; padding: 2px 7px; border-radius: 99px; font-size: 10px; font-weight: 800; letter-spacing: .02em; }
+#bs-att-tip .tip-status.tip-o { background: #064e3b; color: #6ee7b7; }
+#bs-att-tip .tip-status.tip-x { background: #7f1d1d; color: #fca5a5; }
+#bs-att-tip .tip-status.tip-r { background: #334155; color: #cbd5e1; }
 
 .bs-status-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;border:1.5px solid #e2e8f0;color:#94a3b8;background:white;cursor:pointer;transition:all 0.15s;}
 .bs-status-chip:hover{border-color:#cbd5e1;color:#64748b;}
@@ -631,6 +673,9 @@ body{background:#f1f5f9;color:#0f172a;letter-spacing:-0.02em;}
 </div>
 
 <!-- Visitor Detail Modal -->
+<!-- 세션 도트 hover 툴팁 -->
+<div id="bs-att-tip" role="tooltip"></div>
+
 <div id="bs-detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center" style="visibility:hidden;opacity:0;pointer-events:none;transition:opacity 0.15s;" onclick="if(event.target===this)closeBsDetail()">
   <div class="bg-white rounded-2xl shadow-2xl w-[520px] max-h-[85vh] overflow-hidden flex flex-col" id="bs-detail-box" style="transform:scale(0.95) translateY(8px);transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);">
     <div class="px-6 pt-5 pb-3 border-b border-slate-100">
@@ -662,7 +707,8 @@ const MEMBERSHIPS = [
   {name:'VVIP',  total:520,  cls:'ms-vip',  price:1980000},
   {name:'A+',    total:104,  cls:'ms-aplus', price:1188000},
   {name:'H+',    total:52,   cls:'ms-hplus', price:780000},
-  {name:'T',     total:24,   cls:'ms-t',     price:190000}
+  {name:'T',     total:24,   cls:'ms-t',     price:190000},
+  {name:'LEADER', total:0,   cls:'ms-leader', price:0}
 ];
 const SOURCES = ['카카오','네이버','인스타','지인소개','워크인','전화문의'];
 const PAY_METHODS = ['카드','현금','계좌이체','토스'];
@@ -799,6 +845,66 @@ function genVisitors(){
       history
     });
   }
+
+  // ── 리더 등록자 (LEADER) — 비용 없이 등록되는 리더 직군 ──
+  const leaderMs = MEMBERSHIPS.find(m => m.name === 'LEADER');
+  for (let i = 0; i < 4; i++) {
+    const daysAgo = rng(7, 120);
+    const regDate = new Date(Date.now() - daysAgo * 86400000);
+    const fmtD = (d) => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+    const regStr = fmtD(regDate);
+    const lang = rPick(['영어', '일본어']);
+    const docDate = new Date(regDate.getTime() - rng(0, 3) * 86400000);
+    const startDate = new Date(regDate.getTime() + rng(1, 5) * 86400000);
+    const totalSessions = rng(40, 100);
+    const attended = rng(Math.round(totalSessions * 0.7), totalSessions);
+    const absent = rng(0, Math.max(1, totalSessions - attended));
+    const remaining = Math.max(0, totalSessions - attended - absent);
+    const realAttRate = Math.max(0, Math.round((attended - absent) / totalSessions * 100));
+    const lastStudy = fmtD(new Date(Date.now() - rng(0, 7) * 86400000));
+    const level = rng(2, 4);
+    const history = [
+      { date: fmtD(docDate), type: '자료등록', desc: '리더 지원서 접수', color: 'slate' },
+      { date: fmtD(regDate), type: '등록',     desc: `LEADER 등록 (${lang}) — 비용 없음`, color: 'amber' },
+      { date: fmtD(startDate), type: '스터디 시작', desc: `${lang} 리딩 시작`, color: 'emerald' },
+    ];
+    if (level > 0) {
+      const lvUpDate = new Date(regDate.getTime() + rng(14, 60) * 86400000);
+      history.push({ date: fmtD(lvUpDate), type: '레벨업', desc: `LV${level-1} → LV${level}`, color: 'amber' });
+    }
+    history.sort((a,b)=>a.date.localeCompare(b.date));
+    visitors.push({
+      id: 'V_LDR_' + Math.random().toString(36).slice(2,7).toUpperCase(),
+      name: rPick(NAMES),
+      phone: `010-${rng(1000,9999)}-${rng(1000,9999)}`,
+      status: 'step',
+      statusLabel: '스텝 (리더)',
+      statusCls: 'st-step',
+      statusColor: '#8b5cf6',
+      lang,
+      membership: 'LEADER',
+      membershipCls: 'ms-leader',
+      source: rPick(SOURCES),
+      payMethod: '-',
+      amount: 0,
+      docDate: fmtD(docDate),
+      payDate: '-',
+      startDate: fmtD(startDate),
+      endDate: '-',
+      regDate: regStr,
+      regTime: regDate.getTime(),
+      payTime: null,
+      startTime: startDate.getTime(),
+      memo: '리더 직군 — 결제 없이 운영 참여',
+      extras: [],
+      totalSessions, attended, absent, remaining,
+      attRate: Math.round(attended / totalSessions * 100),
+      realAttRate, lastStudy, level,
+      isLeader: true,
+      history,
+    });
+  }
+
   visitors.sort((a,b)=>b.regTime-a.regTime);
 }
 
@@ -1128,7 +1234,6 @@ function renderTable(){
     <td>
       <div class="flex items-center gap-1.5">
         <button class="text-[13px] font-black ${hasRefund?'text-red-500 hover:text-red-700':'text-brand-600 hover:text-brand-800'} hover:underline transition-colors" onclick="openBsDetail('${v.id}')">${v.name}</button>
-        ${v.history.some(h=>h.type==='멤버십 변경')?'<span class="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" title="멤버십 변경"></span>':''}
       </div>
       <div class="text-[9px] font-mono text-slate-400 mt-0.5">${v.id}</div>
     </td>
@@ -1546,15 +1651,109 @@ function openBsDetail(id){
 
   // ── 스터디 현황 ──
   if(v.status==='member'||v.status==='step'){
+    // 참여율 클릭 시 펼쳐 보일 상세 (팀 + 최근 2주 세션 도트)
+    const teamsArr = Array.isArray(v.teams) ? v.teams : [];
+    // 팀명에서 요일 추출 (월수/화목/토일 + 단일 요일 모두 지원)
+    const dowMap = { '일':0,'월':1,'화':2,'수':3,'목':4,'금':5,'토':6 };
+    const teamSchedule = teamsArr.map(t => {
+      const days = new Set();
+      if (/월수/.test(t)) { days.add(1); days.add(3); }
+      else if (/화목/.test(t)) { days.add(2); days.add(4); }
+      else if (/토일/.test(t)) { days.add(6); days.add(0); }
+      else if (/월화수목금/.test(t)) [1,2,3,4,5].forEach(d=>days.add(d));
+      else if (/월화수목/.test(t))   [1,2,3,4].forEach(d=>days.add(d));
+      else {
+        ['일','월','화','수','목','금','토'].forEach((k) => { if (t.includes(k)) days.add(dowMap[k]); });
+      }
+      return { team: t, days: [...days] };
+    }).filter(ts => ts.days.length > 0);
+
+    // 최근 참여일(lastStudy) 기준 2주치
+    const parseBsDate = (s) => { if (!s || s === '-') return null; const p = String(s).split('.'); if (p.length !== 3) return null; return new Date(+p[0], +p[1]-1, +p[2]); };
+    const endDate = parseBsDate(v.lastStudy) || parseBsDate(v.startDate) || new Date();
+    const startWin = new Date(endDate); startWin.setDate(endDate.getDate() - 13);
+
+    let dotsHtml = '';
+    if (teamSchedule.length > 0) {
+      const fmtD = (d) => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+      const dowK = ['일','월','화','수','목','금','토'];
+      const sessions = [];
+      const cur = new Date(startWin);
+      while (cur <= endDate) {
+        teamSchedule.forEach(ts => {
+          if (ts.days.includes(cur.getDay())) {
+            sessions.push({ date: new Date(cur), team: ts.team });
+          }
+        });
+        cur.setDate(cur.getDate() + 1);
+      }
+      // 시드 기반 출석/불참 결정 (이름+날짜 기반 — 이름 동일하면 동일하게 재현)
+      const rate = Math.min(1, Math.max(0, (v.realAttRate || 70) / 100));
+      const lastEpoch = endDate.getTime();
+      const dots = sessions.map(s => {
+        const isFuture = s.date.getTime() > lastEpoch;
+        let cls, label;
+        if (isFuture) { cls = 'bs-att-r'; label = '예정'; }
+        else {
+          const seed = (v.name || 'x').charCodeAt(0) + s.date.getDate() + s.date.getMonth();
+          const r = ((seed * 9301 + 49297) % 233280) / 233280;
+          if (r < rate) { cls = 'bs-att-o'; label = '출석'; } else { cls = 'bs-att-x'; label = '불참'; }
+        }
+        const tipText = `${fmtD(s.date)} (${dowK[s.date.getDay()]})\n${s.team}\n${label}`;
+        return `<span class="bs-att-dot ${cls}" data-tip-date="${fmtD(s.date)} (${dowK[s.date.getDay()]})" data-tip-team="${s.team}" data-tip-status="${label}" title="${tipText}"></span>`;
+      });
+      dotsHtml = dots.length ? dots.join('') : '<span class="text-[10px] text-slate-400">최근 2주 세션 없음</span>';
+    } else {
+      // 팀 정보가 없을 때는 기존 카운트 기반 표현
+      const totalSlots = v.totalSessions || 0;
+      const dots = [];
+      const att = Math.max(0, Math.min(totalSlots, v.attended || 0));
+      const abs = Math.max(0, Math.min(totalSlots - att, v.absent || 0));
+      const sample = Math.min(14, totalSlots);
+      const ratio = totalSlots ? sample / totalSlots : 0;
+      const sAtt = Math.round(att * ratio), sAbs = Math.round(abs * ratio), sRem = sample - sAtt - sAbs;
+      for (let i = 0; i < sAtt; i++) dots.push('<span class="bs-att-dot bs-att-o" title="출석"></span>');
+      for (let i = 0; i < sAbs; i++) dots.push('<span class="bs-att-dot bs-att-x" title="불참"></span>');
+      for (let i = 0; i < Math.max(0, sRem); i++) dots.push('<span class="bs-att-dot bs-att-r" title="잔여"></span>');
+      dotsHtml = dots.length ? dots.join('') : '<span class="text-[10px] text-slate-400">세션 정보 없음</span>';
+    }
+    const teamsHtml = teamsArr.length
+      ? teamsArr.map(t => {
+          const isEng = String(t).startsWith('영');
+          const dot = isEng ? '#9B59B6' : '#007BFF';
+          const bg  = isEng ? '#f5eafa' : '#e6f0ff';
+          const txt = isEng ? '#9B59B6' : '#007BFF';
+          return `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap" style="background:${bg};color:${txt};border-left:3px solid ${dot};">${t}</span>`;
+        }).join('')
+      : '<span class="text-[10px] text-slate-400 italic">참여 팀 정보 없음</span>';
+    const attDetailHtml = `<div id="bs-att-detail" class="hidden mt-3 pt-3 border-t border-slate-200 space-y-3">
+      <div>
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1"><i class="ph-fill ph-users-three text-brand-500"></i>참여 팀</div>
+        <div class="flex flex-wrap gap-1.5">${teamsHtml}</div>
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><i class="ph-fill ph-calendar-check text-brand-500"></i>최근 2주 세션 <span class="ml-1 text-[9px] font-semibold text-slate-400 normal-case tracking-normal">(마지막 참여일 ${v.lastStudy||'-'} 기준)</span></div>
+          <div class="flex items-center gap-2 text-[9px] font-bold text-slate-500">
+            <span class="inline-flex items-center gap-1"><span class="bs-att-dot bs-att-o"></span>출석</span>
+            <span class="inline-flex items-center gap-1"><span class="bs-att-dot bs-att-x"></span>불참</span>
+            <span class="inline-flex items-center gap-1"><span class="bs-att-dot bs-att-r"></span>예정</span>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-[3px]">${dotsHtml}</div>
+        <p class="text-[9.5px] text-slate-400 mt-1.5"><i class="ph ph-info"></i> 도트에 마우스를 올리면 날짜 · 참여 팀 · 출석 상태가 표시됩니다.</p>
+      </div>
+    </div>`;
+
     html += `<div class="bg-gradient-to-br from-slate-50 to-white rounded-xl p-4 border border-slate-200">
-      <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-book-open text-brand-500"></i>스터디 현황</div>
+      <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="ph-fill ph-book-open text-brand-500"></i>스터디 현황 <span class="ml-1 text-[9px] font-semibold text-slate-400 normal-case tracking-normal">참여율 클릭 시 상세 보기</span></div>
       <div class="grid grid-cols-3 gap-3 mb-2">
-        <div class="text-center">
-          <div class="text-[9px] text-slate-400 font-bold mb-0.5">실제 참석률</div>
-          <div class="text-xl font-black text-${attColor}-600">${v.realAttRate}%</div>
+        <button type="button" onclick="document.getElementById('bs-att-detail').classList.toggle('hidden')" class="text-center hover:bg-white rounded-lg transition-colors py-1 cursor-pointer group">
+          <div class="text-[9px] text-slate-400 font-bold mb-0.5 group-hover:text-brand-600">실제 참석률 <i class="ph ph-caret-down text-[8px] ml-0.5"></i></div>
+          <div class="text-xl font-black text-${attColor}-600 group-hover:underline">${v.realAttRate}%</div>
           <div class="text-[10px] font-black text-${attColor}-400">${v.attended - v.absent}회</div>
           <div class="text-[9px] text-slate-400 leading-none">불참 ${v.absent}회</div>
-        </div>
+        </button>
         <div class="text-center">
           <div class="text-[9px] text-slate-400 font-bold mb-0.5">참석/전체</div>
           <div class="text-xl font-black text-slate-800">${v.attended}<span class="text-sm text-slate-400">/${v.totalSessions}</span></div>
@@ -1581,6 +1780,7 @@ function openBsDetail(id){
           <div class="text-[9px] text-slate-400 font-bold">종료일</div>
         </div>
       </div>
+      ${attDetailHtml}
     </div>`;
   }
 
@@ -1649,12 +1849,57 @@ function openBsDetail(id){
   setTimeout(() => { box.style.transform = 'scale(1) translateY(0)'; }, 10);
 }
 
+// ── 세션 도트 hover 툴팁 ──
+(function(){
+  const tip = () => document.getElementById('bs-att-tip');
+  document.addEventListener('mouseover', (e) => {
+    const dot = e.target.closest && e.target.closest('.bs-att-dot');
+    if (!dot || !dot.dataset.tipDate) return;
+    const t = tip(); if (!t) return;
+    const status = dot.dataset.tipStatus || '';
+    const sCls = status === '출석' ? 'tip-o' : status === '불참' ? 'tip-x' : 'tip-r';
+    t.innerHTML = `<div class="tip-date">${dot.dataset.tipDate}</div>
+      <div class="tip-team">${dot.dataset.tipTeam}</div>
+      <span class="tip-status ${sCls}">${status}</span>`;
+    t.classList.add('is-visible');
+    positionTip(e, t);
+  });
+  document.addEventListener('mousemove', (e) => {
+    const dot = e.target.closest && e.target.closest('.bs-att-dot');
+    if (!dot) return;
+    const t = tip(); if (!t || !t.classList.contains('is-visible')) return;
+    positionTip(e, t);
+  });
+  document.addEventListener('mouseout', (e) => {
+    const dot = e.target.closest && e.target.closest('.bs-att-dot');
+    if (!dot) return;
+    const t = tip(); if (!t) return;
+    t.classList.remove('is-visible');
+  });
+  function positionTip(e, t) {
+    const off = 14;
+    const r = t.getBoundingClientRect();
+    let x = e.clientX + off;
+    let y = e.clientY - r.height - off;
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - off;
+    if (y < 8) y = e.clientY + off;
+    t.style.left = x + 'px';
+    t.style.top  = y + 'px';
+  }
+})();
+
 function closeBsDetail(){
   const modal = document.getElementById('bs-detail-modal');
   const box = document.getElementById('bs-detail-box');
   box.style.transform = 'scale(0.95) translateY(8px)';
   modal.style.opacity = '0';
   setTimeout(() => { modal.style.visibility = 'hidden'; modal.style.pointerEvents = 'none'; }, 150);
+  // iframe 임베드 모드에서는 부모에게 닫기 알림
+  try {
+    if (window.parent !== window && window.parent.postMessage) {
+      window.parent.postMessage({ type: 'bs-detail-close' }, '*');
+    }
+  } catch(e) {}
 }
 
 function updateBasisUI(){
@@ -1741,6 +1986,38 @@ document.addEventListener('DOMContentLoaded',()=>{
   genVisitors();
   renderAll();
   applyBsStatsState(false);
+
+  // ── URL ?member=이름 또는 ?modalOnly=이름 처리 ──
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const wanted = params.get('modalOnly') || params.get('member');
+    const modalOnly = !!params.get('modalOnly');
+    if (modalOnly) {
+      // hide-CSS는 <head> 인라인 스타일로 이미 적용됨 (깜빡임 방지)
+      // 외부 페이지에서 sessionStorage 로 멤버 데이터를 주입했다면, 그걸 우선 사용
+      try {
+        const raw = sessionStorage.getItem('bs-injected-member');
+        if (raw) {
+          const injected = JSON.parse(raw);
+          if (injected && injected.id) {
+            visitors.unshift(injected);
+            sessionStorage.removeItem('bs-injected-member');
+            setTimeout(() => openBsDetail(injected.id), 200);
+            return; // wanted 검색 단계 건너뜀
+          }
+        }
+      } catch(e) {}
+    }
+    if (wanted) {
+      const tryOpen = () => {
+        const target = visitors.find(v => v.name === wanted)
+                    || visitors.find(v => v.name.includes(wanted))
+                    || (visitors.length ? visitors[0] : null);
+        if (target) openBsDetail(target.id);
+      };
+      setTimeout(tryOpen, 200);
+    }
+  } catch(e) {}
 });
 
 // ── Stats Detail Modal ──
