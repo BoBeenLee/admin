@@ -1,0 +1,1296 @@
+/**
+ * Home (dashboard) page logic.
+ * Extracted from two inline <script> blocks in home.html:
+ *   - Block 1 (lines ~660-979): Leader board data, schedule/team modal helpers, etc.
+ *   - Block 2 (lines ~981-1952): DOMContentLoaded init, profile modal renderer, calendar.
+ */
+        // === Leader Board (shared data for widget + modal) ===
+        function openScheduleModal() {
+            const ov = document.getElementById('schedule-modal-overlay'), md = document.getElementById('schedule-modal');
+            ov.classList.remove('hidden'); md.classList.remove('hidden');
+            setTimeout(() => { ov.classList.remove('opacity-0'); md.classList.remove('opacity-0','scale-95'); md.classList.add('scale-100'); }, 10);
+            if(window._renderModalBoard) window._renderModalBoard();
+        }
+        function closeScheduleModal() {
+            const ov = document.getElementById('schedule-modal-overlay'), md = document.getElementById('schedule-modal');
+            ov.classList.add('opacity-0'); md.classList.add('opacity-0','scale-95'); md.classList.remove('scale-100');
+            setTimeout(() => { ov.classList.add('hidden'); md.classList.add('hidden'); }, 300);
+        }
+
+        (function(){
+            const dayNames=['일','월','화','수','목','금','토'];
+            const teamSlots=[
+                '영 월 11시','영 월 8시','영 화 11시','영 화 8시','영 수 11시','영 수 8시',
+                '영 목 11시','영 목 8시','영 토 11시','영 토 8시','영 일 11시','영 일 8시',
+                '일 월 11시','일 월 8시','일 화 11시','일 화 8시','일 수 11시','일 수 8시',
+                '일 목 11시','일 목 8시','일 토 11시','일 토 8시','일 일 11시','일 일 8시'
+            ];
+            const surnames=['김','이','박','정','최','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','홍'];
+            const givenF=['서연','지우','하은','서윤','민서','예린','수아','다은','채원','지민','소율','하윤','시은','유진','수빈','예서','윤아','채은','지현','서현'];
+            const givenM=['민준','서준','도윤','예준','시우','하준','지호','주원','지환','건우','현우','준서','태윤','승현','우진','재민','선우','민재','정우','유찬'];
+            const memos=['출석률 관리 필요','연장 상담 예정','우수 리더 후보','신규 팀 배정 검토','컨디션 체크 필요','다음달 일정 조율','리더 간담회 참여 확정','대타 가능 여부 확인',''];
+            const tColors={'영':'#9B59B6','일':'#007BFF'};
+            const tBgs={'영':'#f5eafa','일':'#e6f0ff'};
+            const blockStatuses=[
+                {s:'출석 완료',bg:'bg-emerald-500',border:'border-emerald-600/30',color:'text-emerald-400'},
+                {s:'불참',bg:'bg-red-400',border:'border-red-500/30',color:'text-red-400'},
+                {s:'대타 출석 완료',bg:'bg-amber-400',border:'border-amber-500/30',color:'text-amber-400'},
+                {s:'출석 예정',bg:'bg-slate-300',border:'border-slate-400/30',color:'text-slate-400'},
+            ];
+            const dates8=[
+                {d:'04.01',w:'월'},{d:'04.03',w:'수'},{d:'04.08',w:'월'},{d:'04.10',w:'수'},
+                {d:'04.15',w:'월'},{d:'04.17',w:'수'},{d:'04.22',w:'월'},{d:'04.24',w:'수'}
+            ];
+            const stStyles={
+                '출석 예정':{bg:'bg-transparent',text:'text-emerald-600',border:'border-emerald-300',icon:'ph ph-clock'},
+                '출석 완료':{bg:'bg-emerald-100',text:'text-emerald-700',border:'border-emerald-200',icon:'ph-bold ph-check-circle'},
+                '대타 예정':{bg:'bg-transparent',text:'text-amber-600',border:'border-amber-300',icon:'ph ph-swap'},
+                '대타 출석 완료':{bg:'bg-amber-100',text:'text-amber-700',border:'border-amber-200',icon:'ph-bold ph-swap'},
+                '불참':{bg:'bg-red-100',text:'text-red-700',border:'border-red-200',icon:'ph-bold ph-x-circle'},
+            };
+            function rng(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+            function rP(a){return a[rng(0,a.length-1)];}
+
+            // Generate leaders with full data (matching leader.html)
+            const hLeaders=[];const usedN=new Set();
+            const memberPool=['김민수(1234)','이지현(5678)','최영호(9012)','정다은(3456)','강서연(7890)','조하은(2345)'];
+            for(let i=0;i<40;i++){
+                let n;do{n=rP(surnames)+(Math.random()>0.5?rP(givenF):rP(givenM));}while(usedN.has(n));usedN.add(n);
+                const lv=rng(1,5),nT=Math.random()>0.7?2:1,mt=[];
+                while(mt.length<nT){const t=rP(teamSlots);if(!mt.includes(t))mt.push(t);}
+                const phone=`010-${rng(1000,9999)}-${rng(1000,9999)}`;
+                const att=rng(1,7),abs=rng(0,3),sub=rng(0,2),done=att+abs+sub;
+                const rate=done>0?Math.round((att/done)*100):0;
+                const rateColor=rate>=70?'text-emerald-600':rate>=40?'text-amber-600':'text-red-600';
+                // Generate 8 attendance blocks
+                const blocks=[];
+                for(let b=0;b<8;b++){
+                    let st;
+                    if(b<att) st=Math.random()>0.85?blockStatuses[2]:blockStatuses[0];
+                    else if(b<att+abs) st=blockStatuses[1];
+                    else st=blockStatuses[3];
+                    const mems=st.s==='불참'||st.s==='출석 예정'?'—':
+                        Array.from({length:rng(2,4)},()=>rP(memberPool)).join(', ');
+                    blocks.push({...st,date:dates8[b],members:mems});
+                }
+                const memo=rP(memos);
+                hLeaders.push({name:n,lv,teams:mt,phone,att,abs,sub,done,rate,rateColor,blocks,memo});
+            }
+
+            const stToday=['출석 예정','출석 완료','대타 예정','대타 출석 완료','불참'];
+            const wToday=[0.25,0.35,0.10,0.10,0.20];
+            const stFuture=['출석 예정','대타 예정','불참'];
+            const wFuture=[0.55,0.20,0.25];
+            function pickSt(isT){const p=isT?stToday:stFuture,w=isT?wToday:wFuture;const r=Math.random();let c=0;for(let i=0;i<w.length;i++){c+=w[i];if(r<=c)return p[i];}return p[0];}
+
+            const now=new Date(),days=[];
+            for(let off=0;off<7;off++){
+                const d=new Date(now);d.setDate(d.getDate()+off);
+                const dn=dayNames[d.getDay()],label=`${d.getMonth()+1}/${d.getDate()}`,isT=off===0;
+                const matched=[];
+                hLeaders.forEach(l=>{const ts=l.teams.filter(t=>t.split(' ')[1]===dn);if(ts.length>0)matched.push({...l,matchedTeams:ts,boardStatus:pickSt(isT)});});
+                matched.sort((a,b)=>b.lv-a.lv);
+                days.push({date:d,dayName:dn,label,isToday:isT,leaders:matched});
+            }
+
+            // Daily memo storage
+            const dailyMemos={};
+            window._homeSaveMemo=function(el){
+                const key=el.dataset.memoKey,text=el.innerText.trim();
+                if(text&&text!=='당일 메모 없음'){dailyMemos[key]=text;}
+                else{delete dailyMemos[key];el.innerHTML='<span class="text-slate-300 italic">당일 메모 없음</span>';}
+            };
+
+            // Copy phone
+            window._homeCopyPhone=function(phone){
+                navigator.clipboard.writeText(phone).then(()=>{
+                    const toast=document.createElement('div');
+                    toast.className='fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg z-[100] transition-opacity';
+                    toast.textContent=`${phone} 복사됨`;
+                    document.body.appendChild(toast);
+                    setTimeout(()=>{toast.style.opacity='0';setTimeout(()=>toast.remove(),300);},1500);
+                });
+            };
+
+            // Status filter state (for modal)
+            let filterStatus=new Set();
+
+            function buildSummary(list,el,isModal){
+                const cnt={'출석 예정':0,'출석 완료':0,'대타 예정':0,'대타 출석 완료':0,'불참':0};
+                list.forEach(l=>{if(cnt[l.boardStatus]!==undefined)cnt[l.boardStatus]++;});
+                const items=[
+                    {k:'출석 예정',lb:'예정',cl:'emerald-600',ic:'ph ph-clock'},
+                    {k:'출석 완료',lb:'완료',cl:'emerald-700',ic:'ph-bold ph-check-circle'},
+                    {k:'대타 예정',lb:'대타예정',cl:'amber-600',ic:'ph ph-swap'},
+                    {k:'대타 출석 완료',lb:'대타완료',cl:'amber-700',ic:'ph-bold ph-swap'},
+                    {k:'불참',lb:'불참',cl:'red-600',ic:'ph-bold ph-x-circle'},
+                ];
+                if(!isModal){
+                    el.innerHTML=items.map(it=>`<span class="inline-flex items-center gap-0.5 text-${it.cl}"><i class="${it.ic} text-[10px]"></i>${it.lb} <b>${cnt[it.k]}</b></span>`).join('');
+                } else {
+                    el.innerHTML=items.map(it=>{
+                        const isAct=filterStatus.has(it.k);
+                        const cls=isAct?'bg-slate-800 text-white shadow-sm':`text-${it.cl} hover:bg-slate-200/60 bg-transparent`;
+                        return `<button class="home-status-filter-btn inline-flex items-center gap-1 px-2 py-0.5 rounded-full transition-all cursor-pointer ${cls}" data-status="${it.k}"><i class="${it.ic}"></i> ${it.lb} <span class="font-black">${cnt[it.k]}</span></button>`;
+                    }).join('');
+                }
+            }
+
+            function renderRow(l,compact,dayLabel){
+                const lang=l.matchedTeams[0].split(' ')[0],time=l.matchedTeams[0].split(' ')[2];
+                const lC=tColors[lang],lB=tBgs[lang],lL=lang==='영'?'영어':'일어';
+                const st=stStyles[l.boardStatus]||stStyles['출석 예정'];
+                const rateColor=l.rate>=70?'text-emerald-600':l.rate>=40?'text-amber-600':'text-red-600';
+
+                if(compact){
+                    return `<div class="px-3 py-1.5 flex items-center gap-2 hover:bg-slate-50 transition-colors">
+                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold ${st.bg} ${st.text} border ${st.border} whitespace-nowrap"><i class="${st.icon}"></i></span>
+                        <span class="px-1 py-0.5 bg-purple-50 text-purple-700 text-[9px] rounded font-bold border border-purple-200">LV${l.lv}</span>
+                        <a href="leader.html#${encodeURIComponent(l.name)}" class="text-xs font-bold text-slate-800 truncate cursor-pointer hover:text-brand-600 hover:underline" title="리더 페이지로 이동">${l.name}</a>
+                        <span class="px-1.5 py-0.5 text-[9px] rounded font-semibold border whitespace-nowrap" style="color:${lC};background:${lB};border-color:${lC}">${lL} ${time}</span>
+                        <span class="text-[10px] font-bold ${rateColor} ml-auto shrink-0">${l.rate}%</span>
+                    </div>`;
+                }
+
+                // Full row (modal) - matching leader.html layout
+                const tBadges=l.matchedTeams.map(t=>{const tl=t.split(' ')[0],dn=t.replace(/^[영일]\s*/,'');
+                    return `<span class="px-1.5 py-0.5 text-[10px] rounded font-semibold border whitespace-nowrap" style="color:${tColors[tl]};background:${tBgs[tl]};border-color:${tColors[tl]}">${dn}</span>`;}).join(' ');
+                const badge=`<span class="inline-flex items-center justify-center gap-1 w-full py-0.5 rounded text-[10px] font-bold ${st.bg} ${st.text} border ${st.border} whitespace-nowrap"><i class="${st.icon}"></i> ${l.boardStatus}</span>`;
+                const blocksHtml=l.blocks.map(b=>
+                    `<div class="home-att-block h-2 flex-1 rounded-sm ${b.bg} border ${b.border} cursor-pointer" data-date="${b.date.d} (${b.date.w})" data-status="${b.s}" data-color="${b.color}" data-members="${b.members}"></div>`
+                ).join('');
+                const memoKey=`${l.name}_${dayLabel||''}`;
+                const memoVal=dailyMemos[memoKey]||'';
+                const memoDisplay=memoVal?memoVal:'<span class="text-slate-300 italic">당일 메모 없음</span>';
+
+                return `<div class="p-3 hover:bg-slate-50 transition-colors group grid items-center gap-2" style="grid-template-columns: 100px 52px 90px 32px 1fr minmax(80px,1fr) 56px 36px;">
+                    <div class="truncate">${badge}</div>
+                    <a href="leader.html#${encodeURIComponent(l.name)}" class="text-sm font-bold text-slate-800 hover:text-brand-600 hover:underline transition-colors truncate text-left" title="리더 페이지로 이동">${l.name}</a>
+                    <span class="text-[11px] font-mono text-slate-500 truncate cursor-pointer hover:text-brand-600 active:scale-95 transition-all" onclick="event.stopPropagation();_homeCopyPhone('${l.phone}')">${l.phone}</span>
+                    <span class="px-1 py-0.5 bg-purple-50 text-purple-700 text-[10px] rounded font-bold border border-purple-200 whitespace-nowrap text-center">LV ${l.lv}</span>
+                    <div class="flex items-center gap-1 overflow-hidden">${tBadges}</div>
+                    <div class="editable-text px-2 py-1 text-xs text-slate-500 line-clamp-1 rounded border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors relative cursor-pointer min-w-0" contenteditable="true" spellcheck="false" data-memo-key="${memoKey}" onfocus="if(this.querySelector('span.italic'))this.innerHTML=''" onblur="_homeSaveMemo(this)">${memoDisplay}<i class="ph ph-pencil-simple absolute right-1.5 top-1/2 -translate-y-1/2 text-brand-600 opacity-0 group-hover:opacity-100 text-[10px] pointer-events-none"></i></div>
+                    <div class="flex items-center gap-[1px]">${blocksHtml}</div>
+                    <span class="text-[11px] font-bold ${rateColor} whitespace-nowrap text-right">${l.rate}%</span>
+                </div>`;
+            }
+
+            function filterGroup(dayIdx,fL,fT){
+                const day=days[dayIdx];
+                const filtered=day.leaders.filter(l=>l.matchedTeams.some(t=>{const p=t.split(' ');return(fL==='all'||p[0]===fL)&&(fT==='all'||p[2]===fT);}));
+                const groups={},order=[];
+                filtered.forEach(l=>{l.matchedTeams.forEach(t=>{const p=t.split(' '),lang=p[0],time=p[2];
+                    if(fL!=='all'&&lang!==fL)return;if(fT!=='all'&&time!==fT)return;
+                    const key=`${lang} ${time}`;if(!groups[key]){groups[key]=[];order.push(key);}
+                    if(!groups[key].find(x=>x.name===l.name))groups[key].push(l);});});
+                const tP={'11시':0,'8시':1},lP={'영':0,'일':1};
+                const sorted=[...new Set(order)].sort((a,b)=>{const[lA,tA]=a.split(' '),[lB,tB]=b.split(' ');return(tP[tA]??9)-(tP[tB]??9)||(lP[lA]??9)-(lP[lB]??9);});
+                return{filtered,groups,sorted};
+            }
+
+            function renderGroupedList(groups,sorted,compact,targetEl,dayLabel){
+                const langLabels={'영':'영어','일':'일어'};
+                if(sorted.length===0){targetEl.innerHTML=`<div class="p-4 text-center text-slate-400 text-xs"><i class="ph ph-calendar-blank text-xl mb-1 block"></i>배정된 리더가 없습니다</div>`;return;}
+                let html='';
+                sorted.forEach(key=>{const[lang,time]=key.split(' ');const members=groups[key].sort((a,b)=>b.lv-a.lv);
+                    const color=tColors[lang],bg=tBgs[lang];
+                    html+=`<div><div class="px-${compact?3:4} py-${compact?'1':'2'} flex items-center gap-${compact?'1.5':'2'}" style="background:${bg}">
+                        <span class="w-${compact?'1.5':'2'} h-${compact?'1.5':'2'} rounded-full" style="background:${color}"></span>
+                        <span class="text-[${compact?'10':'11'}px] font-bold" style="color:${color}">${langLabels[lang]} ${time}</span>
+                        <span class="text-[${compact?'9':'10'}px] text-slate-400 font-semibold">${members.length}명</span>
+                    </div>${members.map(l=>renderRow(l,compact,dayLabel)).join('')}</div>`;});
+                targetEl.innerHTML=html;
+            }
+
+            // Home widget
+            function renderHomeBoard(){
+                const{filtered,groups,sorted}=filterGroup(0,'all','all');
+                document.getElementById('home-board-count').textContent=`${filtered.length}명`;
+                buildSummary(filtered,document.getElementById('home-board-summary'),false);
+                renderGroupedList(groups,sorted,true,document.getElementById('home-board-list'),days[0].label);
+            }
+            document.addEventListener('DOMContentLoaded',renderHomeBoard);
+
+            // Modal
+            let mDay=0,mLang='all',mTime='all';
+            function renderModalTabs(){
+                document.getElementById('modal-day-tabs').innerHTML=days.map((d,i)=>{
+                    const act=i===mDay,dot=d.isToday?'<span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-brand-500"></span>':'';
+                    const cls=act?'bg-slate-900 text-white shadow-sm':'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50';
+                    return `<button class="modal-day-tab relative shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${cls}" data-idx="${i}">${d.label} (${d.dayName})${dot}</button>`;
+                }).join('');
+            }
+            window._renderModalBoard=function(){
+                renderModalTabs();
+                const day=days[mDay];
+                const y=day.date.getFullYear(),m=String(day.date.getMonth()+1).padStart(2,'0'),dd=String(day.date.getDate()).padStart(2,'0');
+                document.getElementById('modal-date-label').textContent=`${y}.${m}.${dd} (${day.dayName})${day.isToday?' · 오늘':''}`;
+                document.getElementById('modal-day-prev').classList.toggle('opacity-30',mDay===0);
+                document.getElementById('modal-day-next').classList.toggle('opacity-30',mDay===days.length-1);
+
+                // Filter by lang/time first
+                const{filtered:teamFiltered,groups:tGroups,sorted:tSorted}=filterGroup(mDay,mLang,mTime);
+                // Then apply status filter
+                const statusFiltered=filterStatus.size===0?teamFiltered:teamFiltered.filter(l=>filterStatus.has(l.boardStatus));
+
+                document.getElementById('modal-board-count').textContent=`${statusFiltered.length}명`;
+                // Summary bar always from team-filtered (for counts)
+                buildSummary(teamFiltered,document.getElementById('modal-board-summary'),true);
+
+                if(statusFiltered.length===0&&teamFiltered.length>0){
+                    document.getElementById('modal-board-list').innerHTML=`<div class="p-6 text-center text-slate-400 text-sm"><i class="ph ph-funnel text-2xl mb-2 block"></i>해당 상태의 리더가 없습니다</div>`;
+                } else {
+                    // Re-group with status-filtered leaders
+                    const groups2={},order2=[];
+                    statusFiltered.forEach(l=>{l.matchedTeams.forEach(t=>{const p=t.split(' '),lang=p[0],time=p[2];
+                        if(mLang!=='all'&&lang!==mLang)return;if(mTime!=='all'&&time!==mTime)return;
+                        const key=`${lang} ${time}`;if(!groups2[key]){groups2[key]=[];order2.push(key);}
+                        if(!groups2[key].find(x=>x.name===l.name))groups2[key].push(l);});});
+                    const tP={'11시':0,'8시':1},lP={'영':0,'일':1};
+                    const sorted2=[...new Set(order2)].sort((a,b)=>{const[lA,tA]=a.split(' '),[lB,tB]=b.split(' ');return(tP[tA]??9)-(tP[tB]??9)||(lP[lA]??9)-(lP[lB]??9);});
+                    renderGroupedList(groups2,sorted2,false,document.getElementById('modal-board-list'),day.label);
+                }
+            };
+
+            // Event: day tabs
+            document.addEventListener('click',e=>{
+                const tab=e.target.closest('.modal-day-tab');
+                if(tab){mDay=parseInt(tab.dataset.idx);window._renderModalBoard();}
+                // Status filter (multi-select)
+                const sBtn=e.target.closest('.home-status-filter-btn');
+                if(sBtn){
+                    const status=sBtn.dataset.status;
+                    if(filterStatus.has(status)){filterStatus.delete(status);}else{filterStatus.add(status);}
+                    window._renderModalBoard();
+                }
+            });
+            document.getElementById('modal-day-prev')?.addEventListener('click',()=>{if(mDay>0){mDay--;window._renderModalBoard();}});
+            document.getElementById('modal-day-next')?.addEventListener('click',()=>{if(mDay<days.length-1){mDay++;window._renderModalBoard();}});
+
+            // Touch swipe on modal list
+            let touchStartX=0;
+            const modalList=document.getElementById('modal-board-list');
+            if(modalList){
+                modalList.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;},{passive:true});
+                modalList.addEventListener('touchend',e=>{
+                    const diff=touchStartX-e.changedTouches[0].clientX;
+                    if(Math.abs(diff)>50){mDay=Math.max(0,Math.min(days.length-1,mDay+(diff>0?1:-1)));window._renderModalBoard();}
+                },{passive:true});
+            }
+
+            // Language/time filters
+            const fA='bg-slate-900 text-white shadow-sm',fI='bg-white text-slate-600 border border-slate-200 hover:bg-slate-50';
+            document.querySelectorAll('.modal-filter-lang').forEach(btn=>{btn.addEventListener('click',()=>{
+                mLang=btn.dataset.lang;
+                document.querySelectorAll('.modal-filter-lang').forEach(b=>b.className=`modal-filter-lang shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${fI}`);
+                btn.className=`modal-filter-lang modal-filter-active shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${fA}`;
+                window._renderModalBoard();});});
+            document.querySelectorAll('.modal-filter-time').forEach(btn=>{btn.addEventListener('click',()=>{
+                mTime=btn.dataset.time;
+                document.querySelectorAll('.modal-filter-time').forEach(b=>b.className=`modal-filter-time shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${fI}`);
+                btn.className=`modal-filter-time modal-filter-active shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${fA}`;
+                window._renderModalBoard();});});
+
+            // Attendance block tooltip (reuse global-block-tooltip if present, or create)
+            document.addEventListener('mouseover',e=>{
+                const block=e.target.closest('.home-att-block');
+                if(!block)return;
+                let tip=document.getElementById('home-block-tooltip');
+                if(!tip){
+                    tip=document.createElement('div');
+                    tip.id='home-block-tooltip';
+                    tip.className='fixed hidden w-[140px] bg-slate-900 border border-slate-700 text-white rounded p-2 text-left z-[100] shadow-xl pointer-events-none';
+                    tip.innerHTML=`<div id="hbt-date" class="text-[10px] text-slate-300 font-semibold mb-1 border-b border-slate-600 pb-1"></div>
+                        <div class="flex items-center justify-between mb-0.5 mt-1 text-[10px]"><span>상태:</span> <span id="hbt-status" class="font-bold"></span></div>
+                        <div class="flex items-center justify-between text-[10px]"><span>멤버:</span> <span id="hbt-members" class="font-bold text-[9px]"></span></div>`;
+                    document.body.appendChild(tip);
+                }
+                document.getElementById('hbt-date').textContent=block.dataset.date||'';
+                const hbtStatus=document.getElementById('hbt-status');
+                hbtStatus.textContent=block.dataset.status||'';
+                hbtStatus.className=`font-bold ${block.dataset.color||''}`;
+                document.getElementById('hbt-members').textContent=block.dataset.members||'—';
+                const rect=block.getBoundingClientRect();
+                tip.style.left=`${rect.left+rect.width/2-70}px`;
+                tip.style.top=`${rect.top-tip.offsetHeight-6}px`;
+                tip.classList.remove('hidden');
+            });
+            document.addEventListener('mouseout',e=>{
+                if(e.target.closest('.home-att-block')){
+                    const tip=document.getElementById('home-block-tooltip');
+                    if(tip)tip.classList.add('hidden');
+                }
+            });
+        })();
+
+// ─── Block 2: DOMContentLoaded init ───
+        document.addEventListener('DOMContentLoaded', () => {
+            // Drawer is wired via js/shared/drawer.js (loadNav + tDrawer global)
+
+            // Bulk Checkboxes
+            const chkAll = document.getElementById('check-all');
+            const rcbs = document.querySelectorAll('.row-checkbox');
+            const bBar = document.getElementById('bulk-action-bar');
+            function uc() {
+                const c = Array.from(rcbs).filter(i=>i.checked).length;
+                if(c>0) {
+                    bBar.classList.remove('hidden'); bBar.classList.add('flex');
+                    document.getElementById('selected-count').innerText = c;
+                } else {
+                    bBar.classList.add('hidden'); bBar.classList.remove('flex');
+                }
+            }
+            if(chkAll) chkAll.addEventListener('change', e=> { rcbs.forEach(i=>i.checked=e.target.checked); uc(); });
+            rcbs.forEach(i=>i.addEventListener('change', uc));
+
+            // Profile Modal Dynamic Data
+            const mockMembers = {
+                '김지윤': {
+                    level: 'LV 2', phone: '010-2757-9662', membership: 'VVIP 멤버십', mColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+                    teams: ['영 월수 8PM(2)', '일 화목 8PM(1)'], regDate: '25.10.05', startDate: '25.10.05',
+                    remainSession: '82', totalSession: '1040', mName: 'VVIP', expDate: '26.04.09', expNote: '주 4회 참석 (단축)',
+                    attRate: '25%', attCount: '4/16회', attColor: 'text-purple-600',
+                    message: '다음 주 참석 시 연장 등록 안내 유도하기. 영/일 병행 코스 할인 혜택도 함께 상기시켜 드리면 좋을 듯함.',
+                    history: [
+                        { date: '2026.04.01', tag: '잔여 93/1040회 • 신청: 월수/화목 (주 4회)', color: 'indigo', title: '추가 등록 (멤버십 변경)', desc: '기존: 영어 오전팀 → 신규: 영어 오전 팀 + 일본어 오후팀 병행 등록 (주 4회 기간 차감 반영 시작됨)' },
+                        { date: '2026.03.15', tag: '잔여 100/1040회 • 신청: 화목 (주 2회)', color: 'purple', title: '레벨업 (LV1 → LV2)', desc: '영어 오전팀 회화 테스트 통과 (담당: 박선민)' },
+                        { date: '2026.02.01', tag: '잔여 120/1040회 • 신청: 화목 (주 2회)', color: 'blue', title: '지점 이동 (강남 → 하남)', desc: '이사로 인한 소속 지점 변경. 하남 지점장 상담 완료.' },
+                        { date: '2025.10.05', tag: '잔여 1040/1040회 • 신청: 화목 (주 2회)', color: 'emerald', title: 'VVIP 최상위 등록 (1040회)', desc: '강남 지점 LV1 최초 등록. VVIP 다회권 (1040회) 프로모션 등록 완료.' }
+                    ]
+                },
+                '박선민': {
+                    level: 'LV 4', phone: '010-3517-4446', membership: 'A+ 멤버십', mColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                    teams: ['영 월수 10AM(4)'], regDate: '26.01.10', startDate: '26.01.10',
+                    remainSession: '60', totalSession: '104', mName: 'A+', expDate: '26.08.10', expNote: '주 2회 참석',
+                    attRate: '50%', attCount: '4/8회', attColor: 'text-slate-500',
+                    message: '우수회원(코어) 활동 중. 혜택 안내 완료. 담달 연임 의사 확인함.',
+                    history: [
+                        { date: '2026.04.01', tag: '잔여 62/104회 • 신청: 월수 (주 2회)', color: 'purple', title: '우수 리더 선정', desc: '4월 우수 리더로 선정됨. 추가 멤버십 혜택 제공.' },
+                        { date: '2026.03.10', tag: '잔여 70/104회 • 신청: 월수 (주 2회)', color: 'orange', title: '홀딩 (멤버십 연기)', desc: '해외 출장으로 인한 2주 홀딩. 리더 권한으로 횟수 차감 없이 기간 2주 연장됨.' },
+                        { date: '2026.01.10', tag: '잔여 104/104회 • 신청: 월수 (주 2회)', color: 'emerald', title: 'A+ 멤버십 등록 (104회)', desc: '기존 H+ 만료 후 A+ 멤버십으로 갱신.' }
+                    ]
+                },
+                '성경희': {
+                    level: 'LV 3', phone: '010-6385-8265', membership: 'H+ 멤버십', mColor: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+                    teams: ['영 월수 10AM(3)'], regDate: '25.11.20', startDate: '25.11.20',
+                    remainSession: '2', totalSession: '52', mName: 'H+', expDate: '26.04.09', expNote: '주 2회 참석 (임박)',
+                    attRate: '87%', attCount: '7/8회', attColor: 'text-slate-500',
+                    message: '다음 주 만료 예정 (D-7). 참석 시 연장 등록 집중 유도할 것.',
+                    history: [
+                        { date: '2026.02.10', tag: '잔여 24/52회 • 신청: 월수 (주 2회)', color: 'orange', title: '홀딩 (멤버십 연기)', desc: '감기 몸살로 1주일 홀딩. 기간 1주 자동 연장됨.' },
+                        { date: '2025.11.20', tag: '잔여 52/52회 • 신청: 월수 (주 2회)', color: 'emerald', title: 'H+ 멤버십 등록 (52회)', desc: '재등록 진행 (할인 프로모션 적용).' }
+                    ]
+                }
+            };
+
+            const pModal = document.getElementById('profile-modal');
+            const pOverlay = document.getElementById('profile-modal-overlay');
+
+            window.openProfileModal = function(name) {
+                const data = mockMembers[name] || mockMembers['김지윤']; // fallback
+
+                // Header
+                document.getElementById('pm-name').innerText = name;
+                document.getElementById('pm-initial').innerText = name.charAt(0);
+                document.getElementById('pm-level-badge').innerText = data.level;
+                
+                const mBadge = document.getElementById('pm-membership-badge');
+                mBadge.className = `px-2 py-0.5 rounded text-[10px] font-bold border ${data.mColor}`;
+                mBadge.innerText = data.membership;
+                
+                document.getElementById('pm-phone').innerText = data.phone;
+                
+                const teamsHtml = data.teams.map(t => `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-white/10 text-white border border-white/20">${t}</span>`).join('');
+                document.getElementById('pm-teams-container').innerHTML = teamsHtml;
+
+                // Body stats
+                document.getElementById('pm-reg-date').innerText = data.regDate;
+                document.getElementById('pm-brand-name').innerText = data.mName;
+                document.getElementById('pm-remain-session').innerText = `${data.remainSession}/${data.totalSession}회`;
+                document.getElementById('pm-start-date').innerText = data.startDate;
+                document.getElementById('pm-exp-date').innerText = data.expDate;
+                document.getElementById('pm-exp-note').innerText = data.expNote;
+                
+                document.getElementById('pm-att-rate').innerText = data.attRate;
+                document.getElementById('pm-att-rate').className = `${data.attColor} text-[13px]`;
+                document.getElementById('pm-att-count').innerText = `(${data.attCount})`;
+
+                document.getElementById('pm-message').innerText = data.message;
+
+                // Timeline
+                let tHtml = '';
+                data.history.forEach((h, idx) => {
+                    tHtml += `
+                        <div class="relative">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-white border-2 ${idx===0 ? 'border-brand-500' : 'border-slate-300'} rounded-full"></div>
+                            <div class="text-xs font-mono text-slate-400 mb-0.5 flex flex-wrap items-center gap-2">${h.date} <span class="bg-slate-100 text-slate-500 px-1 rounded text-[9px] font-bold">${h.tag}</span></div>
+                            <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                                <div class="font-bold text-slate-800 text-sm mb-1 text-${h.color}-600">${h.title}</div>
+                                <div class="text-xs text-slate-600">${h.desc}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.getElementById('pm-timeline').innerHTML = tHtml;
+
+                window.showProfileModal();
+            };
+            // closeProfileModal is provided by js/shared/profile-modal.js
+
+            // Global Block Tooltip Logic
+            const globalTooltip = document.getElementById('global-block-tooltip');
+            const gbtDate = document.getElementById('gbt-date');
+            const gbtStatus = document.getElementById('gbt-status');
+            const gbtLeader = document.getElementById('gbt-leader');
+
+            document.addEventListener('mouseover', function(e) {
+                if (e.target.classList.contains('attendance-block')) {
+                    const rect = e.target.getBoundingClientRect();
+                    const date = e.target.getAttribute('data-date') || '미정';
+                    const status = e.target.getAttribute('data-status') || '미진행';
+                    const leader = e.target.getAttribute('data-leader') || '-';
+                    const colorClass = e.target.getAttribute('data-color') || 'text-slate-400';
+
+                    gbtDate.textContent = date;
+                    gbtStatus.textContent = status;
+                    gbtStatus.className = `font-bold ${colorClass}`;
+                    gbtLeader.textContent = leader;
+
+                    // Position tooltip exactly above the hovered block
+                    globalTooltip.style.left = `${rect.left + (rect.width / 2)}px`;
+                    globalTooltip.style.top = `${rect.top - 8}px`; // 8px margin above the block
+                    globalTooltip.classList.remove('hidden');
+                }
+            });
+
+            document.addEventListener('mouseout', function(e) {
+                if (e.target.classList.contains('attendance-block')) {
+                    globalTooltip.classList.add('hidden');
+                }
+            });
+        });
+    /* ===================== Google-style Calendar ===================== */
+    // Tailwind safelist: cal-color-blue cal-color-emerald cal-color-orange cal-color-purple cal-color-pink cal-color-amber cal-color-slate cal-color-red
+    const CAL_COLORS = ['blue','emerald','orange','purple','pink','amber','slate'];
+    const CAL_COLOR_HEX = { blue:'#3b82f6', emerald:'#10b981', orange:'#f97316', purple:'#8b5cf6', pink:'#ec4899', amber:'#f59e0b', slate:'#64748b' };
+    const CAL_LS_KEY = 'homeCalendarEvents_v8';
+
+    // 예약 상태 (인터뷰/방문 상담)
+    const BOOKING_STATUSES = ['방문','방문완','변경중','변경완','불참'];
+    const BOOKING_COLOR = { '방문':'#3b82f6', '방문완':'#10b981', '변경중':'#f59e0b', '변경완':'#0ea5e9', '불참':'#ef4444' };
+    const BOOKING_BG    = { '방문':'#eff6ff', '방문완':'#ecfdf5', '변경중':'#fffbeb', '변경완':'#f0f9ff', '불참':'#fef2f2' };
+    const BOOKING_CATEGORIES = new Set(['신규등록','상담','인터뷰','방문상담','상담 예약','방문 결제','스터디 첫날']);
+    const STATS_CATEGORIES   = new Set(['상담 예약']);
+    function isBookingEvent(ev) { return ev && BOOKING_CATEGORIES.has(ev.category); }
+    function isStatsEvent(ev)   { return ev && STATS_CATEGORIES.has(ev.category); }
+
+    // 한국 법정 공휴일 (2025-2027)
+    const KR_HOLIDAYS = {
+        '2025-01-01':'신정','2025-01-28':'설날 연휴','2025-01-29':'설날','2025-01-30':'설날 연휴',
+        '2025-03-01':'삼일절','2025-03-03':'삼일절 대체','2025-05-05':'어린이날/부처님오신날','2025-05-06':'대체공휴일',
+        '2025-06-06':'현충일','2025-08-15':'광복절','2025-10-03':'개천절','2025-10-05':'추석 연휴','2025-10-06':'추석','2025-10-07':'추석 연휴','2025-10-08':'대체공휴일','2025-10-09':'한글날','2025-12-25':'크리스마스',
+        '2026-01-01':'신정','2026-02-16':'설날 연휴','2026-02-17':'설날','2026-02-18':'설날 연휴','2026-03-01':'삼일절','2026-03-02':'대체공휴일','2026-05-05':'어린이날','2026-05-24':'부처님오신날','2026-05-25':'대체공휴일','2026-06-06':'현충일','2026-08-15':'광복절','2026-08-17':'대체공휴일','2026-09-24':'추석 연휴','2026-09-25':'추석','2026-09-26':'추석 연휴','2026-10-03':'개천절','2026-10-05':'대체공휴일','2026-10-09':'한글날','2026-12-25':'크리스마스',
+        '2027-01-01':'신정','2027-02-06':'설날 연휴','2027-02-07':'설날','2027-02-08':'설날 연휴','2027-02-09':'대체공휴일','2027-03-01':'삼일절','2027-05-05':'어린이날','2027-05-13':'부처님오신날','2027-06-06':'현충일','2027-06-07':'대체공휴일','2027-08-15':'광복절','2027-08-16':'대체공휴일','2027-09-14':'추석 연휴','2027-09-15':'추석','2027-09-16':'추석 연휴','2027-10-03':'개천절','2027-10-04':'대체공휴일','2027-10-09':'한글날','2027-10-11':'대체공휴일','2027-12-25':'크리스마스'
+    };
+
+    let calState = { year: 2026, month: 3, today: new Date(), editingId: null };
+    let calEvents = [];
+
+    function loadEvents() {
+        try {
+            const raw = localStorage.getItem(CAL_LS_KEY);
+            if (raw) { calEvents = JSON.parse(raw); return; }
+        } catch (e) {}
+        // 풍성한 시드 데이터
+        calEvents = [
+            // 미팅
+            { id:'m1', title:'주간 매니저 미팅', date:'2026-04-06', allDay:false, startTime:'09:30', endTime:'10:00', color:'purple', category:'미팅', recurrence:'weekly', memo:'주간 운영 점검',
+              leaders:[ { name:'지점장' }, { name:'매니저A' }, { name:'매니저B' } ],
+              attendedLog:{'2026-04-06':'출석','2026-04-13':'출석','2026-04-20':'출석','2026-04-27':'예정'}
+            },
+            { id:'m4', title:'분기 KPI 점검', date:'2026-04-15', allDay:false, startTime:'15:00', endTime:'16:30', color:'purple', category:'미팅', memo:'1Q 결과 리뷰',
+              leaders:[ { name:'지점장' }, { name:'매니저A' }, { name:'본사 PM' } ]
+            },
+            { id:'m5', title:'리더 1:1 면담', date:'2026-04-17', allDay:false, startTime:'16:00', endTime:'17:00', color:'purple', category:'미팅', memo:'개별 면담' },
+            // 상담 예약 (booking)
+            { id:'b1', title:'(영어)김유미 01012345678', date:'2026-04-08', allDay:false, startTime:'10:30', endTime:'11:00', color:'emerald', category:'상담 예약', memo:'', bookingStatus:'방문완' },
+            { id:'b2', title:'(일본어)정민호 01023456789', date:'2026-04-10', allDay:false, startTime:'14:00', endTime:'14:30', color:'emerald', category:'상담 예약', memo:'', bookingStatus:'방문완' },
+            { id:'b3', title:'(영어)박지은 01034567890', date:'2026-04-13', allDay:false, startTime:'11:00', endTime:'11:30', color:'emerald', category:'상담 예약', memo:'', bookingStatus:'방문완' },
+            { id:'b4', title:'(일본어)한가람 01045678901', date:'2026-04-16', allDay:false, startTime:'16:00', endTime:'16:30', color:'emerald', category:'상담 예약', memo:'', bookingStatus:'변경중' },
+            { id:'b5', title:'(영어)장수민 01056789012', date:'2026-04-20', allDay:false, startTime:'13:00', endTime:'13:30', color:'emerald', category:'상담 예약', memo:'', bookingStatus:'변경완' },
+            { id:'b6', title:'(일본어)윤도현 01067890123', date:'2026-04-22', allDay:false, startTime:'17:00', endTime:'17:30', color:'emerald', category:'상담 예약', memo:'', bookingStatus:'방문' },
+            { id:'b7', title:'(영어)강유진 01078901234', date:'2026-04-27', allDay:false, startTime:'10:00', endTime:'10:30', color:'emerald', category:'상담 예약', memo:'', bookingStatus:'불참' },
+            // 방문 결제
+            { id:'pay1', title:'방문 결제 - 김서현 (VVIP)', date:'2026-04-02', allDay:false, startTime:'11:00', endTime:'11:30', color:'amber', category:'방문 결제', memo:'1,040회 / 카드 결제', bookingStatus:'방문완' },
+            { id:'pay2', title:'방문 결제 - 정짜요 (A+)', date:'2026-04-08', allDay:false, startTime:'19:00', endTime:'19:30', color:'amber', category:'방문 결제', memo:'104회 / 현금', bookingStatus:'방문완' },
+            { id:'pay3', title:'방문 결제 - 박지훈 (H+)', date:'2026-04-14', allDay:false, startTime:'18:30', endTime:'19:00', color:'amber', category:'방문 결제', memo:'52회', bookingStatus:'변경완' },
+            { id:'pay4', title:'방문 결제 - 이서연 (VIP)', date:'2026-04-21', allDay:false, startTime:'14:00', endTime:'14:30', color:'amber', category:'방문 결제', memo:'520회 / 카드', bookingStatus:'방문' },
+            { id:'pay5', title:'방문 결제 - 최민준 (B)', date:'2026-04-25', allDay:false, startTime:'11:00', endTime:'11:30', color:'amber', category:'방문 결제', memo:'24회', bookingStatus:'방문' },
+            // 스터디 첫날
+            { id:'s1', title:'스터디 첫날 - 김서현', date:'2026-04-06', allDay:false, startTime:'19:00', endTime:'20:30', color:'pink', category:'스터디 첫날', memo:'리더 박선민', bookingStatus:'방문완' },
+            { id:'s2', title:'스터디 첫날 - 정짜요', date:'2026-04-08', allDay:false, startTime:'20:00', endTime:'21:30', color:'pink', category:'스터디 첫날', memo:'리더 정현우', bookingStatus:'방문완' },
+            { id:'s3', title:'스터디 첫날 - 박지훈', date:'2026-04-14', allDay:false, startTime:'11:00', endTime:'12:30', color:'pink', category:'스터디 첫날', memo:'리더 사이토 미오', bookingStatus:'변경완' },
+            { id:'s4', title:'스터디 첫날 - 한지원', date:'2026-04-23', allDay:false, startTime:'20:00', endTime:'21:30', color:'pink', category:'스터디 첫날', memo:'리더 김도윤', bookingStatus:'방문' },
+            { id:'s5', title:'스터디 첫날 - 강유진', date:'2026-04-29', allDay:false, startTime:'19:30', endTime:'21:00', color:'pink', category:'스터디 첫날', memo:'리더 박선민', bookingStatus:'방문' },
+            { id:'r5', title:'주간 리더 미팅', date:'2026-04-06', allDay:false, startTime:'10:00', endTime:'10:30', color:'amber', category:'회의', recurrence:'weekly', memo:'주차별 리더 점검',
+              leaders:[
+                { name:'박선민', role:'리더' }, { name:'정현우', role:'리더' },
+                { name:'사이토 미오', role:'리더' }, { name:'김도윤', role:'리더' }, { name:'최은서', role:'리더' },
+              ],
+              attendedLog:{'2026-04-06':'출석','2026-04-13':'출석','2026-04-20':'출석','2026-04-27':'예정'}
+            },
+            { id:'r6', title:'본사 운영 회의', date:'2026-04-03', allDay:false, startTime:'14:00', endTime:'15:00', color:'amber', category:'회의', recurrence:'weekly', memo:'금요일 정기',
+              leaders:[ { name:'지점장' }, { name:'매니저' } ],
+              attendedLog:{'2026-04-03':'출석','2026-04-10':'출석','2026-04-17':'출석','2026-04-24':'예정'}
+            },
+            { id:'r7', title:'멤버십 결제 마감일', date:'2026-04-30', allDay:true, color:'red', category:'중요', recurrence:'monthly', memo:'월말 일괄 결제' },
+            // 신규등록
+            { id:'n1', title:'김서현 신규등록', date:'2026-04-01', allDay:false, startTime:'19:00', endTime:'20:00', color:'blue', category:'신규등록', memo:'010-1111-2222', bookingStatus:'방문완' },
+            { id:'n2', title:'정짜요 신규등록', date:'2026-04-01', allDay:false, startTime:'19:00', endTime:'20:00', color:'blue', category:'신규등록', memo:'010-2222-3333', bookingStatus:'방문완' },
+            { id:'n3', title:'박지훈 신규등록', date:'2026-04-07', allDay:false, startTime:'19:00', endTime:'19:30', color:'blue', category:'신규등록', memo:'010-3333-4444', bookingStatus:'방문완' },
+            { id:'n4', title:'이서연 신규등록', date:'2026-04-09', allDay:false, startTime:'18:00', endTime:'18:30', color:'blue', category:'신규등록', memo:'010-4444-5555', bookingStatus:'불참' },
+            { id:'n5', title:'최민준 신규등록', date:'2026-04-14', allDay:false, startTime:'19:30', endTime:'20:00', color:'blue', category:'신규등록', memo:'010-5555-6666', bookingStatus:'변경완' },
+            { id:'n6', title:'한지원 신규등록', date:'2026-04-21', allDay:false, startTime:'19:00', endTime:'19:30', color:'blue', category:'신규등록', memo:'010-6666-7777', bookingStatus:'변경중' },
+            { id:'n7', title:'윤도현 신규등록', date:'2026-04-23', allDay:false, startTime:'18:30', endTime:'19:00', color:'blue', category:'신규등록', memo:'010-7777-8888', bookingStatus:'방문' },
+            { id:'n8', title:'강유진 신규등록', date:'2026-04-28', allDay:false, startTime:'19:00', endTime:'19:30', color:'blue', category:'신규등록', memo:'010-8888-9999', bookingStatus:'방문' },
+            // 상담
+            { id:'c1', title:'전화 상담 2건', date:'2026-04-06', allDay:false, startTime:'15:00', endTime:'16:00', color:'emerald', category:'상담', memo:'', bookingStatus:'방문완' },
+            { id:'c2', title:'학부모 상담 - 김유미', date:'2026-04-08', allDay:false, startTime:'10:30', endTime:'11:00', color:'emerald', category:'상담', memo:'', bookingStatus:'방문완' },
+            { id:'c3', title:'멤버 상담 - 정민호', date:'2026-04-10', allDay:false, startTime:'14:00', endTime:'14:30', color:'emerald', category:'상담', memo:'', bookingStatus:'방문완' },
+            { id:'c4', title:'레벨업 상담 5건', date:'2026-04-13', allDay:false, startTime:'13:00', endTime:'15:00', color:'emerald', category:'상담', memo:'', bookingStatus:'변경완' },
+            { id:'c6', title:'재등록 상담 - 한가람', date:'2026-04-22', allDay:false, startTime:'11:00', endTime:'11:30', color:'slate', category:'재등록', memo:'' },
+            { id:'c7', title:'전화 상담 3건', date:'2026-04-27', allDay:false, startTime:'15:00', endTime:'16:30', color:'emerald', category:'상담', memo:'', bookingStatus:'방문' },
+            // 행사
+            { id:'e1', title:'리더 간담회 회식', date:'2026-04-03', allDay:false, startTime:'19:30', endTime:'21:30', color:'orange', category:'행사', memo:'' },
+            { id:'e2', title:'4월 신규 OT', date:'2026-04-04', allDay:false, startTime:'14:00', endTime:'16:00', color:'orange', category:'행사', memo:'신규 멤버 6명' },
+            { id:'e3', title:'봄 단체 모임', date:'2026-04-11', allDay:false, startTime:'18:00', endTime:'21:00', color:'orange', category:'행사', memo:'전체 멤버 대상' },
+            { id:'e4', title:'봄 워크샵', date:'2026-04-18', allDay:true, color:'orange', category:'행사', memo:'당일치기' },
+            { id:'e5', title:'레벨 평가 시험', date:'2026-04-25', allDay:false, startTime:'10:00', endTime:'13:00', color:'orange', category:'행사', memo:'' },
+            // 개인/기타
+            { id:'p1', title:'장비 점검 (Wi-Fi)', date:'2026-04-05', allDay:false, startTime:'09:00', endTime:'10:00', color:'slate', category:'기타', memo:'' },
+            { id:'p2', title:'본사 출장', date:'2026-04-15', allDay:true, color:'pink', category:'개인', memo:'본사 방문' },
+            { id:'p3', title:'분기 정산 마감', date:'2026-04-29', allDay:false, startTime:'17:00', endTime:'18:00', color:'amber', category:'중요', memo:'' },
+            { id:'p4', title:'학부모 OT 자료 준비', date:'2026-04-12', allDay:false, startTime:'09:00', endTime:'11:00', color:'slate', category:'준비', memo:'' },
+            { id:'p5', title:'레벨업 인증서 출력', date:'2026-04-17', allDay:false, startTime:'13:00', endTime:'14:00', color:'pink', category:'기타', memo:'' },
+            { id:'p6', title:'생일 - 박선민 리더', date:'2026-04-19', allDay:true, color:'pink', category:'개인', memo:'' },
+            { id:'p7', title:'멤버십 갱신 안내 SMS 발송', date:'2026-04-20', allDay:false, startTime:'10:00', endTime:'10:30', color:'amber', category:'중요', memo:'' },
+            { id:'p8', title:'리더 교육 영상 시청', date:'2026-04-24', allDay:false, startTime:'15:00', endTime:'17:00', color:'slate', category:'교육', memo:'' },
+        ];
+        saveEvents();
+    }
+    function saveEvents() {
+        try { localStorage.setItem(CAL_LS_KEY, JSON.stringify(calEvents)); } catch (e) {}
+    }
+
+    function fmtDate(y, m, d) {
+        return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    }
+    function isSameYMD(d, y, m, day) {
+        return d.getFullYear()===y && d.getMonth()===m && d.getDate()===day;
+    }
+
+    // 반복 일정을 해당 날짜에 적용되는지 확인
+    function eventOccursOn(ev, y, m, d) {
+        const target = new Date(y, m, d);
+        const base = new Date(ev.date + 'T00:00:00');
+        if (target < base) return false;
+        const rec = ev.recurrence || 'none';
+        if (rec === 'none') return ev.date === fmtDate(y, m, d);
+        if (rec === 'daily') return true;
+        if (rec === 'weekly') return target.getDay() === base.getDay();
+        if (rec === 'weekdays') { const dow = target.getDay(); return dow >= 1 && dow <= 5; }
+        if (rec === 'monthly') return target.getDate() === base.getDate();
+        if (rec === 'yearly') return target.getMonth() === base.getMonth() && target.getDate() === base.getDate();
+        if (rec === 'custom') {
+            const cr = ev.customRule || { freq:'week', interval:1, weekdays:[base.getDay()] };
+            const interval = Math.max(1, parseInt(cr.interval, 10) || 1);
+            if (cr.freq === 'day') {
+                const days = Math.round((target - base) / 86400000);
+                return days >= 0 && days % interval === 0;
+            }
+            if (cr.freq === 'week') {
+                const wds = (cr.weekdays && cr.weekdays.length) ? cr.weekdays : [base.getDay()];
+                if (!wds.includes(target.getDay())) return false;
+                // weeks since base week (using Sunday as week start)
+                const baseWeekStart = new Date(base); baseWeekStart.setDate(base.getDate() - base.getDay()); baseWeekStart.setHours(0,0,0,0);
+                const targetWeekStart = new Date(target); targetWeekStart.setDate(target.getDate() - target.getDay()); targetWeekStart.setHours(0,0,0,0);
+                const weeks = Math.round((targetWeekStart - baseWeekStart) / (86400000 * 7));
+                return weeks >= 0 && weeks % interval === 0;
+            }
+            if (cr.freq === 'month') {
+                if (target.getDate() !== base.getDate()) return false;
+                const months = (target.getFullYear() - base.getFullYear()) * 12 + (target.getMonth() - base.getMonth());
+                return months >= 0 && months % interval === 0;
+            }
+            if (cr.freq === 'year') {
+                if (target.getMonth() !== base.getMonth() || target.getDate() !== base.getDate()) return false;
+                const years = target.getFullYear() - base.getFullYear();
+                return years >= 0 && years % interval === 0;
+            }
+        }
+        return false;
+    }
+    function eventsForDay(y, m, d) {
+        const ds = fmtDate(y, m, d);
+        const list = [];
+        calEvents.forEach(ev => {
+            if (eventOccursOn(ev, y, m, d)) {
+                list.push({ ...ev, _occursOn: ds });
+            }
+        });
+        return list.sort((a,b) => {
+            if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
+            return (a.startTime||'').localeCompare(b.startTime||'');
+        });
+    }
+    const RECUR_LABEL = { none:'', daily:'매일', weekly:'매주', weekdays:'평일', monthly:'매월', yearly:'매년' };
+
+    function renderCalendar() {
+        const titleEl = document.getElementById('cal-title');
+        const grid = document.getElementById('cal-grid');
+        if (!titleEl || !grid) return;
+        const y = calState.year, m = calState.month;
+        titleEl.textContent = `${y}년 ${m+1}월`;
+        const startDow = new Date(y, m, 1).getDay();
+        const daysInMonth = new Date(y, m+1, 0).getDate();
+        const prevDays = new Date(y, m, 0).getDate();
+        const totalCells = Math.ceil((startDow + daysInMonth) / 7) * 7;
+        const today = calState.today;
+
+        const cells = [];
+        for (let i=0; i<totalCells; i++) {
+            let cy=y, cm=m, cd, other=false;
+            if (i < startDow) { cd = prevDays - startDow + 1 + i; cm = m-1; if (cm<0){cm=11;cy=y-1;} other=true; }
+            else if (i >= startDow + daysInMonth) { cd = i - startDow - daysInMonth + 1; cm = m+1; if (cm>11){cm=0;cy=y+1;} other=true; }
+            else { cd = i - startDow + 1; }
+            const ds = fmtDate(cy, cm, cd);
+            const isToday = isSameYMD(today, cy, cm, cd);
+            const dow = new Date(cy, cm, cd).getDay();
+            const holiday = KR_HOLIDAYS[ds];
+            const dowClass = dow===0 ? 'dow-sun' : dow===6 ? 'dow-sat' : '';
+            const holidayNumClass = holiday ? 'is-holiday-num' : '';
+
+            const dayEvents = eventsForDay(cy, cm, cd);
+            const visible = dayEvents.slice(0, 3);
+            const more = dayEvents.length - visible.length;
+
+            const chipsHtml = visible.map(ev => {
+                const recurMark = ev.recurrence && ev.recurrence !== 'none' ? `<span class="cal-chip-recur">↻</span>` : '';
+                const bookingBadge = (isBookingEvent(ev) && ev.bookingStatus) ? `<span class="cal-chip-badge" style="background:${BOOKING_COLOR[ev.bookingStatus]}">${ev.bookingStatus}</span>` : '';
+                if (ev.allDay) {
+                    return `<button class="cal-chip cal-chip-allday cal-color-${ev.color}" onclick="event.stopPropagation();showEventDetail('${ev.id}', event)" title="${escapeHtml(ev.title)}"><span class="cal-chip-title">${escapeHtml(ev.title)}</span>${bookingBadge}${recurMark}</button>`;
+                }
+                const time = (ev.startTime||'').replace(/^0/,'');
+                if (isStatsEvent(ev)) {
+                    return `<button class="cal-chip cal-chip-consult" onclick="event.stopPropagation();showEventDetail('${ev.id}', event)" title="${escapeHtml(ev.title)}"><i class="ph-bold ph-chats-circle cal-chip-icon"></i><span class="cal-chip-time">${time}</span><span class="cal-chip-title">${escapeHtml(ev.title)}</span>${bookingBadge}${recurMark}</button>`;
+                }
+                return `<button class="cal-chip" onclick="event.stopPropagation();showEventDetail('${ev.id}', event)" title="${escapeHtml(ev.title)}"><span class="cal-chip-dot cal-dot-${ev.color}"></span><span class="cal-chip-time">${time}</span><span class="cal-chip-title">${escapeHtml(ev.title)}</span>${bookingBadge}${recurMark}</button>`;
+            }).join('');
+            const moreHtml = more > 0 ? `<div class="cal-more-btn" onclick="event.stopPropagation();showMorePopover(event,'${ds}')">+${more}개 더보기</div>` : '';
+            const holidayTagHtml = holiday ? `<span class="cal-holiday-tag" title="공휴일">${escapeHtml(holiday)}</span>` : '';
+
+            cells.push(`
+                <div class="cal-day ${other?'is-other-month':''} ${isToday?'is-today':''} ${holiday?'is-holiday':''}" onclick="openEventModalForDate('${ds}')">
+                    <div class="flex items-center justify-between">
+                        <span class="cal-daynum ${dowClass} ${holidayNumClass}">${cd}</span>
+                        ${holidayTagHtml}
+                    </div>
+                    <span class="cal-add-hover"><i class="ph-bold ph-plus" style="font-size:10px"></i></span>
+                    <div class="cal-events">${chipsHtml}${moreHtml}</div>
+                </div>
+            `);
+        }
+        grid.innerHTML = cells.join('');
+    }
+
+    function escapeHtml(s) {
+        return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    /* ----- Event Modal ----- */
+    function openEventModalForDate(ds) {
+        calState.editingId = null;
+        document.getElementById('evt-title-h').textContent = '일정 추가';
+        document.getElementById('evt-delete-btn').classList.add('hidden');
+        document.getElementById('evt-f-title').value = '';
+        document.getElementById('evt-f-date').value = ds;
+        document.getElementById('evt-f-allday').checked = false;
+        document.getElementById('evt-f-start').value = '14:00';
+        document.getElementById('evt-f-end').value = '15:00';
+        document.getElementById('evt-f-cat').value = '';
+        document.getElementById('evt-f-memo').value = '';
+        document.getElementById('evt-f-recur').value = 'none';
+        document.getElementById('evt-f-custom-interval').value = 1;
+        document.getElementById('evt-f-custom-freq').value = 'week';
+        const baseDow = ds ? new Date(ds + 'T00:00:00').getDay() : 1;
+        setCustomWeekdays([baseDow]);
+        setColorSelection('blue');
+        toggleAllDayUI();
+        updateRecurHint();
+        showEventModal();
+    }
+    function openEventModal(id) {
+        const ev = calEvents.find(e => e.id === id);
+        if (!ev) return;
+        calState.editingId = id;
+        document.getElementById('evt-title-h').textContent = '일정 편집';
+        document.getElementById('evt-delete-btn').classList.remove('hidden');
+        document.getElementById('evt-f-title').value = ev.title || '';
+        document.getElementById('evt-f-date').value = ev.date;
+        document.getElementById('evt-f-allday').checked = !!ev.allDay;
+        document.getElementById('evt-f-start').value = ev.startTime || '14:00';
+        document.getElementById('evt-f-end').value = ev.endTime || '15:00';
+        document.getElementById('evt-f-cat').value = ev.category || '';
+        document.getElementById('evt-f-memo').value = ev.memo || '';
+        document.getElementById('evt-f-recur').value = ev.recurrence || 'none';
+        const cr = ev.customRule || {};
+        document.getElementById('evt-f-custom-interval').value = cr.interval || 1;
+        document.getElementById('evt-f-custom-freq').value = cr.freq || 'week';
+        const baseDow = ev.date ? new Date(ev.date + 'T00:00:00').getDay() : 1;
+        setCustomWeekdays(cr.weekdays && cr.weekdays.length ? cr.weekdays : [baseDow]);
+        setColorSelection(ev.color || 'blue');
+        toggleAllDayUI();
+        updateRecurHint();
+        showEventModal();
+    }
+    const DOW_KO = ['일','월','화','수','목','금','토'];
+    function updateRecurHint() {
+        const rec = document.getElementById('evt-f-recur').value;
+        const dateStr = document.getElementById('evt-f-date').value;
+        const hint = document.getElementById('evt-f-recur-hint');
+        const customRow = document.getElementById('evt-f-custom-row');
+        const wdWrap = document.getElementById('evt-f-custom-weekdays-wrap');
+        if (!hint) return;
+        customRow.classList.toggle('hidden', rec !== 'custom');
+        if (rec === 'custom') {
+            const freq = document.getElementById('evt-f-custom-freq').value;
+            wdWrap.classList.toggle('hidden', freq !== 'week');
+            hint.textContent = describeCustomRecurrence();
+            return;
+        }
+        if (rec === 'none' || !dateStr) { hint.textContent = ''; return; }
+        const d = new Date(dateStr + 'T00:00:00');
+        const labels = {
+            daily: '매일 반복',
+            weekly: `매주 ${DOW_KO[d.getDay()]}요일`,
+            weekdays: '월~금 평일 매일',
+            monthly: `매월 ${d.getDate()}일`,
+            yearly: `매년 ${d.getMonth()+1}월 ${d.getDate()}일`
+        };
+        hint.textContent = labels[rec] || '';
+    }
+    function describeCustomRecurrence() {
+        const interval = Math.max(1, parseInt(document.getElementById('evt-f-custom-interval').value, 10) || 1);
+        const freq = document.getElementById('evt-f-custom-freq').value;
+        const unit = { day:'일', week:'주', month:'개월', year:'년' }[freq];
+        let s = `매 ${interval}${unit}마다`;
+        if (freq === 'week') {
+            const wds = getCustomWeekdays();
+            if (wds.length) s += ' ' + wds.sort().map(n => DOW_KO[n]).join(',') + '요일';
+        }
+        return s;
+    }
+    function getCustomWeekdays() {
+        return Array.from(document.querySelectorAll('#evt-f-custom-weekdays .wd-btn.selected')).map(b => parseInt(b.dataset.dow, 10));
+    }
+    function setCustomWeekdays(arr) {
+        document.querySelectorAll('#evt-f-custom-weekdays .wd-btn').forEach(b => {
+            b.classList.toggle('selected', arr.includes(parseInt(b.dataset.dow, 10)));
+        });
+    }
+    function buildCustomWeekdayButtons() {
+        const wrap = document.getElementById('evt-f-custom-weekdays');
+        if (!wrap || wrap.dataset.built) return;
+        wrap.dataset.built = '1';
+        wrap.innerHTML = DOW_KO.map((label, i) => `<button type="button" class="wd-btn" data-dow="${i}">${label}</button>`).join('');
+        wrap.querySelectorAll('.wd-btn').forEach(b => {
+            b.addEventListener('click', () => {
+                b.classList.toggle('selected');
+                updateRecurHint();
+            });
+        });
+    }
+    function showEventModal() {
+        const ov = document.getElementById('evt-overlay'), md = document.getElementById('evt-modal');
+        ov.classList.remove('hidden'); md.classList.remove('hidden');
+        setTimeout(() => { ov.classList.remove('opacity-0'); md.classList.remove('opacity-0','scale-95'); }, 10);
+        hideDayPopover(); hideYmPicker();
+    }
+    window.closeEventModal = function() {
+        const ov = document.getElementById('evt-overlay'), md = document.getElementById('evt-modal');
+        ov.classList.add('opacity-0'); md.classList.add('opacity-0','scale-95');
+        setTimeout(() => { ov.classList.add('hidden'); md.classList.add('hidden'); }, 200);
+    };
+    function toggleAllDayUI() {
+        const allDay = document.getElementById('evt-f-allday').checked;
+        document.getElementById('evt-time-row').style.display = allDay ? 'none' : 'grid';
+    }
+    function setColorSelection(color) {
+        document.querySelectorAll('#evt-f-colors .cal-color-dot').forEach(d => {
+            d.classList.toggle('selected', d.dataset.color === color);
+        });
+    }
+    function getSelectedColor() {
+        const sel = document.querySelector('#evt-f-colors .cal-color-dot.selected');
+        return sel ? sel.dataset.color : 'blue';
+    }
+    window.saveEvent = function() {
+        const title = document.getElementById('evt-f-title').value.trim();
+        const date = document.getElementById('evt-f-date').value;
+        if (!title) { calToast('제목을 입력하세요'); return; }
+        if (!date) { calToast('날짜를 선택하세요'); return; }
+        const allDay = document.getElementById('evt-f-allday').checked;
+        const startTime = document.getElementById('evt-f-start').value;
+        const endTime = document.getElementById('evt-f-end').value;
+        const color = getSelectedColor();
+        const category = document.getElementById('evt-f-cat').value.trim();
+        const memo = document.getElementById('evt-f-memo').value.trim();
+        const recurrence = document.getElementById('evt-f-recur').value;
+        let customRule = null;
+        if (recurrence === 'custom') {
+            customRule = {
+                interval: Math.max(1, parseInt(document.getElementById('evt-f-custom-interval').value, 10) || 1),
+                freq: document.getElementById('evt-f-custom-freq').value,
+                weekdays: getCustomWeekdays(),
+            };
+            if (customRule.freq === 'week' && customRule.weekdays.length === 0) {
+                calToast('요일을 1개 이상 선택하세요'); return;
+            }
+        }
+
+        if (calState.editingId) {
+            const idx = calEvents.findIndex(e => e.id === calState.editingId);
+            if (idx >= 0) calEvents[idx] = { ...calEvents[idx], title, date, allDay, startTime, endTime, color, category, memo, recurrence, customRule };
+        } else {
+            calEvents.push({ id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2,7), title, date, allDay, startTime, endTime, color, category, memo, recurrence, customRule });
+        }
+        saveEvents();
+        const [y,m] = date.split('-').map(Number);
+        calState.year = y; calState.month = m-1;
+        renderCalendar();
+        closeEventModal();
+        calToast(calState.editingId ? '저장됨' : '일정 추가됨');
+    };
+    window.deleteEvent = function() {
+        if (!calState.editingId) return;
+        if (!confirm('이 일정을 삭제할까요?')) return;
+        calEvents = calEvents.filter(e => e.id !== calState.editingId);
+        saveEvents(); renderCalendar(); closeEventModal();
+        calToast('삭제됨');
+    };
+
+    function calToast(msg) {
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-[9999] transition-opacity duration-300';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity='0'; setTimeout(() => toast.remove(), 300); }, 1500);
+    }
+
+    /* ----- More popover ----- */
+    function showMorePopover(e, ds) {
+        const pop = document.getElementById('cal-day-popover');
+        const [yy,mm,dd] = ds.split('-').map(Number);
+        const list = eventsForDay(yy, mm-1, dd);
+        const dt = new Date(ds + 'T00:00:00');
+        const dows = ['일','월','화','수','목','금','토'];
+        const holiday = KR_HOLIDAYS[ds];
+        pop.innerHTML = `
+            <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                <div>
+                    <div class="text-base font-extrabold text-slate-800">${dt.getMonth()+1}월 ${dt.getDate()}일 (${dows[dt.getDay()]})</div>
+                    ${holiday?`<div class="text-[11px] font-bold text-red-500 mt-0.5">🇰🇷 ${escapeHtml(holiday)}</div>`:''}
+                </div>
+                <button class="text-slate-400 hover:text-slate-600" onclick="event.stopPropagation();hideDayPopover()"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <div class="flex flex-col gap-1 max-h-[260px] overflow-y-auto">
+                ${list.map(ev => {
+                    const recurMark = ev.recurrence && ev.recurrence !== 'none' ? `<span class="cal-chip-recur">↻</span>` : '';
+                    if (ev.allDay) {
+                        return `<button class="cal-chip cal-chip-allday cal-color-${ev.color}" onclick="event.stopPropagation();hideDayPopover();openEventModal('${ev.id}')"><span class="cal-chip-title">${escapeHtml(ev.title)}</span>${recurMark}</button>`;
+                    }
+                    const time = (ev.startTime||'').replace(/^0/,'');
+                    return `<button class="cal-chip" onclick="event.stopPropagation();hideDayPopover();openEventModal('${ev.id}')"><span class="cal-chip-dot cal-dot-${ev.color}"></span><span class="cal-chip-time">${time}</span><span class="cal-chip-title">${escapeHtml(ev.title)}</span>${recurMark}</button>`;
+                }).join('')}
+            </div>
+            <button class="mt-2 w-full text-xs font-bold text-brand-600 hover:bg-brand-50 py-2 rounded-lg flex items-center justify-center gap-1" onclick="event.stopPropagation();hideDayPopover();openEventModalForDate('${ds}')"><i class="ph-bold ph-plus"></i> 새 일정 추가</button>
+        `;
+        const cell = e.target.closest('.cal-day') || e.target;
+        const cellRect = cell.getBoundingClientRect();
+        pop.style.position = 'fixed';
+        pop.classList.remove('hidden');
+        const popW = pop.offsetWidth || 260;
+        const popH = pop.offsetHeight || 220;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let left = cellRect.left + (cellRect.width - popW) / 2;
+        left = Math.max(8, Math.min(left, vw - popW - 8));
+        let top = cellRect.bottom + 4;
+        if (top + popH > vh - 8) {
+            top = cellRect.top - popH - 4;
+            if (top < 8) top = 8;
+        }
+        pop.style.left = left + 'px';
+        pop.style.top = top + 'px';
+    }
+    function hideDayPopover() { document.getElementById('cal-day-popover').classList.add('hidden'); }
+
+    /* ----- Event detail popover ----- */
+    window.showEventDetail = function(id, e) {
+        const ev = calEvents.find(x => x.id === id);
+        if (!ev) return;
+        hideDayPopover(); hideYmPicker(); hideEventDetail();
+        const pop = document.getElementById('cal-event-popover');
+        const dows = ['일','월','화','수','목','금','토'];
+        const occursDate = e && e.target && e.target.closest('.cal-day') ? e.target.closest('.cal-day').getAttribute('data-date') : ev.date;
+        const dateStr = occursDate || ev.date;
+        const d = new Date(dateStr + 'T00:00:00');
+        const dateLabel = `${d.getMonth()+1}월 ${d.getDate()}일 (${dows[d.getDay()]})`;
+        const timeLabel = ev.allDay ? '종일' : `${ev.startTime || ''} – ${ev.endTime || ''}`;
+        const recurLabel = ev.recurrence && ev.recurrence !== 'none' ? recurrenceText(ev) : '';
+        pop.innerHTML = `
+            <div class="ev-pop-header">
+                <button class="ev-pop-iconbtn" title="수정" onclick="event.stopPropagation();hideEventDetail();openEventModal('${ev.id}')"><i class="ph-bold ph-pencil-simple"></i></button>
+                <button class="ev-pop-iconbtn" title="복제" onclick="event.stopPropagation();duplicateEvent('${ev.id}')"><i class="ph-bold ph-copy"></i></button>
+                <button class="ev-pop-iconbtn danger" title="삭제" onclick="event.stopPropagation();confirmDeleteEvent('${ev.id}')"><i class="ph-bold ph-trash"></i></button>
+                <button class="ev-pop-iconbtn" title="닫기" onclick="event.stopPropagation();hideEventDetail()"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <div class="ev-pop-body">
+                <div class="ev-pop-title-row">
+                    <div class="ev-pop-color" style="background:${CAL_COLOR_HEX[ev.color] || CAL_COLOR_HEX.blue}"></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="ev-pop-title">${escapeHtml(ev.title)}</div>
+                        <div class="ev-pop-datetime">${dateLabel} · ${escapeHtml(timeLabel)}</div>
+                        ${recurLabel ? `<div class="ev-pop-datetime mt-1 text-[12px] text-slate-500"><i class="ph ph-arrows-clockwise text-[12px] mr-1"></i>${escapeHtml(recurLabel)}</div>` : ''}
+                    </div>
+                </div>
+                ${ev.category ? `<div class="ev-pop-row"><i class="ph ph-tag"></i><div>${escapeHtml(ev.category)}</div></div>` : ''}
+                ${renderBookingStatus(ev)}
+                ${renderAttendDays(ev)}
+                ${renderLeaders(ev)}
+                ${renderAttendLog(ev)}
+                ${ev.memo ? `<div class="ev-pop-row"><i class="ph ph-text-align-left"></i><div style="white-space:pre-wrap;word-break:break-word;">${escapeHtml(ev.memo)}</div></div>` : ''}
+            </div>
+        `;
+        // Position right next to the clicked chip
+        pop.style.position = 'fixed';
+        pop.classList.remove('hidden');
+        const popW = pop.offsetWidth || 340, popH = pop.offsetHeight || 220;
+        const target = (e && e.target && (e.target.closest('.cal-chip') || e.target.closest('.cal-day'))) || document.body;
+        const rect = target.getBoundingClientRect();
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const gap = 6;
+        let left = rect.right + gap;
+        let top = rect.top - 6;
+        if (left + popW > vw - 8) {
+            left = rect.left - popW - gap;
+            if (left < 8) {
+                left = Math.max(8, Math.min(rect.left, vw - popW - 8));
+                top = rect.bottom + gap;
+            }
+        }
+        if (top + popH > vh - 8) top = Math.max(8, vh - popH - 8);
+        if (top < 8) top = 8;
+        pop.style.left = left + 'px';
+        pop.style.top = top + 'px';
+    };
+    function hideEventDetail() { document.getElementById('cal-event-popover').classList.add('hidden'); }
+    function renderBookingStatus(ev) {
+        if (!isBookingEvent(ev)) return '';
+        const cur = ev.bookingStatus || '방문';
+        const btns = BOOKING_STATUSES.map(s => {
+            const active = s === cur;
+            const style = active ? `background:${BOOKING_COLOR[s]};color:#fff;border-color:${BOOKING_COLOR[s]}` : `color:${BOOKING_COLOR[s]};border-color:${BOOKING_COLOR[s]}40`;
+            return `<button class="px-2.5 py-1 text-[11px] font-bold rounded-full border ${active?'shadow-sm':'hover:bg-slate-50'}" style="${style}" onclick="event.stopPropagation();setBookingStatus('${ev.id}','${s}')">${s}</button>`;
+        }).join('');
+        return `<div class="ev-pop-row"><i class="ph ph-bookmark"></i><div><div class="text-slate-500 text-[12px] mb-1.5">예약 상태</div><div class="flex flex-wrap gap-1">${btns}</div></div></div>`;
+    }
+    window.setBookingStatus = function(id, status) {
+        const ev = calEvents.find(e => e.id === id); if (!ev) return;
+        ev.bookingStatus = status; saveEvents(); renderCalendar();
+        showEventDetail(id, { target: document.querySelector(`[onclick*="${id}"]`) || document.body });
+        calToast(`상태 → ${status}`);
+    };
+    function attendStatusColor(s) {
+        return ({ '출석':'#10b981', '대타':'#f59e0b', '불참':'#ef4444', '예정':'#94a3b8' })[s] || '#94a3b8';
+    }
+    function renderAttendDays(ev) {
+        // 반복 일정에서 참석한 요일 계산
+        const log = ev.attendedLog || {};
+        const dows = ['일','월','화','수','목','금','토'];
+        const set = new Set();
+        Object.keys(log).forEach(ds => {
+            if (log[ds] === '출석' || log[ds] === '대타') {
+                const d = new Date(ds + 'T00:00:00');
+                set.add(d.getDay());
+            }
+        });
+        if (!set.size) return '';
+        const labels = Array.from(set).sort().map(n => dows[n]).join(', ');
+        return `<div class="ev-pop-row"><i class="ph ph-calendar-check"></i><div><span class="text-slate-500 text-[12px] mr-1">참석 요일</span><span class="font-semibold">${labels}요일</span></div></div>`;
+    }
+    function renderLeaders(ev) {
+        if (!ev.leaders || !ev.leaders.length) return '';
+        const chips = ev.leaders.map(p => {
+            const initial = (p.name || '?').charAt(0);
+            const meta = [p.role, p.level].filter(Boolean).join(' · ');
+            return `<div class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 rounded-full pl-1 pr-2.5 py-1 transition cursor-default">
+                <span class="w-5 h-5 rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center">${escapeHtml(initial)}</span>
+                <span class="text-[12px] font-semibold text-slate-700">${escapeHtml(p.name)}</span>
+                ${meta ? `<span class="text-[10px] text-slate-500">${escapeHtml(meta)}</span>` : ''}
+            </div>`;
+        }).join('');
+        return `<div class="ev-pop-row"><i class="ph ph-users"></i><div><div class="text-slate-500 text-[12px] mb-1.5">참여 리더 · ${ev.leaders.length}명</div><div class="flex flex-wrap gap-1">${chips}</div></div></div>`;
+    }
+    function renderAttendLog(ev) {
+        const log = ev.attendedLog;
+        if (!log || !Object.keys(log).length) return '';
+        const entries = Object.entries(log).sort((a,b) => a[0].localeCompare(b[0]));
+        const counts = entries.reduce((acc,[,s]) => { acc[s]=(acc[s]||0)+1; return acc; }, {});
+        const total = entries.length;
+        const present = (counts['출석']||0) + (counts['대타']||0);
+        const summary = `${present}/${total}회 참석${counts['불참']?` · 불참 ${counts['불참']}`:''}${counts['예정']?` · 예정 ${counts['예정']}`:''}`;
+        const rows = entries.map(([ds, status]) => {
+            const d = new Date(ds + 'T00:00:00');
+            const dow = ['일','월','화','수','목','금','토'][d.getDay()];
+            const color = attendStatusColor(status);
+            return `<div class="flex items-center justify-between py-1 text-[12px]">
+                <span class="text-slate-600">${d.getMonth()+1}/${d.getDate()} (${dow})</span>
+                <span class="font-bold" style="color:${color}">● ${escapeHtml(status)}</span>
+            </div>`;
+        }).join('');
+        return `<div class="ev-pop-row"><i class="ph ph-clipboard-text"></i><div>
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-slate-500 text-[12px]">출석 기록</span>
+                <span class="text-[11px] font-semibold text-slate-700">${summary}</span>
+            </div>
+            <div class="bg-slate-50 rounded-lg px-3 py-1 divide-y divide-slate-200/70 max-h-[140px] overflow-y-auto">${rows}</div>
+        </div></div>`;
+    }
+    function recurrenceText(ev) {
+        const rec = ev.recurrence;
+        const d = new Date(ev.date + 'T00:00:00');
+        const dows = ['일','월','화','수','목','금','토'];
+        if (rec === 'daily') return '매일';
+        if (rec === 'weekly') return `매주 ${dows[d.getDay()]}요일`;
+        if (rec === 'weekdays') return '평일 매일 (월~금)';
+        if (rec === 'monthly') return `매월 ${d.getDate()}일`;
+        if (rec === 'yearly') return `매년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+        if (rec === 'custom' && ev.customRule) {
+            const cr = ev.customRule;
+            const unit = { day:'일', week:'주', month:'개월', year:'년' }[cr.freq] || '';
+            let s = `매 ${cr.interval || 1}${unit}마다`;
+            if (cr.freq === 'week' && cr.weekdays && cr.weekdays.length) {
+                s += ' ' + cr.weekdays.slice().sort().map(n => dows[n]).join(',') + '요일';
+            }
+            return s;
+        }
+        return '';
+    }
+    /* ----- Booking stats modal ----- */
+    function openStatsModal() {
+        const ov = document.getElementById('stats-overlay'), md = document.getElementById('stats-modal');
+        ov.classList.remove('hidden'); md.classList.remove('hidden');
+        setTimeout(() => { ov.classList.remove('opacity-0'); md.classList.remove('opacity-0','scale-95'); }, 10);
+        renderStats();
+    }
+    window.closeStatsModal = function() {
+        const ov = document.getElementById('stats-overlay'), md = document.getElementById('stats-modal');
+        ov.classList.add('opacity-0'); md.classList.add('opacity-0','scale-95');
+        setTimeout(() => { ov.classList.add('hidden'); md.classList.add('hidden'); }, 200);
+    };
+    function renderStats() {
+        const scope = document.getElementById('stats-scope').value;
+        const body = document.getElementById('stats-body');
+        const y = calState.year, m = calState.month;
+        const bookings = calEvents.filter(isStatsEvent).filter(ev => {
+            if (scope === 'all') return true;
+            return ev.date.startsWith(`${y}-${String(m+1).padStart(2,'0')}`);
+        });
+        const counts = { '방문':0,'방문완':0,'변경중':0,'변경완':0,'불참':0,'미지정':0 };
+        const byCategory = {};
+        bookings.forEach(ev => {
+            const s = ev.bookingStatus || '미지정';
+            counts[s] = (counts[s]||0) + 1;
+            const c = ev.category || '기타';
+            if (!byCategory[c]) byCategory[c] = { '방문':0,'방문완':0,'변경중':0,'변경완':0,'불참':0,'미지정':0, total:0 };
+            byCategory[c][s]++; byCategory[c].total++;
+        });
+        const total = bookings.length;
+        const completed = counts['방문완'];
+        const noshow = counts['불참'];
+        const completionRate = total ? Math.round(completed / total * 100) : 0;
+        const noShowRate = total ? Math.round(noshow / total * 100) : 0;
+        const scopeLabel = scope === 'all' ? '전체 기간' : `${y}년 ${m+1}월`;
+
+        const cardClass = 'bg-white border border-slate-200 rounded-xl p-3';
+        const summaryHtml = `
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="${cardClass}"><div class="text-[11px] text-slate-500 font-bold">총 예약</div><div class="text-2xl font-extrabold text-slate-800 mt-0.5">${total}</div></div>
+                <div class="${cardClass}"><div class="text-[11px] text-slate-500 font-bold">방문 완료</div><div class="text-2xl font-extrabold text-emerald-600 mt-0.5">${completed}</div><div class="text-[10px] text-slate-400 mt-0.5">${completionRate}%</div></div>
+                <div class="${cardClass}"><div class="text-[11px] text-slate-500 font-bold">불참</div><div class="text-2xl font-extrabold text-red-500 mt-0.5">${noshow}</div><div class="text-[10px] text-slate-400 mt-0.5">${noShowRate}%</div></div>
+                <div class="${cardClass}"><div class="text-[11px] text-slate-500 font-bold">변경중</div><div class="text-2xl font-extrabold text-amber-500 mt-0.5">${counts['변경중']}</div></div>
+            </div>
+        `;
+        const barRow = (label, n, color) => {
+            const pct = total ? (n/total*100) : 0;
+            return `<div class="flex items-center gap-2">
+                <span class="text-[12px] font-bold w-14 shrink-0" style="color:${color}">${label}</span>
+                <div class="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-full" style="width:${pct}%;background:${color}"></div></div>
+                <span class="text-[12px] font-bold text-slate-700 w-12 text-right shrink-0">${n}건</span>
+            </div>`;
+        };
+        const barsHtml = `
+            <div>
+                <div class="text-xs font-bold text-slate-600 mb-2">상태별 분포 — ${scopeLabel}</div>
+                <div class="space-y-1.5">
+                    ${BOOKING_STATUSES.map(s => barRow(s, counts[s]||0, BOOKING_COLOR[s])).join('')}
+                    ${counts['미지정'] ? barRow('미지정', counts['미지정'], '#94a3b8') : ''}
+                </div>
+            </div>
+        `;
+        // Per-category table
+        const cats = Object.keys(byCategory);
+        const tableHtml = cats.length ? `
+            <div>
+                <div class="text-xs font-bold text-slate-600 mb-2">카테고리별</div>
+                <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <table class="w-full text-[12px]">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="text-left px-3 py-2 font-bold text-slate-600">카테고리</th>
+                                ${BOOKING_STATUSES.map(s => `<th class="text-right px-2 py-2 font-bold" style="color:${BOOKING_COLOR[s]}">${s}</th>`).join('')}
+                                <th class="text-right px-3 py-2 font-bold text-slate-700">합계</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cats.map(c => `<tr class="border-t border-slate-100">
+                                <td class="px-3 py-2 font-semibold text-slate-700">${escapeHtml(c)}</td>
+                                ${BOOKING_STATUSES.map(s => `<td class="px-2 py-2 text-right text-slate-600">${byCategory[c][s]||0}</td>`).join('')}
+                                <td class="px-3 py-2 text-right font-bold text-slate-800">${byCategory[c].total}</td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        ` : '';
+        // Recent list
+        const recent = bookings.slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0, 8);
+        const recentHtml = recent.length ? `
+            <div>
+                <div class="text-xs font-bold text-slate-600 mb-2">최근 예약</div>
+                <div class="space-y-1 bg-slate-50 rounded-lg p-2 max-h-[180px] overflow-y-auto">
+                    ${recent.map(ev => `<div class="flex items-center justify-between bg-white rounded-md px-3 py-2 text-[12px]">
+                        <div class="flex items-center gap-2 min-w-0"><span class="text-slate-500 shrink-0">${ev.date.slice(5).replace('-','/')}</span><span class="font-semibold text-slate-700 truncate">${escapeHtml(ev.title)}</span></div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full text-white shrink-0" style="background:${BOOKING_COLOR[ev.bookingStatus]||'#94a3b8'}">${escapeHtml(ev.bookingStatus||'미지정')}</span>
+                    </div>`).join('')}
+                </div>
+            </div>
+        ` : '<div class="text-center text-slate-400 text-sm py-6">예약 일정이 없습니다.</div>';
+        body.innerHTML = summaryHtml + barsHtml + tableHtml + recentHtml;
+    }
+
+    window.duplicateEvent = function(id) {
+        const src = calEvents.find(e => e.id === id);
+        if (!src) return;
+        const copy = JSON.parse(JSON.stringify(src));
+        copy.id = 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        copy.title = (src.title || '') + ' (복사)';
+        calEvents.push(copy);
+        saveEvents();
+        renderCalendar();
+        hideEventDetail();
+        calToast('복제됨 — 편집 창 열림');
+        openEventModal(copy.id);
+    };
+    window.confirmDeleteEvent = function(id) {
+        if (!confirm('이 일정을 삭제할까요?')) return;
+        calEvents = calEvents.filter(e => e.id !== id);
+        saveEvents(); renderCalendar(); hideEventDetail();
+        calToast('삭제됨');
+    };
+
+    /* ----- Year/Month picker ----- */
+    let ympYear = 2026;
+    function showYmPicker() {
+        ympYear = calState.year;
+        renderYmPicker();
+        document.getElementById('cal-ympicker').classList.remove('hidden');
+    }
+    function hideYmPicker() { document.getElementById('cal-ympicker').classList.add('hidden'); }
+    function renderYmPicker() {
+        document.getElementById('ymp-year-label').textContent = ympYear + '년';
+        const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+        document.getElementById('ymp-months').innerHTML = months.map((mn, i) => {
+            const sel = (ympYear===calState.year && i===calState.month) ? 'selected' : '';
+            return `<div class="cal-monthcell ${sel}" data-m="${i}">${mn}</div>`;
+        }).join('');
+        document.querySelectorAll('#ymp-months .cal-monthcell').forEach(el => {
+            el.onclick = () => {
+                calState.year = ympYear;
+                calState.month = parseInt(el.dataset.m, 10);
+                hideYmPicker();
+                renderCalendar();
+            };
+        });
+    }
+
+    /* ----- Wire up ----- */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadEvents();
+        // Build color dots
+        const colWrap = document.getElementById('evt-f-colors');
+        if (colWrap) {
+            colWrap.innerHTML = CAL_COLORS.map(c => `<div class="cal-color-dot" data-color="${c}" style="background:${CAL_COLOR_HEX[c]}"></div>`).join('');
+            colWrap.querySelectorAll('.cal-color-dot').forEach(dot => {
+                dot.addEventListener('click', () => setColorSelection(dot.dataset.color));
+            });
+        }
+        document.getElementById('evt-f-allday')?.addEventListener('change', toggleAllDayUI);
+        document.getElementById('evt-f-recur')?.addEventListener('change', updateRecurHint);
+        document.getElementById('evt-f-date')?.addEventListener('change', updateRecurHint);
+        buildCustomWeekdayButtons();
+        document.getElementById('evt-f-custom-interval')?.addEventListener('input', updateRecurHint);
+        document.getElementById('evt-f-custom-freq')?.addEventListener('change', updateRecurHint);
+        document.querySelectorAll('.evt-cat-btn').forEach(b => {
+            b.addEventListener('click', () => {
+                document.getElementById('evt-f-cat').value = b.dataset.cat;
+                setColorSelection(b.dataset.color);
+            });
+        });
+        document.getElementById('cal-prev')?.addEventListener('click', () => {
+            calState.month--; if (calState.month<0){calState.month=11; calState.year--;} renderCalendar();
+        });
+        document.getElementById('cal-next')?.addEventListener('click', () => {
+            calState.month++; if (calState.month>11){calState.month=0; calState.year++;} renderCalendar();
+        });
+        document.getElementById('cal-today')?.addEventListener('click', () => {
+            const t = new Date(); calState.year = t.getFullYear(); calState.month = t.getMonth(); renderCalendar();
+        });
+        document.getElementById('cal-stats-btn')?.addEventListener('click', openStatsModal);
+        document.getElementById('stats-scope')?.addEventListener('change', renderStats);
+        document.getElementById('cal-add-btn')?.addEventListener('click', () => {
+            const t = new Date();
+            const ds = fmtDate(calState.year, calState.month, isSameYMD(t, calState.year, calState.month, t.getDate()) ? t.getDate() : 1);
+            openEventModalForDate(ds);
+        });
+        document.getElementById('cal-title-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const ymp = document.getElementById('cal-ympicker');
+            if (ymp.classList.contains('hidden')) showYmPicker(); else hideYmPicker();
+        });
+        document.getElementById('ymp-year-prev')?.addEventListener('click', () => { ympYear--; renderYmPicker(); });
+        document.getElementById('ymp-year-next')?.addEventListener('click', () => { ympYear++; renderYmPicker(); });
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#cal-ympicker') && !e.target.closest('#cal-title-btn')) hideYmPicker();
+            if (!e.target.closest('#cal-day-popover') && !e.target.closest('.cal-day')) hideDayPopover();
+            if (!e.target.closest('#cal-event-popover') && !e.target.closest('.cal-chip')) hideEventDetail();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!document.getElementById('evt-modal').classList.contains('hidden')) closeEventModal();
+                hideYmPicker(); hideDayPopover(); hideEventDetail();
+            }
+        });
+        renderCalendar();
+    });
+
