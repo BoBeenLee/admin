@@ -1,0 +1,41 @@
+<!--
+    Shared side navigation drawer.
+    Loaded at runtime via js/shared/drawer.js into <div id="nav-slot"></div>.
+
+    Active link is set automatically by drawer.js based on window.location.pathname.
+    The hamburger button (#hamburger-btn) lives in each page's header (page chrome).
+-->
+<div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity cursor-pointer"></div>
+<div id="nav-drawer" class="fixed top-0 left-0 h-full w-full sm:w-72 bg-white shadow-2xl z-[70] transform -translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
+        <h2 class="text-lg font-bold flex items-center gap-2 text-slate-800">
+            <i class="ph-fill ph-squares-four text-brand-500 text-xl"></i> 메인 메뉴
+        </h2>
+        <button id="close-drawer-btn" class="p-2 text-slate-400 hover:bg-slate-200 rounded-full cursor-pointer transition">
+            <i class="ph ph-x"></i>
+        </button>
+    </div>
+    <nav class="p-4 space-y-1">
+        <a href="home.html" data-nav="home" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+            <i class="ph ph-calendar-blank text-lg"></i> 대시보드 캘린더 (홈)
+        </a>
+        <a href="member.html" data-nav="member" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+            <i class="ph ph-users-three text-lg"></i> 멤버 팀
+        </a>
+        <a href="leader.html" data-nav="leader" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+            <i class="ph ph-crown text-lg"></i> 리더 팀
+        </a>
+        <a href="stats.html" data-nav="stats" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+            <i class="ph ph-chart-bar text-lg"></i> 통계 및 리포트
+        </a>
+        <a href="call.html" data-nav="call" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+            <i class="ph ph-phone-call text-lg"></i> 신규 회신
+        </a>
+        <a href="branchstatus.html" data-nav="branchstatus" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+            <i class="ph ph-building-office text-lg"></i> Branch Status
+        </a>
+        <a href="workdeck.html" data-nav="workdeck" class="nav-item w-full flex items-center gap-3 px-3 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg font-medium transition-colors">
+            <i class="ph ph-clipboard-text text-lg"></i> Work Deck
+        </a>
+    </nav>
+</div>
