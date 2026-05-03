@@ -595,12 +595,16 @@
 
                 grid.innerHTML = html;
 
-                // Build level nav for matrix view
+                // Build level nav for matrix view — ONLY when matrix view is currently visible.
+                // applyFilters() creates buttons with a smart handler that picks targetId by
+                // active view; if we rebuild here while matrix is hidden we'd overwrite those
+                // with mx-only handlers that scroll to mx-level-section-* (table/card lose nav).
                 const mxLevelNav = document.getElementById('level-nav');
                 const mxLevelBtns = document.getElementById('level-nav-buttons');
                 const mxSortCheck = document.getElementById('sort-select')?.value || 'default';
                 const mxIsLevelSort = mxSortCheck === 'default' || mxSortCheck === 'level-asc' || mxSortCheck === 'level-desc';
-                if (mxLevelNav && mxLevelBtns && mxIsLevelSort && filtered.length > 0) {
+                const mxSectionVisible = !document.getElementById('view-matrix-section')?.classList.contains('hidden');
+                if (mxSectionVisible && mxLevelNav && mxLevelBtns && mxIsLevelSort && filtered.length > 0) {
                     mxLevelBtns.innerHTML = '';
                     mxLevelNav.classList.remove('hidden');
                     const _lvC = ['#94a3b8','#22c55e','#3b82f6','#a855f7','#f59e0b','#ef4444'];
@@ -615,17 +619,7 @@
                         const btn = document.createElement('button');
                         btn.className = 'flex-shrink-0 px-2.5 py-1 rounded-full bg-white text-slate-600 border border-slate-200 hover:border-brand-400 hover:text-brand-600 text-[11px] font-bold transition-all flex items-center gap-1.5 shadow-sm hover:shadow active:scale-95';
                         btn.innerHTML = `<span class="w-2 h-2 rounded-full" style="background:${_lvC[parseInt(lv)]||'#94a3b8'}"></span>LV ${lv} <span class="text-[9px] text-slate-400 font-normal">(${_lvG[lv]})</span>`;
-                        btn.onclick = () => {
-                            const t = document.getElementById(`mx-level-section-${lv}`);
-                            if (t) {
-                                const scroller = document.getElementById('mx-scroller');
-                                if (scroller) {
-                                    scroller.scrollTo({ top: t.offsetTop - 10, behavior: 'smooth' });
-                                } else {
-                                    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 150, behavior: 'smooth' });
-                                }
-                            }
-                        };
+                        btn.onclick = () => window.scrollToLeaderLevel?.(lv);
                         mxLevelBtns.appendChild(btn);
                     });
                 }
@@ -2804,6 +2798,31 @@
 
             const sortSelect = document.getElementById('sort-select');
 
+            // Unified level-nav scroll handler. Reads active view at click time, so the
+            // same button keeps working when the user toggles between table / card /
+            // matrix views without rebuilding the buttons.
+            window.scrollToLeaderLevel = function (lv) {
+                const isMatrix = !document.getElementById('view-matrix-section')?.classList.contains('hidden');
+                const isCard = !document.getElementById('view-card-section')?.classList.contains('hidden');
+                if (isMatrix) {
+                    const t = document.getElementById(`mx-level-section-${lv}`);
+                    if (!t) return;
+                    const scroller = document.getElementById('mx-scroller');
+                    if (scroller) {
+                        scroller.scrollTo({ top: t.offsetTop - 10, behavior: 'smooth' });
+                    } else {
+                        window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 150, behavior: 'smooth' });
+                    }
+                    return;
+                }
+                const targetId = isCard ? `level-section-card-${lv}` : `level-section-${lv}`;
+                const target = document.getElementById(targetId);
+                if (!target) return;
+                const headerOffset = 150;
+                const offsetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            };
+
             function applyFilters() {
                 const q = searchInput.value.trim().toLowerCase();
                 const target = searchTarget.value;
@@ -2949,22 +2968,7 @@
                         const btn = document.createElement('button');
                         btn.className = `flex-shrink-0 px-2.5 py-1 rounded-full bg-white text-slate-600 border border-slate-200 hover:border-brand-400 hover:text-brand-600 text-[11px] font-bold transition-all flex items-center gap-1.5 shadow-sm hover:shadow active:scale-95`;
                         btn.innerHTML = `<span class="w-2 h-2 rounded-full" style="background:${color}"></span>LV ${lv} <span class="text-[9px] text-slate-400 font-normal">(${count})</span>`;
-                        btn.onclick = () => {
-                            const isTable = !document.getElementById('view-list-section').classList.contains('hidden');
-                            const isCard = !document.getElementById('view-card-section').classList.contains('hidden');
-                            const isMatrix = !document.getElementById('view-matrix-section').classList.contains('hidden');
-                            let targetId;
-                            if (isMatrix) targetId = `mx-level-section-${lv}`;
-                            else if (isCard) targetId = `level-section-card-${lv}`;
-                            else targetId = `level-section-${lv}`;
-                            const target = document.getElementById(targetId);
-                            if (target) {
-                                const headerOffset = 150;
-                                const elementPosition = target.getBoundingClientRect().top;
-                                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                            }
-                        };
+                        btn.onclick = () => window.scrollToLeaderLevel?.(lv);
                         levelNavButtons.appendChild(btn);
                     });
 
